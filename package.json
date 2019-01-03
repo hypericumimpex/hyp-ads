@@ -1,0 +1,26 @@
+{
+  "name": "adning",
+  "version": "1.0.4",
+  "description": "Adning - Wordpress Advertising Manager",
+  "main": "webpack.config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "webpack --mode development",
+    "build": "webpack --mode production"
+  },
+  "keywords": [
+    "ads"
+  ],
+  "author": "Tunafish",
+  "license": "ISC",
+  "dependencies": {
+    "codemirror": "^5.41.0"
+  },
+  "devDependencies": {
+    "webpack": "^4.25.1",
+    "webpack-cli": "^3.1.2",
+    "mini-css-extract-plugin": "^0.4.4",
+    "css-loader": "^1.0.0",
+    "file-loader": "^2.0.0"
+  }
+}

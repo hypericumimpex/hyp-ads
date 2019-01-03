@@ -1,0 +1,1439 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Adning\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-12-21 15:14+0100\n"
+"PO-Revision-Date: 2018-12-21 15:15+0100\n"
+"Last-Translator: \n"
+"Language-Team: Tunafish\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-KeywordsList: _e;__\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Generator: Poedit 2.0.3\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-SearchPath-0: ..\n"
+
+#: ../adning/include/classes/ADNING_PLU_Auto_Plugin_Updater.php:227
+msgid "settings"
+msgstr ""
+
+#: ../adning/include/classes/ADNING_PLU_Auto_Plugin_Updater.php:231
+#, php-format
+msgid ""
+"To receive automatic updates please visit %s to activate your %s license."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Activate.php:106
+#: ../adning/include/classes/ADNI_Activate.php:156
+msgid "Could not connect with server. Please try again in a few minutes."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:149
+msgid "Banners"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:151
+#: ../adning/include/templates/single_banner.php:277
+msgid "Banner"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:173
+msgid "AD Zones"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:175
+#: ../adning/include/templates/single_adzone.php:198
+msgid "AD Zone"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:200
+#: ../adning/include/classes/ADNI_CPT.php:201
+#, php-format
+msgid "Add New %s"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:202
+#, php-format
+msgid "Edit %s"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:203
+#, php-format
+msgid "New %s"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:204
+#, php-format
+msgid "View %s"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:205
+#, php-format
+msgid "Search %s"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:206
+#, php-format
+msgid "No %s Found"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:207
+#, php-format
+msgid "No %s Found in Trash"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:316
+#: ../adning/include/classes/ADNI_CPT.php:423
+#: ../adning/include/templates/single_adzone.php:71
+#: ../adning/include/templates/single_banner.php:103
+msgid "Title"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:317
+msgid "Advertiser"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:356
+msgid "Edit Banner"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:356
+#: ../adning/include/classes/ADNI_CPT.php:463
+msgid "Edit"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:362
+msgid "Restore this banner from the Trash"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:362
+#: ../adning/include/classes/ADNI_CPT.php:469
+msgid "Restore"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:366
+msgid "Move this banner to the Trash"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:366
+#: ../adning/include/classes/ADNI_CPT.php:473
+msgid "Trash"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:371
+msgid "Delete this banner permanently"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:371
+#: ../adning/include/classes/ADNI_CPT.php:478
+msgid "Delete Permanently"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:379
+#, php-format
+msgid "Preview &#8220;%s&#8221;"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:379
+#: ../adning/include/classes/ADNI_Templates.php:1122
+#: ../adning/include/templates/single_adzone.php:317
+#: ../adning/include/templates/single_banner.php:396
+msgid "Preview"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:383
+#, php-format
+msgid "View &#8220;%s&#8221;"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:383
+msgid "View"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:463
+msgid "Edit adzone"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:469
+msgid "Restore this adzone from the Trash"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:473
+msgid "Move this adzone to the Trash"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:478
+msgid "Delete this adzone permanently"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:643
+#, php-format
+msgid "Banner created on: %s"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_CPT.php:926
+msgid "You have no access to this area."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Init.php:297
+#: ../adning/include/classes/ADNI_Init.php:298
+msgid "ADning"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Init.php:307
+#: ../adning/include/classes/ADNI_Templates.php:96
+msgid "General Settings"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Init.php:308
+#: ../adning/include/classes/ADNI_Templates.php:97
+msgid "Role Manager"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Init.php:309
+#: ../adning/include/classes/ADNI_Templates.php:98
+#: ../adning/include/classes/ADNI_Templates.php:132
+msgid "Product License"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Main.php:62
+#: ../adning/include/classes/ADNI_Templates.php:1882
+#: ../adning/include/templates/settings.php:179
+msgid ""
+"We use cookies to offer you a better browsing experience. If you continue to "
+"use this site, you consent to our use of cookies."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Main.php:63
+#: ../adning/include/classes/ADNI_Templates.php:1877
+#: ../adning/include/classes/ADNI_Templates.php:1883
+#: ../adning/include/templates/settings.php:171
+msgid "I Accept Cookies"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Main.php:154
+msgid "square button"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Main.php:155
+msgid "medium rectangle"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Main.php:156
+msgid "leaderboard"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Main.php:157
+msgid "pop-under"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Main.php:158
+msgid "half banner"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Main.php:159
+msgid "full banner"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Main.php:160
+msgid "skyscraper"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Main.php:161
+msgid "wide skyscraper"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Main.php:162
+msgid "extra wide skyscraper"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Main.php:163
+msgid "half page ad"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Main.php:164
+msgid "vertical banner"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Main.php:165
+msgid "vertical rectangle"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:35
+msgid "Advertising Ready To Strike"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:62
+msgid ""
+"Welcome! You are using the most powerful Advertising plugin for Wordpress. "
+"Let's get started!"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:77
+msgid "Version"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:91
+msgid "Your license has not yet been activated."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:95
+msgid "About"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:129
+msgid "FAQ"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:130
+msgid "Add-Ons"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:131
+#: ../adning/include/templates/dashboard.php:128
+msgid "Resources"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:348
+msgid "No banners linked to this adzone yet."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:411
+#: ../adning/include/classes/ADNI_Templates.php:503
+#: ../adning/include/classes/ADNI_Templates.php:1376
+msgid "ON"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:412
+#: ../adning/include/classes/ADNI_Templates.php:504
+#: ../adning/include/classes/ADNI_Templates.php:1376
+msgid "OFF"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:625
+msgid "Auto Positioning"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:626
+#: ../adning/include/classes/ADNI_Templates.php:1173
+#, php-format
+msgid "Save %s"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:635
+msgid ""
+"Placements are physically places on your website. Banners and AD Zones can "
+"be added to these places automatically."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:647
+msgid "Default AD placements"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:658
+msgid "Manually"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:665
+msgid "Above Content"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:673
+msgid "Inside Content"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:681
+msgid "Below Content"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:689
+msgid "Popup"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:697
+msgid "Corner Peel"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:707
+msgid "Background Takeover AD"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:728
+msgid "Custom Placement Settings"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:733
+msgid "Inside Content, Settings"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:737
+msgid "Insert after X Paragraphs (int)"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:751
+msgid "2"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:754
+msgid "Select after how many paragraphs the ad should show."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:764
+msgid "Popup, Settings"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:767
+msgid "Popup Options"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:771
+msgid "Width"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:788
+msgid "Width of the popup. (Leave empty to use banner size)"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:794
+msgid "Height"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:811
+msgid "Height of the popup. (Leave empty to use banner size)"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:817
+msgid "Bg Color"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:829
+msgid "Popup background color."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:835
+msgid "Shadow Color"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:847
+msgid "Popup shadow color."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:853
+msgid "Overlay Color"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:865
+msgid "Background overlay color for the popup."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:871
+msgid "Custom Attributes"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:888
+#, php-format
+msgid "Add custom %s attributes."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:896
+msgid "Popup Cookie Settings"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:917
+msgid "Numeric value in how long the cookie should expire."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:931
+msgid "Minutes"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:932
+msgid "Days"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:936
+msgid "Set a cookie to only show the popup every x amount of time."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:949
+msgid "Background Takeover, Settings"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:953
+msgid "Background Takover Image"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:967
+msgid ""
+"Upload or Insert the background takeover image URL (JPG, PNG, GIF, SVG)."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:973
+msgid "Background Container"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:982
+msgid "body"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:985
+msgid "The object/class/ID of the background container. (default body)."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:991
+msgid "Content Container"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1000
+msgid ".content"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1003
+msgid ""
+"The class/ID of the main content container for the background AD to wrap "
+"around."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1009
+msgid "Top Skin (optional)"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1017
+msgid "100px"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1020
+msgid ""
+"Show top of the background takeover ad. This will add a top margin to the "
+"container."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1026
+msgid "Background Position"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1029
+msgid "Scroll with page"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1030
+msgid "Fixed"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1033
+msgid "Background takeover position (fixed or scrolling with the page)."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1039
+msgid "Background Color"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1046
+msgid "(optional) Background color."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1052
+msgid "Content Background Color"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1059
+msgid "(optional) Just in case the content background has no background color."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1067
+msgid "Top Skin URL"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1078
+msgid "Link URL for the Top Skin."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1084
+msgid "Left Skin URL"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1095
+msgid "Link URL for the Left Skin."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1101
+msgid "Right Skin URL"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1112
+msgid "Link URL for the Right Skin."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1124
+msgid ""
+"Note: This is just a quick preview to give you an idea. The actual result on "
+"your website may look different depending on the sizing."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1172
+msgid "Display Filters"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1182
+msgid "Display filters"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1190
+msgid "Content Filters"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1194
+msgid "Show/Hide."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1196
+msgid "Show"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1196
+msgid "Hide"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1200
+msgid "Show or Hide the banner for the selected options."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1209
+msgid "For Categories"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1212
+msgid "Select Categories"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1243
+msgid "For Tags"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1246
+msgid "Select Tags"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1277
+msgid "For Posts"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1280
+msgid "Select Posts"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1307
+msgid "For Pages"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1310
+msgid "Select Pages"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1337
+msgid "Device Filters"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1363
+msgid "Border Settings"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1371
+msgid "Add Border"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1374
+msgid "Add a border arround the banner."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1392
+msgid "Border Color"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1415
+msgid "Label Text"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1425
+msgid "Advertisement"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1428
+msgid "Label to show in the banner container."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1440
+msgid "Label Position"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1443
+#: ../adning/include/classes/ADNI_Templates.php:1510
+msgid "Left"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1444
+#: ../adning/include/classes/ADNI_Templates.php:1511
+msgid "Center"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1445
+#: ../adning/include/classes/ADNI_Templates.php:1512
+msgid "Right"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1464
+msgid "Label Font Color"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1498
+msgid "Alignment Settings"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1506
+msgid "Banner Alignment"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1527
+msgid "Wrap Text"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1530
+#: ../adning/include/classes/ADNI_Templates.php:1536
+msgid "Wrap text around the banner."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1532
+msgid "YES"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1532
+msgid "NO"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1680
+msgid "Desktop"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1686
+#: ../adning/include/classes/ADNI_Templates.php:1704
+#: ../adning/include/classes/ADNI_Templates.php:1723
+msgid "SHOW"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1687
+#: ../adning/include/classes/ADNI_Templates.php:1705
+#: ../adning/include/classes/ADNI_Templates.php:1724
+msgid "HIDE"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1691
+msgid "Show banner on desktop."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1698
+msgid "Tablet"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1709
+msgid "Show banner on tablet devices."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1716
+msgid "Mobile"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1717
+#: ../adning/include/classes/ADNI_Templates.php:1728
+msgid "Show banner on mobile devices."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Templates.php:1899
+msgid "Privacy Policy"
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Uploader.php:269
+msgid "No files received."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Uploader.php:303
+msgid "The file you are trying to unzip is not a .zip file. Please try again."
+msgstr ""
+
+#: ../adning/include/classes/ADNI_Uploader.php:320
+msgid "Your .zip file was uploaded and unpacked:"
+msgstr ""
+
+#: ../adning/include/templates/adn/adn_header.php:11
+msgid "Adning - Frontend AD Manager"
+msgstr ""
+
+#: ../adning/include/templates/adn/single_banner.php:22
+msgid "This banner does not exists."
+msgstr ""
+
+#: ../adning/include/templates/dashboard.php:11
+msgid "Tip: start by activting your Product License."
+msgstr ""
+
+#: ../adning/include/templates/dashboard.php:15
+msgid ""
+"Great! Thanks for choosing ADning. ADning is always improving and we would "
+"love to hear your feedback and suggestions. Let's get started!"
+msgstr ""
+
+#: ../adning/include/templates/dashboard.php:23
+msgid "Settings"
+msgstr ""
+
+#: ../adning/include/templates/dashboard.php:47
+#, php-format
+msgid ""
+"Adning has complete online documentation available at our website: %s which "
+"covers everything related to Adning Advertisning starting from Installation "
+"and up to more advanced features like our Inner API."
+msgstr ""
+
+#: ../adning/include/templates/dashboard.php:55
+msgid "Where do I get my license key?"
+msgstr ""
+
+#: ../adning/include/templates/dashboard.php:82
+msgid "Included"
+msgstr ""
+
+#: ../adning/include/templates/dashboard.php:87
+msgid "Statistics add-on to keep track of your banner/adzone stats."
+msgstr ""
+
+#: ../adning/include/templates/dashboard.php:94
+msgid "Premium"
+msgstr ""
+
+#: ../adning/include/templates/dashboard.php:99
+msgid ""
+"Create stunning animated HTML5 banners using this amazing drag&drop banner "
+"creator."
+msgstr ""
+
+#: ../adning/include/templates/dashboard.php:130
+msgid "Official Website"
+msgstr ""
+
+#: ../adning/include/templates/dashboard.php:131
+msgid "Official Documentation"
+msgstr ""
+
+#: ../adning/include/templates/dashboard.php:136
+msgid "Scripts"
+msgstr ""
+
+#: ../adning/include/templates/frontend_manager/header.php:44
+msgid "Frontend AD Manager"
+msgstr ""
+
+#: ../adning/include/templates/role_manager.php:30
+#: ../adning/include/templates/settings.php:36
+msgid ""
+"Adning is designed in a very modular fashion so that lots of functions are "
+"customizable. Should you wish to, you can find most general settings below."
+msgstr ""
+
+#: ../adning/include/templates/role_manager.php:50
+msgid "Role Settings"
+msgstr ""
+
+#: ../adning/include/templates/role_manager.php:51
+msgid "Save Role Settings"
+msgstr ""
+
+#: ../adning/include/templates/role_manager.php:59
+msgid "Plugin Admin Role"
+msgstr ""
+
+#: ../adning/include/templates/role_manager.php:65
+msgid "Who can adjust the main settings."
+msgstr ""
+
+#: ../adning/include/templates/role_manager.php:75
+msgid "Create Banner Role"
+msgstr ""
+
+#: ../adning/include/templates/role_manager.php:81
+msgid "Specify who can create banners."
+msgstr ""
+
+#: ../adning/include/templates/role_manager.php:91
+msgid "Create adzone Role"
+msgstr ""
+
+#: ../adning/include/templates/role_manager.php:97
+msgid "Specify who can create adzones."
+msgstr ""
+
+#: ../adning/include/templates/settings.php:55
+msgid "Disable AD Settings"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:56
+#: ../adning/include/templates/settings.php:218
+#: ../adning/include/templates/settings.php:433
+msgid "Save Changes"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:63
+msgid "Disable Ads"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:68
+msgid "Disable All Ads"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:74
+#: ../adning/include/templates/settings.php:106
+#: ../adning/include/templates/settings.php:152
+#: ../adning/include/templates/settings.php:236
+msgid "Yes"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:75
+#: ../adning/include/templates/settings.php:107
+#: ../adning/include/templates/settings.php:153
+#: ../adning/include/templates/settings.php:237
+msgid "No"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:78
+msgid "This will disable all ads on the website."
+msgstr ""
+
+#: ../adning/include/templates/settings.php:85
+msgid "Hide ads for logged-in users."
+msgstr ""
+
+#: ../adning/include/templates/settings.php:86
+msgid "Select the lowest role a user must have in order to not see any ads."
+msgstr ""
+
+#: ../adning/include/templates/settings.php:87
+msgid "Show ads to everyone"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:95
+msgid "GDPR - Disable Ads till content is approved"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:97
+msgid ""
+"Disable all Ads until the \"content cookie\" is approved. You can use the "
+"build in cookie message or use a third party option, in that case you can "
+"provide the cookie name in value here."
+msgstr ""
+
+#: ../adning/include/templates/settings.php:100
+msgid "Disable all Ads until the \"content cookie\" is approved."
+msgstr ""
+
+#: ../adning/include/templates/settings.php:117
+msgid "Cookie name"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:118
+msgid "The name of the cookie that needs to be available."
+msgstr ""
+
+#: ../adning/include/templates/settings.php:130
+msgid "Cookie value"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:131
+msgid "The required value of the cookie."
+msgstr ""
+
+#: ../adning/include/templates/settings.php:146
+msgid "Show build-in gdpr cookie message."
+msgstr ""
+
+#: ../adning/include/templates/settings.php:156
+msgid "This will show a gdpr cookie message modal on your website."
+msgstr ""
+
+#: ../adning/include/templates/settings.php:162
+msgid "Button Text"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:163
+msgid "The \"Approve\" button text for the GDPR cookie message."
+msgstr ""
+
+#: ../adning/include/templates/settings.php:176
+msgid "Message Text"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:181
+msgid "The text to show in the GDPR cookie message."
+msgstr ""
+
+#: ../adning/include/templates/settings.php:185
+msgid "Page button"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:186
+msgid ""
+"(Optional) The URL to a page you want to add in the GDPR cookie message."
+msgstr ""
+
+#: ../adning/include/templates/settings.php:217
+msgid "Placement Settings"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:225
+msgid "Content Ads"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:227
+msgid ""
+"Content Ads are ads that get added into the post content (Above content, "
+"Inside content, Below content)."
+msgstr ""
+
+#: ../adning/include/templates/settings.php:230
+msgid "Disable Non-singular Ads"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:240
+msgid ""
+"This will disable all \"content\" ads on non-singular pages (categories, "
+"tags, authors,...)"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:248
+msgid "Code Placement Areas"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:250
+msgid ""
+"Code placement can inject scripts and styles into the header/footer area of "
+"your website. Common use cases are header/footer tags from ad networks like "
+"<em>Google DoubleClick for Publishers</em> or custom styles and scripts."
+msgstr ""
+
+#: ../adning/include/templates/settings.php:254
+msgid "Header Area"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:259
+#: ../adning/include/templates/settings.php:268
+#, php-format
+msgid "Add code before the closing %s tag."
+msgstr ""
+
+#: ../adning/include/templates/settings.php:263
+msgid "Footer Area"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:291
+msgid "Google AdSense Settings"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:299
+#: ../adning/include/templates/single_banner.php:479
+#: ../adning/include/templates/single_banner.php:519
+msgid "Google AdSense"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:342
+msgid "Server Status"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:348
+msgid ""
+"Let's see if your server is ready to run Adning. If any of the options below "
+"are not available please install the missing functions or contact your "
+"hosting provider."
+msgstr ""
+
+#: ../adning/include/templates/settings.php:352
+msgid "Uploads Folder Writable:"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:355
+#: ../adning/include/templates/settings.php:391
+msgid "<code class=\"status-good\">Yes</code>"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:357
+#, php-format
+msgid ""
+"<code class=\"status-bad\">No</code> Uploads folder must be writable to "
+"allow WordPress function properly.<br><span>See <a href=\"%1$s\" target="
+"\"_blank\">changing file permissions</a> or contact your hosting provider.</"
+"span>"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:363
+msgid "WP Memory Limit:"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:371
+#, php-format
+msgid ""
+"<code class=\"status-bad\">%1$s</code> Minimum value is <strong>64 MB</"
+"strong>. <strong>128 MB</strong> is recommended."
+msgstr ""
+
+#: ../adning/include/templates/settings.php:375
+#, php-format
+msgid ""
+"<code class=\"status-okay\">%1$s</code> Current memory limit is sufficient "
+"for most tasks. However, recommended value is <strong>128 MB</strong>."
+msgstr ""
+
+#: ../adning/include/templates/settings.php:379
+#: ../adning/include/templates/settings.php:383
+#, php-format
+msgid "<code class=\"status-good\">%1$s</code>"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:389
+msgid "ZipArchive Support:"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:393
+msgid ""
+"<code class=\"status-bad\">No</code> ZipArchive is required for importing/"
+"exporting objects and templates.<br><span>Please contact your hosting "
+"provider.</span>"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:399
+msgid "PHP Version:"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:403
+#, php-format
+msgid ""
+"<code class=\"status-okay\">%s</code> Adning has not been tested with PHP "
+"versions under 5.3."
+msgstr ""
+
+#: ../adning/include/templates/settings.php:410
+msgid "Debug"
+msgstr ""
+
+#: ../adning/include/templates/settings.php:411
+msgid "Run plugin in debug mode."
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:31
+msgid "Sorry, This adzone does not exists."
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:68
+msgid "AD Zone Settings"
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:78
+msgid "AD Zone Title"
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:81
+msgid "Add the adzone title."
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:87
+msgid "Transition"
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:94
+msgid "Transission Effect."
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:99
+msgid "Transition time"
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:106
+msgid "Transition seconds"
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:109
+msgid "Amount of seconds between banner transitions."
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:115
+#: ../adning/include/templates/single_banner.php:195
+msgid "Save"
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:116
+#: ../adning/include/templates/single_adzone.php:199
+msgid "Save AD Zone"
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:155
+#: ../adning/include/templates/single_banner.php:237
+msgid "Export"
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:162
+#: ../adning/include/templates/single_banner.php:244
+msgid "Shortcode."
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:171
+#: ../adning/include/templates/single_banner.php:253
+msgid "Embed code."
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:209
+#: ../adning/include/templates/single_banner.php:287
+msgid "Sizing"
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:226
+#: ../adning/include/templates/single_banner.php:304
+msgid "Select one of the common banner sizes."
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:241
+msgid "Responsive adzone."
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:243
+#: ../adning/include/templates/single_banner.php:157
+#: ../adning/include/templates/single_banner.php:177
+#: ../adning/include/templates/single_banner.php:320
+#: ../adning/include/templates/single_banner.php:499
+msgid "On"
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:243
+#: ../adning/include/templates/single_banner.php:157
+#: ../adning/include/templates/single_banner.php:177
+#: ../adning/include/templates/single_banner.php:320
+#: ../adning/include/templates/single_banner.php:499
+msgid "Off"
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:247
+#: ../adning/include/templates/single_banner.php:324
+msgid "Responsive"
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:275
+#: ../adning/include/templates/single_banner.php:352
+msgid "width."
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:297
+#: ../adning/include/templates/single_banner.php:374
+msgid "height."
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:325
+#: ../adning/include/templates/single_adzone.php:360
+msgid "Linked Banners"
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:368
+#, php-format
+msgid "Fitting Banners (%s)"
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:379
+#, php-format
+msgid "No %s banners found."
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:383
+msgid "Other Banners"
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:395
+msgid "No other banners found."
+msgstr ""
+
+#: ../adning/include/templates/single_adzone.php:401
+msgid "Select the banners to link to this adzone. Drag to change the order."
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:4
+msgid "Please login to access this area."
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:59
+msgid "Sorry, This banner does not exists."
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:100
+msgid "Banner Settings"
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:110
+msgid "Banner Title"
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:113
+msgid "Add a banner title."
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:118
+msgid "URL"
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:125
+msgid "http://"
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:128
+msgid "Add a banner link (URL)."
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:133
+msgid "Target"
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:136
+msgid "_blank, Load in a new window."
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:137
+msgid "_self, Load in the same frame as it was clicked."
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:138
+msgid "_parent, Load in the parent frameset."
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:139
+msgid "_top, Load in the full body of the window."
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:142
+msgid "Banner link target."
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:152
+msgid "Link Masking"
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:155
+msgid ""
+"Turn Off link masking to link directly to the raw banner url, When turned "
+"off its not possible to save statistics for this banner."
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:173
+msgid "No Follow"
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:175
+msgid "Add no Follow to banner link."
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:196
+#: ../adning/include/templates/single_banner.php:278
+msgid "Save Banner"
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:318
+msgid "Responsive banner."
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:404
+msgid "Content"
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:411
+msgid "Upload banner content."
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:433
+msgid "imgMCE Editor"
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:436
+msgid "Open imgMCE editor."
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:457
+msgid "Wordpress Media"
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:459
+msgid "Upload banner image."
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:482
+msgid "Adsense banner settings."
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:497
+msgid "Scale banner content to match resized banner container."
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:503
+msgid "Scale banner content"
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:530
+msgid "AdSense pub ID"
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:543
+msgid "AdSense ad slot ID"
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:569
+msgid "AdSense banner type"
+msgstr ""
+
+#: ../adning/include/templates/single_banner.php:591
+msgid "Banner HTML content."
+msgstr ""
+
+#: ../adning/include/templates/updates.php:45
+msgid ""
+"In order to receive all benefits of Adning you need to activate your copy. "
+"By activating your Adning license you will unlock premium options like "
+"automatic plugin updates and official support."
+msgstr ""
+
+#: ../adning/include/templates/updates.php:81
+msgid "Add your license key here"
+msgstr ""
+
+#: ../adning/include/templates/updates.php:84
+#, php-format
+msgid "Activate %s"
+msgstr ""
+
+#: ../adning/include/templates/updates.php:88
+msgid "Where do I find my license key?"
+msgstr ""
+
+#: ../adning/include/templates/updates.php:91
+msgid "Don't have a license yet?"
+msgstr ""
+
+#: ../adning/include/templates/updates.php:91
+#, php-format
+msgid "Purchase %s license"
+msgstr ""
+
+#: ../adning/include/templates/updates.php:100
+msgid "Plugin Activated"
+msgstr ""
+
+#: ../adning/include/templates/updates.php:102
+msgid "Support"
+msgstr ""
+
+#: ../adning/include/templates/updates.php:107
+#, php-format
+msgid "Deactivate %s"
+msgstr ""

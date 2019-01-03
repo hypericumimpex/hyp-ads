@@ -1,0 +1,182 @@
+.clear::after {
+	clear:both;
+	content: " ";
+    display: table;
+}
+.clearFix {
+	clear:both;
+	content: " ";
+    display: table;
+}
+.adning_cont .adning_logo {
+	background-image:url(../../images/logo.png);
+	background-repeat: no-repeat;
+    background-size: contain;
+    display: block;
+    margin-left: 20px;
+    width: 50px;
+    height: 70px;
+}
+
+._ning_hidden {
+	opacity:0;
+}
+._ning_visible {
+	opacity:1;
+}
+
+
+/**
+ * _ning_outer gets added to banners and adzones.
+ * However, banners loaded inside an adzone will not get this class
+*/
+._ning_outer{
+	-webkit-box-sizing: initial;
+    -moz-box-sizing: initial;
+    box-sizing: initial;
+}
+._ning_outer._align_left{
+	float: left;
+    margin: 0 20px 20px 0;
+}
+._ning_outer._align_center{
+	float: none;
+}
+._ning_outer._align_right{
+	float: right;
+    margin: 0 0 20px 20px;
+}
+._ning_outer.has_border{
+	padding: 15px;
+}
+._ning_outer.has_label.has_border{
+	padding: 0 15px 15px;
+}
+._ning_outer.has_label ._ning_label{
+	padding: 5px 0;
+}
+._ning_outer.has_label ._ning_label._left{
+	float:left;
+}
+._ning_outer.has_label ._ning_label._center{
+	float:none;
+	text-align: center;
+}
+._ning_outer.has_label ._ning_label._right{
+	float:right;
+}
+
+
+
+/**
+ * MAIN BANNER
+*/
+._ning_holder {
+	line-height:0;
+}
+._ning_holder.popup {
+	position: fixed;
+	max-height:100% !important;
+	max-width:100% !important;
+	background: #0000009e;
+	text-align:center;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    padding-top: 90vh;
+    margin-top: -45vh;
+    padding-bottom: 90vh;
+	z-index:9999;
+}
+	._ning_holder iframe {
+		margin-bottom:0;
+	}
+._ning_cont {
+	margin:0px auto;
+	background-color:#EFEFEF;
+	width:300px;
+	height:250px;
+	overflow:hidden;
+	position:relative;
+	line-height:1;
+}
+._ning_jss_zone{
+	margin: 0px auto;
+}
+
+._ning_inner {
+	position:relative;
+	width:100%;
+	height:100%;
+	clear: both;
+}
+
+._ning_elmt {
+    position: absolute;
+}
+	._ning_elmt img {
+		max-width: none;
+	}
+	._ning_cont:not(.scale) ._ning_elmt img, ._ning_elmt.noresize img {
+		width:100%;
+	}
+
+
+/**
+ * MAIN ADZONE
+*/
+._ning_zone_inner{
+	clear:both;
+}
+
+
+.spot_box{
+	width: 80px;
+	position: relative;
+	border: solid 1px #ededed;
+    border-radius: 3px;
+	overflow: hidden;
+	cursor: pointer;
+	float: left;
+	margin-right: 15px;
+}
+.spot_box.selected{
+	border: solid 5px #d9e89b;
+}
+	.spot_box .ad_cont{
+		position: absolute;
+		background: #f9f9f9;
+	}
+	.spot_box .ad_box{
+		background: #d4ff00;
+	}
+
+
+
+/**
+ * GDPR APPROVE
+*/
+.gdpr_approve .col_in{
+	padding: 15px;
+}
+.gdpr_approve .desc{
+	font-size: 13px;
+	color: #00473e;
+}
+.gdpr_approve .my_close_button{
+	background: #008476;
+	color: #00dfc3;
+	padding: 5px 10px;
+	display: inline-block;
+	text-align: center;
+	font-size: 15px;
+}
+.gdpr_approve .my_close_button:hover{
+	background: #01d9c2;
+	color: #007e6e;
+}
+.gdpr_approve .cookie_settings{
+	font-size: 15px;
+	color: #006a61;
+}
