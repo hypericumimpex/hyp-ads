@@ -93,6 +93,34 @@ class ADNI_Multi {
 		self::wpmu_load_from_main_stop();
 
 		$value = !empty($value) && array_key_exists(0, $value) ? $value[0] : $value;
+		
+		$post_type = get_post_type($id);
+		if(strtolower($post_type) === strtolower(ADNI_CPT::$banner_cpt))
+		{
+			$value = ADNI_Main::parse_args($value, ADNI_CPT::default_banner_args());
+		}
+		if(strtolower($post_type) === strtolower(ADNI_CPT::$adzone_cpt))
+		{
+			$value = ADNI_Main::parse_args($value, ADNI_CPT::default_adzone_args());
+		}
+
+		return $value;
+	}
+
+
+
+	/*
+	 * Update Post Meta - update_post_meta() - for multisite installations.
+	 * ADNI_multi::update_post_meta();
+	 *
+	 * @access public
+	 * @return null
+	*/
+	public static function update_post_meta( $id, $name, $value = '' )
+	{
+		self::wpmu_load_from_main_start();
+			update_post_meta($id, $name, $value);
+		self::wpmu_load_from_main_stop();
 
 		return $value;
 	}

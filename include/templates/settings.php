@@ -1,5 +1,9 @@
 <?php
 //delete_option( '_adning_settings' );
+if( isset($_GET['run_update']) && !empty($_GET['run_update']))
+{
+    ADNI_Updates::run_update();
+}
 
 $set_arr = ADNI_Main::settings();
 $settings = $set_arr['settings'];
@@ -11,7 +15,12 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
 {
     if(isset($_POST['submit_btn']))
     {
-       // echo '<pre>'.print_r($_POST, true).'</pre>';
+        //echo '<pre>'.print_r($_POST, true).'</pre>';
+        // Check for empty positioning post
+        if(!isset($_POST['positioning']['post_types']))
+        {
+            $_POST['positioning']['post_types'] = array();
+        }
         
         foreach($_POST as $key => $post){
             $settings[$key] = $_POST[$key];
@@ -21,6 +30,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
         ADNI_Multi::update_option('_adning_settings', $settings);
     }
 }
+
 //echo '<pre>'.print_r($settings, true).'</pre>';
 ?>
 
@@ -44,7 +54,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                     <!-- /**
                     * 6 x 6
                     */ -->
-                    <div class="spr_column spr_col-6 spr_hidden" data-animation="bounce">
+                    <div class="spr_column spr_col-6">
 
                         <div class="spr_column spr_col">
                             <div class="spr_column-inner left_column">
@@ -84,7 +94,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                                                             'col' => 'spr_col-6',
                                                             'title' => __('Hide ads for logged-in users.','adn'),
                                                             'desc' => __('Select the lowest role a user must have in order to not see any ads.','adn'),
-                                                            'content' => '<select name="disable[user_role_ads]" class=""><option value="" '.selected( $settings['disable']['user_role_ads'], '', false ).'>'.__('Show ads to everyone','adn').'</option>'.ADNI_Main::dropdown_roles($settings['disable_user_role_ads']).'</select>'
+                                                            'content' => '<select name="disable[user_role_ads]" class=""><option value="" '.selected( $settings['disable']['user_role_ads'], '', false ).'>'.__('Show ads to everyone','adn').'</option>'.ADNI_Main::dropdown_roles($settings['disable']['user_role_ads']).'</select>'
                                                         ));
                                                         
                                                         
@@ -229,8 +239,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                                                     $html.= ADNI_Templates::switch_btn(array(
                                                         'title' => __('Disable Non-singular Ads','adn'),
                                                         'id' => 'disable_non_singular_ads',
-                                                        'name' => 'disable_non_singular_ads',
-                                                        'checked' => $settings['disable_non_singular_ads'],
+                                                        'name' => 'disable[non_singular_ads]',
+                                                        'checked' => $settings['disable']['non_singular_ads'],
                                                         'value' => 1,
                                                         'hidden_input' => 1,
                                                         'chk-on' => __('Yes','adn'),
@@ -242,31 +252,35 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                                                     ));
                                                 $html.= '</div>';
                                             $html.= '</div>';
-
-
+                                                    
+                                            
                                             $html.= '<div class="adn_settings_cont">';
-                                                $html.= '<h4>'.__('Code Placement Areas','adn').'</h4>';
-                                                $html.= '<div class="adn_settings_cont_inner">';
-                                                    $html.= '<p>'.__('Code placement can inject scripts and styles into the header/footer area of your website. Common use cases are header/footer tags from ad networks like <em>Google DoubleClick for Publishers</em> or custom styles and scripts.','adn').'</p>';
-
-                                                    // Header area
-                                                    $html.= ADNI_Templates::textarea_cont(array(
-                                                        'title' => __('Header Area','adn'),
-                                                        'id' => 'placement_area_head',
-                                                        'name' => 'placement_area_head',
-                                                        'value' => stripslashes($settings['placement_area_head']),
-                                                        'desc_pos' => 'bottom',
-                                                        'desc' => sprintf(__('Add code before the closing %s tag.','adn'), htmlentities('</head>'))
-                                                    ));
-                                                    // Body area
-                                                    $html.= ADNI_Templates::textarea_cont(array(
-                                                        'title' => __('Footer Area','adn'),
-                                                        'id' => 'placement_area_body',
-                                                        'name' => 'placement_area_body',
-                                                        'value' => stripslashes($settings['placement_area_body']),
-                                                        'desc_pos' => 'bottom',
-                                                        'desc' => sprintf(__('Add code before the closing %s tag.','adn'), htmlentities('</body>'))
-                                                    ));
+                                                $html.= '<h4>'.__('Post Types for ADS','adn').'</h4>';
+                                                $html.= '<div class="adn_settings_cont_inner clear">';
+                                                    $html.= '<p>'.__('Select the post types where "Auto Positioning" for Ads should be available.','adn').'</p>';
+                                                
+                                                    // Post types
+                                                    $post_types = get_post_types();
+                                                    if( !empty($post_types ))
+                                                    {
+                                                        foreach( $post_types as $post_type )
+                                                        {
+                                                            $exclude = array('attachment', 'revision', 'nav_menu_item', 'adni_banners', 'adni_adzones', 'adni_campaigns');
+                                                            if( !in_array( $post_type, $exclude))
+                                                            {
+                                                                $html.= ADNI_Templates::checkbox(array(
+                                                                    'title' => $post_type,
+                                                                    //'tooltip' => __('Run plugin in debug mode.','adn'),
+                                                                    'checked' => in_array($post_type, $settings['positioning']['post_types']) ? 1 : 0,
+                                                                    'value' => $post_type,
+                                                                    'hidden_input' => 0,
+                                                                    'name' => 'positioning[post_types][]',
+                                                                    'class' => 'option_checkbox'
+                                                                ));
+                                                                
+                                                            }
+                                                        }
+                                                    }
                                                 $html.= '</div>';
                                             $html.= '</div>';
 
@@ -324,6 +338,66 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                         </div>
                         <!-- end .spr_column -->
 
+
+                        <div class="spr_column spr_col">
+                            <div class="spr_column-inner left_column">
+                                <div class="spr_wrapper">
+                                    <div class="option_box">
+                                        <div class="info_header">
+                                            <span class="nr">5</span>
+                                            <span class="text"><?php _e('AD Blocker Settings','adn'); ?></span>
+                                        </div>
+                                        <div class="input_container">
+                                            <div class="input_container_inner">
+                                                <?php
+                                                $html = '';
+                                                // ADSENSE
+                                                $html.= '<div class="adn_settings_cont">';
+                                                    $html.= '<h4>'.__('Enable AD Blocker detection','adn').'</h4>';
+                                                    $html.= '<div class="adn_settings_cont_inner">';
+                                                        
+                                                        $html.= ADNI_Templates::switch_btn(array(
+                                                            'title' => __('Check for active ad blockers.','adn'),
+                                                            'name' => 'adblock_detect',
+                                                            'checked' => $settings['adblock_detect'],
+                                                            'value' => 1,
+                                                            'hidden_input' => 1,
+                                                            'chk-on' => __('Yes','adn'),
+                                                            'chk-off' => __('No','adn')
+                                                        ));
+
+                                                        $html.= '<span class="description bottom">'.__('Detect when a visitor has an ab blocker enabled.','adn').'</span>';
+                                                        
+                                                    $html.= '</div>';
+                                                $html.= '</div>';
+
+                                                
+                                                $html.= '<div class="adn_settings_cont">';
+                                                    $html.= '<h4>'.__('AD Blocker detection message','adn').'</h4>';
+                                                    $html.= '<div class="adn_settings_cont_inner">';
+                                                        
+                                                        $html.= ADNI_Templates::textarea_cont(array(
+                                                            'title' => __('Message Text','adn'),
+                                                            'name' => 'adblock_message',
+                                                            'value' => stripslashes($settings['adblock_message']),
+                                                            'placeholder' => __('You are using AD Blocker!.','adn'),
+                                                            'desc_pos' => 'bottom',
+                                                            'desc' => __('Message to show when an ad blocker is detected.','adn')
+                                                        ));
+                                                    $html.= '</div>';
+                                                $html.= '</div>';
+                                                echo $html;
+                                                ?>
+                                            </div>
+                                            <span class="description bottom"><?php _e('','adn'); ?></span>
+                                        </div>
+                                        <!-- end .input_container -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end .spr_column -->
+
                     </div>
                     <!-- end LEFT COLUMN .spr_column -->
 
@@ -333,7 +407,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
 
 
                     <!-- RIGHT COLUMN -->
-                    <div class="spr_column spr_col-6 spr_hidden" data-animation="zoomIn">
+                    <div class="spr_column spr_col-6 ">
                         <div class="spr_column-inner">
                             <div class="spr_wrapper">
                                 <div class="option_box">
@@ -431,24 +505,97 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                                             <span class="nr">
                                             <svg viewBox="0 0 512 512" style="width: 20px;"><path fill="currentColor" d="M480 32l-64 368-223.3 80L0 400l19.6-94.8h82l-8 40.6L210 390.2l134.1-44.4 18.8-97.1H29.5l16-82h333.7l10.5-52.7H56.3l16.3-82H480z"></path></svg>
                                             </span>
-                                            <span class="text"><?php _e('Custom CSS','adn'); ?></span>
+                                            <span class="text"><?php _e('Website Code Injection','adn'); ?></span>
                                             <input type="submit" value="<?php _e('Save Changes','adn'); ?>" class="button-primary" name="submit_btn" style="width:auto;float:right;margin:8px;">
                                         </div>
                                         <div class="input_container">
                                             <div class="input_container_inner">
                                                 <?php
                                                 $html = '';
-                                                $html.= ADNI_Templates::textarea_cont(array(
-                                                    'title' => __('Custom CSS','adn'),
-                                                    'name' => 'custom_css',
-                                                    'class' => 'code_editor',
-                                                    'data' => 'data-lang="css"',
-                                                    'value' => stripslashes($settings['custom_css']),
-                                                    'placeholder' => '',
-                                                    'desc_pos' => 'bottom',
-                                                    'desc' => __('In case you need to add some custom CSS to your website.','adn')
-                                                ));
+                                                $html.= '<div class="adn_settings_cont">';
+                                                    $html.= '<h4>'.__('Code Placement Areas','adn').'</h4>';
+                                                    $html.= '<div class="adn_settings_cont_inner">';
+                                                        $html.= '<p>'.__('Code placement can inject scripts and styles into the header/footer area of your website. Common use cases are header/footer tags from ad networks like <em>Google DoubleClick for Publishers</em> or custom styles and scripts.','adn').'</p>';
 
+                                                        // Header area
+                                                        $html.= ADNI_Templates::textarea_cont(array(
+                                                            'title' => __('Header Area','adn'),
+                                                            'id' => 'placement_area_head',
+                                                            'class' => 'code_editor',
+                                                            'data' => 'data-lang="htmlmixed"',
+                                                            'name' => 'placement_area_head',
+                                                            'value' => stripslashes($settings['placement_area_head']),
+                                                            'desc_pos' => 'bottom',
+                                                            'desc' => sprintf(__('Add code before the closing %s tag.','adn'), htmlentities('</head>'))
+                                                        ));
+                                                        // Body area
+                                                        $html.= ADNI_Templates::textarea_cont(array(
+                                                            'title' => __('Footer Area','adn'),
+                                                            'id' => 'placement_area_body',
+                                                            'class' => 'code_editor',
+                                                            'data' => 'data-lang="htmlmixed"',
+                                                            'name' => 'placement_area_body',
+                                                            'value' => stripslashes($settings['placement_area_body']),
+                                                            'desc_pos' => 'bottom',
+                                                            'desc' => sprintf(__('Add code before the closing %s tag.','adn'), htmlentities('</body>'))
+                                                        ));
+                                                    $html.= '</div>';
+                                                $html.= '</div>';
+                                                
+                                                $html.= '<div class="adn_settings_cont">';
+                                                    $html.= '<h4>'.__('Custom CSS','adn').'</h4>';
+                                                    $html.= '<div class="adn_settings_cont_inner">';
+                                                        $html.= ADNI_Templates::textarea_cont(array(
+                                                            'title' => '',
+                                                            'name' => 'custom_css',
+                                                            'class' => 'code_editor',
+                                                            'data' => 'data-lang="css"',
+                                                            'value' => stripslashes($settings['custom_css']),
+                                                            'placeholder' => '',
+                                                            'desc_pos' => 'bottom',
+                                                            'desc' => __('In case you need to add some custom CSS to your website.','adn')
+                                                        ));
+                                                    $html.= '</div>';
+                                                $html.= '</div>';
+
+                                                echo $html;
+                                                ?>
+                                            </div>
+                                            <span class="description bottom"><?php _e('','adn'); ?></span>
+                                        </div>
+                                        <!-- end .input_container -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end .spr_column -->
+
+
+                        <div class="spr_column spr_col">
+                            <div class="spr_column-inner left_column">
+                                <div class="spr_wrapper">
+                                    <div class="option_box">
+                                        <div class="info_header">
+                                            <span class="nr">4</span>
+                                            <span class="text"><?php _e('Uninstall Settings','adn'); ?></span>
+                                        </div>
+                                        <div class="input_container">
+                                            <div class="input_container_inner">
+                                                <?php
+                                                $html = '';
+                                                $html.= ADNI_Templates::switch_btn(array(
+                                                    'title' => __('Remove all Adning data when uninstalling','adn'),
+                                                    'name' => 'uninstall_remove_data',
+                                                    'checked' => $settings['uninstall_remove_data'],
+                                                    'value' => 1,
+                                                    'hidden_input' => 1,
+                                                    'chk-on' => __('Yes','adn'),
+                                                    'chk-off' => __('No','adn'),
+                                                    'column' => array(
+                                                        'size' => 'col-6',
+                                                        'desc' => __('This will remove all Adning content + settings when you remove the plugin.','adn'),
+                                                    )
+                                                ));
                                                 echo $html;
                                                 ?>
                                             </div>

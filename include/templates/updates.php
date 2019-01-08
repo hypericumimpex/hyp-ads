@@ -17,8 +17,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
 
 if( isset($_GET['deregister_plugin']))
 {
-    //$activation = get_option('imgmce_activation', array());
-    $activation = ADNI_Multi::get_option('imgmce_activation', array());
+    $activation = ADNI_Multi::get_option('adning_activation', array());
     if( !empty($activation))
     {
         $resp = ADNI_Activate::deregister(array('license-key' => $activation['license-key']));

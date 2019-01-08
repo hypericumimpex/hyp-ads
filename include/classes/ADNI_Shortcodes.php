@@ -42,17 +42,16 @@ class ADNI_Shortcodes {
 				array(
 					'files' => array(
 						array('file' => '_ning_css', 'type' => 'style'),
-						array('file' => '_ning_global', 'type' => 'script'),
-						//array('file' => '_ning_jquery_plugins', 'type' => 'script')
+						array('file' => '_ning_global', 'type' => 'script')
 					)
 				)
 			);
 			
-			if( $post_type == strtolower(ADNI_CPT::$banner_cpt))
+			if( strtolower($post_type) == strtolower(ADNI_CPT::$banner_cpt))
 			{
 				if(!$args['no_iframe'])
 				{
-					$html.= '<script type="text/javascript">var _ning_embed = {"id":'.$args['id'].',"width":'.$post['args']['banner_size_w'].',"height":'.$post['args']['banner_size_h'].$animation.'};</script>';
+					$html.= '<script type="text/javascript">var _ning_embed = {"id":'.$args['id'].',"width":'.$post['args']['size_w'].',"height":'.$post['args']['size_h'].$animation.'};</script>';
 					$html.= '<script type="text/javascript" src="'.get_bloginfo('url').'?_dnembed=true"></script>';
 				}
 				else
@@ -64,7 +63,7 @@ class ADNI_Shortcodes {
 			{
 				if(!$args['no_iframe'])
 				{
-					$html.= '<script type="text/javascript">var _ning_embed = {"id":'.$args['id'].',"width":'.$post['args']['adzone_size_w'].',"height":'.$post['args']['adzone_size_h'].$animation.'};</script>';
+					$html.= '<script type="text/javascript">var _ning_embed = {"id":'.$args['id'].',"width":'.$post['args']['size_w'].',"height":'.$post['args']['size_h'].$animation.'};</script>';
 					$html.= '<script type="text/javascript" src="'.get_bloginfo('url').'?_dnembed=true"></script>';
 				}
 				else
@@ -89,25 +88,6 @@ class ADNI_Shortcodes {
 		);
 		$args = wp_parse_args( $args, $defaults );
 		
-		/*ADNI_Init::enqueue(
-			array(
-				'files' => array(
-					array('file' => '_ning_css', 'type' => 'style'),
-					array('file' => '_ning_global', 'type' => 'script'),
-					//array('file' => '_ning_jquery_plugins', 'type' => 'script')
-				)
-			)
-		);*/
-		
-		// Filter -------------------------------------------------------
-		if( $args['stats'] )
-		{
-			apply_filters('adning_save_stats', array(
-				'type' => 'impression',
-				'banner_id' => $args['id']
-			));
-		}
-		
 		return ADNI_Templates::banner_tpl($args['id'], $args);
 	}
 	
@@ -121,26 +101,6 @@ class ADNI_Shortcodes {
 			'stats' => 1
 		);
 		$args = wp_parse_args( $args, $defaults );
-		
-		/*ADNI_Init::enqueue(
-			array(
-				'files' => array(
-					array('file' => '_ning_css', 'type' => 'style'),
-					array('file' => '_ning_global', 'type' => 'script'),
-					//array('file' => '_ning_jquery_plugins', 'type' => 'script'),
-					//array('file' => '_ning_jssor', 'type' => 'script')
-				)
-			)
-		);*/
-		
-		// Filter -------------------------------------------------------
-		if( $args['stats'] )
-		{
-			apply_filters('adning_save_stats', array(
-				'type' => 'impression',
-				'adzone_id' => $args['id']
-			));
-		}
 		
 		return ADNI_Templates::adzone_tpl($args['id']);
 	}

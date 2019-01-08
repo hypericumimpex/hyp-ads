@@ -28,7 +28,7 @@ class ADNI_Filters {
     {
         $disabled = false;
 
-        if( empty($settings) )
+        if( empty($settings) || !is_array($settings) )
         {
             $set_arr = ADNI_Main::settings();
             $settings = $set_arr['settings'];
@@ -67,8 +67,18 @@ class ADNI_Filters {
             }
         }
 
+
+
+        // Check if we can find a current post type. If so make sure ads have to show for this post type
+        $post_type = get_post_type();
+        if( $post_type && !in_array($post_type, $settings['positioning']['post_types']) )
+            return true; // disable ads
+        
+
         return $disabled;
     }
+
+
 
 
 
@@ -79,8 +89,8 @@ class ADNI_Filters {
     public static function show_hide( $ad )
     {
         global $post;
-        //echo '<pre>'.print_r($post).'</pre>';
-    
+        //echo '<pre>'.print_r($ad).'</pre>';
+       
         // Show post always when loaded from admin
         if( is_admin() )
             return $ad;
@@ -88,13 +98,58 @@ class ADNI_Filters {
         if( self::disabled_ads() )
             return;
         
-
         $args = $ad['args'];
+
+        // Campaigns
+        if( !empty($args['campaigns']) )
+        {
+            foreach( $args['campaigns'] as $campaign )
+            {
+                if( !self::check_campaign( $campaign ) )
+                    return;
+            }
+        }
+
+
         $display = array_key_exists('display_filter',$args) ? $args['display_filter'] : array();
 
         // AD display filter
         if( !empty($display) )
-        {
+        {  
+            if( $args['status'] !== 'active')
+                return; 
+
+            // HOME PAGE
+            if( array_key_exists('homepage', $display) )
+            {
+                if( !$display['homepage'] && is_home() )
+                    return;
+            }
+            
+            // NON-SINGULAR. GLOBAL settings (should be under self::disabled_ads() ) however, 
+            // we need to make sure ad doesn't have to show on the home page so we need to check that first.
+            // That's why we add this here instead of under self::disabled_ads()
+            if( !is_singular() && $settings['disable_non_singular_ads'] )
+                return;
+        
+
+            // COUNTRY FILTER
+            if( !empty($display['countries']) )
+            {
+                if( array_key_exists('ids', $display['countries']))
+                {
+                    $show = array_key_exists('show_hide', $display['countries']) ? $display['countries']['show_hide'] : 0;
+                    $visitor_country = ADNI_Filters::get_country( ADNI_Main::get_visitor_ip() );
+                    //$visitor_country = 'xx';
+                    //$display['countries']['ids'] = array('xx');
+
+                    if( !in_array($visitor_country, $display['countries']['ids']) && $show || in_array($visitor_country, $display['countries']['ids']) && !$show ){
+                        return;
+                    }
+                }
+            }
+
+        
             // DEVICE FILTER
             if( empty($display['show_desktop']) && self::user_device() === 'desktop' )
                 return;
@@ -111,12 +166,14 @@ class ADNI_Filters {
             if( !is_object($post) || !array_key_exists('ID',$post) )
                 return $ad;
 
-            $show = !empty($display['show_hide']) ? $display['show_hide'] : 0;
+            //$show = !empty($display['show_hide']) ? $display['show_hide'] : 0;
 
-            if( !empty($display['categories']) )
+            /*if( !empty($display['categories']) )
             {
+                $show = array_key_exists('show_hide', $display['categories']) ? $display['categories']['show_hide'] : 0;
                 $cats = wp_get_post_categories($post->ID);
-                $match = array_intersect($display['categories'],$cats);
+                $match = array_intersect($display['categories']['ids'],$cats);
+                //echo '<pre>'.print_r($display['categories']['ids'], true).'</pre>';
                 //echo '<pre>'.print_r($match,true).'</pre>';
                 if( empty($match) && $show || !empty($match) && !$show ){
                     return;
@@ -124,13 +181,77 @@ class ADNI_Filters {
             }
             if( !empty($display['tags']) )
             {
+                $show = array_key_exists('show_hide', $display['tags']) ? $display['tags']['show_hide'] : 0;
                 $tags = wp_get_post_tags($post->ID, array( 'fields' => 'ids' ));
-                $match = array_intersect($display['tags'],$tags);
+                $match = array_intersect($display['tags']['ids'],$tags);
                 if( empty($match) && $show || !empty($match) && !$show ){
                     return;
                 }
+            }*/
+            if( array_key_exists('post_types', $display) && !empty($display['post_types']) )
+            {
+                $post_type = get_post_type($post->ID);
+                
+                if( array_key_exists($post_type, $display['post_types']))
+                {
+                    $post_arr = $display['post_types'][$post_type];
+                    $show = array_key_exists('show_hide', $post_arr) ? $post_arr['show_hide'] : 0;
+                    if( !empty($post_arr['ids']))
+                    {
+                        if( !in_array($post->ID, $post_arr['ids']) && $show || in_array($post->ID, $post_arr['ids']) && !$show ){
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        if( !$show )
+                            return;
+                    }
+
+                    // Taxonomies
+                    $taxonomy_names = get_post_taxonomies($post->ID);
+                    if(!empty($taxonomy_names))
+                    {
+                        $tax_arr = array_key_exists('taxonomies', $post_arr) ? $post_arr['taxonomies'] : array();
+
+                        foreach($taxonomy_names as $taxonomy)
+                        {
+                            $tax_arr = array_key_exists($taxonomy, $tax_arr) ? $tax_arr[$taxonomy] : array();
+                            $show = array_key_exists('show_hide', $tax_arr) ? $tax_arr['show_hide'] : 0;
+                            $ids = array_key_exists('ids', $tax_arr) ? $tax_arr['ids'] : array();
+                    
+                            $term_list = wp_get_post_terms($post->ID, $taxonomy, array("fields" => "ids"));
+                            $match = array_intersect($term_list, $ids);
+                            if( empty($match) && $show || !empty($match) && !$show ){
+                                return;
+                            }
+                            //echo print_r($term_list,true);
+                        }
+                    }
+                    
+                }
+                else
+                {
+                    return $ad;
+                }
+            
+                /*foreach( $display['post_types'] as $key => $post_arr)
+                {
+                    echo $key;
+                    print_r($post_arr['ids']);
+                    if( !empty($post_arr['ids']))
+                    {
+                        $show = array_key_exists('show_hide', $post_arr) ? $post_arr['show_hide'] : 0;
+                        if( !in_array($post->ID, $post_arr['ids']) && $show || in_array($post->ID, $post_arr['ids']) && !$show ){
+                            return;
+                            echo 'kak show:'.$show.', postID:'.$post->ID;
+                            print_r($post_arr['ids']);
+                            
+                        }
+                    }
+                }*/
             }
-            if( !empty($display['posts']) )
+            /*if( !empty($display['posts']) )
             {
                 if( !in_array($post->ID,$display['posts']) && $show || in_array($post->ID,$display['posts']) && !$show ){
                     return;
@@ -141,7 +262,7 @@ class ADNI_Filters {
                 if( !in_array($post->ID,$display['pages']) && $show || in_array($post->ID,$display['pages']) && !$show ){
                     return;
                 }
-            }
+            }*/
         }
 
         return $ad;
@@ -168,6 +289,11 @@ class ADNI_Filters {
 
         echo '<!-- / '."Adning. -->\n\n";
     }
+
+
+
+
+
     public static function inject_footer()
     {
         $h = '';
@@ -186,7 +312,7 @@ class ADNI_Filters {
         }
 
 
-        if( self::disabled_ads() )
+        if( self::disabled_ads($settings) )
         {
             echo $h;
             return;
@@ -200,29 +326,39 @@ class ADNI_Filters {
             {
                 if($arr['pos'] === 'popup')
                 {
-                    $css = '';
-                    $css.= !empty($arr['custom']['popup_shadow_color']) ? '"box-shadow":"'.$arr['custom']['popup_shadow_color'].' 0px 5px 20px 0px"' : '"box-shadow":"none"';
+                    $b = ADNI_Multi::get_post_meta($key, '_adning_args', array());
                     
-                    $h.= '<div id="mdl-elmt-'.$key.'"><div class="mdl_content">'.ADNI_Multi::do_shortcode('[adning id="'.$key.'"]').'</div></div>';
-                    $h.= '<script>';
-                        $h.= 'if( jQuery("#mdl-elmt-'.$key.'").find(".mdl_content").html() !== "" ){';
-                            $h.= 'jQuery("#mdl-elmt-'.$key.'").modalJS({';
-                                $h.= 'width:"'.$arr['custom']['popup_width'].'",';
-                                $h.= 'height:"'.$arr['custom']['popup_height'].'",';
-                                $h.= !empty( $arr['custom']['popup_bg_color'] ) ? 'bg_color:"'.$arr['custom']['popup_bg_color'].'",' : '';
-                                $h.= !empty( $arr['custom']['popup_overlay_color'] ) ? 'overlay_color:"'.$arr['custom']['popup_overlay_color'].'",' : '';
-                                $h.= !empty($css) ? 'css:{'.$css.'},' : '';
-                                $h.= !empty($arr['custom']['popup_cookie_value']) ? 'cookie: {"expires":"'.$arr['custom']['popup_cookie_value'].'","type":"'.$arr['custom']['popup_cookie_type'].'"}' : '';
-                                $h.= !empty( $arr['custom']['popup_custom_json'] ) ? stripslashes($arr['custom']['popup_custom_json']) : '';
-                            $h.= '});';
-                        $h.= '}';
-                    $h.= '</script>';
+                    if( self::show_hide(array('args' => $b)) )
+                    {
+                        $css = '';
+                        $css.= !empty($arr['custom']['popup_shadow_color']) ? '"box-shadow":"'.$arr['custom']['popup_shadow_color'].' 0px 5px 20px 0px"' : '"box-shadow":"none"';
+                        
+                        $h.= '<div id="mdl-elmt-'.$key.'"><div class="mdl_content">'.ADNI_Multi::do_shortcode('[adning id="'.$key.'"]').'</div></div>';
+                        $h.= '<script>';
+                            $h.= 'if( jQuery("#mdl-elmt-'.$key.'").find(".mdl_content").html() !== "" ){';
+                                $h.= 'jQuery("#mdl-elmt-'.$key.'").modalJS({';
+                                    $h.= 'width:"'.$arr['custom']['popup_width'].'",';
+                                    $h.= 'height:"'.$arr['custom']['popup_height'].'",';
+                                    $h.= !empty( $arr['custom']['popup_bg_color'] ) ? 'bg_color:"'.$arr['custom']['popup_bg_color'].'",' : '';
+                                    $h.= !empty( $arr['custom']['popup_overlay_color'] ) ? 'overlay_color:"'.$arr['custom']['popup_overlay_color'].'",' : '';
+                                    $h.= !empty($css) ? 'css:{'.$css.'},' : '';
+                                    $h.= !empty($arr['custom']['popup_cookie_value']) ? 'cookie: {"expires":"'.$arr['custom']['popup_cookie_value'].'","type":"'.$arr['custom']['popup_cookie_type'].'"}' : '';
+                                    $h.= !empty( $arr['custom']['popup_custom_json'] ) ? stripslashes($arr['custom']['popup_custom_json']) : '';
+                                $h.= '});';
+                            $h.= '}';
+                        $h.= '</script>';
+                    }
                 }
 
                 if($arr['pos'] === 'cornerpeel')
                 {
-                    $h.= '<div id="crp-elmt-'.$key.'">'.ADNI_Multi::do_shortcode('[adning id="'.$key.'"]').'</div>';
-                    $h.= '<script>jQuery("#crp-elmt-'.$key.'").cornerPeel({cornerAnimate:0});</script>';
+                    $b = ADNI_Multi::get_post_meta($key, '_adning_args', array());
+                    
+                    if( self::show_hide(array('args' => $b)) )
+                    {
+                        $h.= '<div id="crp-elmt-'.$key.'">'.ADNI_Multi::do_shortcode('[adning id="'.$key.'"]').'</div>';
+                        $h.= '<script>jQuery("#crp-elmt-'.$key.'").cornerPeel({cornerAnimate:0});</script>';
+                    }
                 }
 
                 if($arr['pos'] === 'bg_takeover')
@@ -248,6 +384,46 @@ class ADNI_Filters {
                                 }
                             });";
                         $h.= '</script>';
+                    }
+                }
+
+                if($arr['pos'] === 'js_inject')
+                {
+                    $b = ADNI_Multi::get_post_meta($key, '_adning_args', array());
+                    
+                    if( self::show_hide(array('args' => $b)) )
+                    {
+                        if( !empty($arr['custom']['inject_element']))
+                        {
+                            $h.= '<div id="inject-elmt-'.$key.'">'.ADNI_Multi::do_shortcode('[adning id="'.$key.'"]').'</div>';
+                            $h.= '<script>';
+                                $h.= 'var ins_where = "'.$arr['custom']['inject_where'].'";';
+                                $h.= 'var ins_element = "'.$arr['custom']['inject_element'].'";';
+
+                                // Make sure element exists.
+                                $h.= "jQuery(document).ready(function($){";
+                                    $h.= 'if( jQuery(ins_element).length ){';
+                                        $h.= 'jQuery("#inject-elmt-'.$key.'").modalJS({';
+                                            $h.= 'type: "inline",';
+                                            $h.= 'insert: {"target":ins_element,"where":ins_where}';
+                                        $h.= '});';
+                                    $h.= '}else{
+                                        jQuery("#inject-elmt-'.$key.'").remove();
+                                    }';
+                                $h.= '});';
+
+                                /*$h.= "jQuery(document).ready(function($){
+                                    if( ins_element !== '' ){
+                                        var where = ins_where !== '' ? ins_where : 'after';
+                                        if( where === 'before'){
+                                            $(ins_element).before( $('#inject-elmt-'+$key) );
+                                        }else{
+                                            $(ins_element).after( $('#inject-elmt-'+$key) );
+                                        }
+                                    }
+                                });";*/
+                            $h.= '</script>';
+                        }
                     }
                 }
             }
@@ -419,6 +595,94 @@ class ADNI_Filters {
 
 
 
+
+    /**
+	 * Get Country by IP Address
+	 *
+	 * Maxmind
+	 * http://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gz
+     * 
+     * usage: ADNI_Filters::get_country( $ip );
+	 */
+	public static function get_country( $ip )
+	{
+		$ip_num = (float) sprintf( '%u', bindec( self::dtr_pton( $ip )));
+		$country_cd = 'xx';
+			
+		if( file_exists( ADNI_INC_DIR.'/extensions/maxmind/GeoIP.dat' ) && ( $handle = fopen( ADNI_INC_DIR.'/extensions/maxmind/GeoIP.dat', 'rb' ))) 
+		{
+			$country_codes = array('','ap','eu','ad','ae','af','ag','ai','al','am','cw','ao','aq','ar','as','at','au','aw','az','ba','bb','bd','be','bf','bg','bh','bi','bj','bm','bn','bo','br','bs','bt','bv','bw','by','bz','ca','cc','cd','cf','cg','ch','ci','ck','cl','cm','cn','co','cr','cu','cv','cx','cy','cz','de','dj','dk','dm','do','dz','ec','ee','eg','eh','er','es','et','fi','fj','fk','fm','fo','fr','sx','ga','gb','gd','ge','gf','gh','gi','gl','gm','gn','gp','gq','gr','gs','gt','gu','gw','gy','hk','hm','hn','hr','ht','hu','id','ie','il','in','io','iq','ir','is','it','jm','jo','jp','ke','kg','kh','ki','km','kn','kp','kr','kw','ky','kz','la','lb','lc','li','lk','lr','ls','lt','lu','lv','ly','ma','mc','md','mg','mh','mk','ml','mm','mn','mo','mp','mq','mr','ms','mt','mu','mv','mw','mx','my','mz','na','nc','ne','nf','ng','ni','nl','no','np','nr','nu','nz','om','pa','pe','pf','pg','ph','pk','pl','pm','pn','pr','ps','pt','pw','py','qa','re','ro','ru','rw','sa','sb','sc','sd','se','sg','sh','si','sj','sk','sl','sm','sn','so','sr','st','sv','sy','sz','tc','td','tf','tg','th','tj','tk','tm','tn','to','tl','tr','tt','tv','tw','tz','ua','ug','um','us','uy','uz','va','vc','ve','vg','vi','vn','vu','wf','ws','ye','yt','rs','za','zm','me','zw','a1','a2','o1','ax','gg','im','je','bl','mf','bq','ss','o1');
+				
+			$offset = 0;
+			for($depth = 31; $depth >= 0; --$depth) 
+			{
+				if (fseek($handle, 6 * $offset, SEEK_SET) != 0)
+				{
+					break;
+				}
+				$buf = fread($handle, 6);
+				$cd = array(0,0);
+				for($i = 0; $i < 2; ++$i) 
+				{
+					for($j = 0; $j < 3; ++$j) 
+					{
+						$cd[$i] += ord(substr($buf, 3 * $i + $j, 1)) << ($j * 8);
+					}
+				}
+		
+				if( $ip_num & ( 1 << $depth )) 
+				{
+					if($cd[1] >= 16776960 && !empty($country_codes[$cd[1] - 16776960])) 
+					{
+						$country_cd = $country_codes[$cd[1] - 16776960];
+						break;
+					}
+					$offset = $cd[1];
+				} 
+				else 
+				{
+					if($cd[0] >= 16776960 && !empty($country_codes[$cd[0] - 16776960])) 
+					{
+						$country_cd = $country_codes[$cd[0] - 16776960];
+						break;
+					}
+					$offset = $cd[0];
+				}
+			}
+			fclose($handle);
+		}
+		
+		return $country_cd;
+    }
+
+    public static function dtr_pton( $ip )
+	{
+		if( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ) 
+		{
+			$unpacked = unpack( 'A4', inet_pton( $ip ) );
+		}
+		elseif( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) && defined( 'AF_INET6' )) 
+		{
+			$unpacked = unpack( 'A16', inet_pton( $ip ) );
+		}
+
+		$binary_ip = '';
+		if( !empty( $unpacked )) 
+		{
+			$unpacked = str_split( $unpacked[ 1 ] );
+			foreach( $unpacked as $char ) 
+			{
+				$binary_ip .= str_pad( decbin( ord( $char ) ), 8, '0', STR_PAD_LEFT );
+			}
+		}
+		return $binary_ip;
+	}
+    
+
+
+
+
+
     /*
 	 * Outputs or returns the debug marker.
 	 *
@@ -435,7 +699,126 @@ class ADNI_Filters {
 		else {
 			echo "\n${marker}\n";
 		}
-	}
+    }
+    
+
+
+
+    /**
+     * Check campaign status (active or not)
+     * 
+     * return: (bool) true:false;
+     */
+    public static function check_campaign( $id = 0 )
+    {
+        $active = true;
+        $campaign_post = ADNI_CPT::load_post($id, array('post_type' => ADNI_CPT::$campaign_cpt, 'filter' => 0));
+        
+        if( !empty($campaign_post))
+        {        
+            $c = $campaign_post['args'];
+            // echo '<pre>'.print_r($c, true).'</pre>';
+
+            // Months
+            if( !empty($c['display_filter']['months']) )
+            {
+                $show = array_key_exists('show_hide', $c['display_filter']['months']) ? $c['display_filter']['months']['show_hide'] : 0;
+                $ids = array_key_exists('ids', $c['display_filter']['months']) ? $c['display_filter']['months']['ids'] : array();
+                $today = date( 'M', current_time( 'timestamp' ) ); //date_i18n( 'D', current_time( 'timestamp' ) );
+                $today = strtolower($today);
+
+                if( !empty($ids))
+                {
+                    if( !in_array($today, $ids) && $show || in_array($today, $ids) && !$show ){
+                        return;
+                    }
+                }
+            }
+
+            // Days
+            if( !empty($c['display_filter']['days']) )
+            {
+                $show = array_key_exists('show_hide', $c['display_filter']['days']) ? $c['display_filter']['days']['show_hide'] : 0;
+                $ids = array_key_exists('ids', $c['display_filter']['days']) ? $c['display_filter']['days']['ids'] : array();
+                $today = date( 'j', current_time( 'timestamp' ) ); //date_i18n( 'D', current_time( 'timestamp' ) );
+                $today = strtolower($today);
+
+                if( !empty($ids))
+                {
+                    if( !in_array($today, $ids) && $show || in_array($today, $ids) && !$show ){
+                        return;
+                    }
+                }
+            }
+
+            // Weekdays
+            if( !empty($c['display_filter']['weekdays']) )
+            {
+                $show = array_key_exists('show_hide', $c['display_filter']['weekdays']) ? $c['display_filter']['weekdays']['show_hide'] : 0;
+                $ids = array_key_exists('ids', $c['display_filter']['weekdays']) ? $c['display_filter']['weekdays']['ids'] : array();
+                $today = date( 'D', current_time( 'timestamp' ) ); //date_i18n( 'D', current_time( 'timestamp' ) );
+                $today = strtolower($today);
+
+                if( !empty($ids))
+                {
+                    if( !in_array($today, $ids) && $show || in_array($today, $ids) && !$show ){
+                        return;
+                    }
+                }
+            }
+
+            // Time
+            if( !empty($c['display_filter']['time']) )
+            {
+                $show = array_key_exists('show_hide', $c['display_filter']['time']) ? $c['display_filter']['time']['show_hide'] : 0;
+                $ids = array_key_exists('ids', $c['display_filter']['time']) ? $c['display_filter']['time']['ids'] : array();
+                $today = date( 'G', current_time( 'timestamp' ) ); //date_i18n( 'D', current_time( 'timestamp' ) );
+                $today = strtolower($today);
+
+                if( !empty($ids))
+                {
+                    if( !in_array($today, $ids) && $show || in_array($today, $ids) && !$show ){
+                        return;
+                    }
+                }
+            }
+
+            // Years
+            if( !empty($c['display_filter']['years']) )
+            {
+                $show = array_key_exists('show_hide', $c['display_filter']['years']) ? $c['display_filter']['years']['show_hide'] : 0;
+                $ids = array_key_exists('ids', $c['display_filter']['years']) ? $c['display_filter']['years']['ids'] : array();
+                $today = date( 'Y', current_time( 'timestamp' ) ); //date_i18n( 'D', current_time( 'timestamp' ) );
+                $today = strtolower($today);
+
+                if( !empty($ids))
+                {
+                    if( !in_array($today, $ids) && $show || in_array($today, $ids) && !$show ){
+                        return;
+                    }
+                }
+            }
+
+            // COUNTRY FILTER
+            if( !empty($c['display_filter']['countries']) )
+            {
+                if( array_key_exists('ids', $c['display_filter']['countries']))
+                {
+                    $show = array_key_exists('show_hide', $c['display_filter']['countries']) ? $c['display_filter']['countries']['show_hide'] : 0;
+                    $visitor_country = ADNI_Filters::get_country( ADNI_Main::get_visitor_ip() );
+                    //$visitor_country = 'xx';
+                    //$display['countries']['ids'] = array('xx');
+
+                    if( !in_array($visitor_country, $c['display_filter']['countries']['ids']) && $show || in_array($visitor_country, $c['display_filter']['countries']['ids']) && !$show ){
+                        return;
+                    }
+                }
+            }
+        }
+
+        return $active;
+    }
+
 }
 
 endif;

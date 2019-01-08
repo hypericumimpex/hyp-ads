@@ -9,6 +9,7 @@ class ADNI_Init {
 	{
 		// Run this on activation.
 		register_activation_hook( ADNI_FILE, array( __CLASS__, 'install' ) );
+		register_deactivation_hook(ADNI_FILE, array( __CLASS__, 'deactivate'));
 		
 		// Load Classes -----------------------------------------------
 		new ADNI_CPT();
@@ -21,6 +22,8 @@ class ADNI_Init {
 		new ADNI_Ajax();
 		new ADNI_Multi();
 		new ADNI_Frontend();
+		new ADNI_Updates();
+		//new ADNI_Sell();
 		
 		
 		// Load Extensions -----------------------------------------------
@@ -45,15 +48,35 @@ class ADNI_Init {
 	
 	
 	/**
-	 * Install Lap_times
+	 * Install Adning
 	 */
 	public static function install() 
 	{	
-		$settings = ADNI_Main::settings();
+		$set = ADNI_Main::settings();
+		$_adning_settings = ADNI_Multi::get_option('_adning_settings', array());
+		$settings = ADNI_Main::parse_args( $_adning_settings, $set['settings'] );
+		$settings = ADNI_Multi::update_option('_adning_settings', $settings);
+
 		ADNI_CPT::add_custom_caps(array('role' => $settings['roles']['create_banner_role'], 'cpt' => ADNI_CPT::$banner_cpt));
 		ADNI_CPT::add_custom_caps(array('role' => $settings['roles']['create_adzone_role'], 'cpt' => ADNI_CPT::$adzone_cpt));
+		ADNI_CPT::add_custom_caps(array('role' => $settings['roles']['create_campaign_role'], 'cpt' => ADNI_CPT::$campaign_cpt));
 	}
 	
+
+
+	/**
+	 * Deactivate Adning
+	 */
+	public static function deactivate()
+	{
+		// Deregister Adning License
+		$activation = ADNI_Multi::get_option('adning_activation', array());
+		if( !empty($activation))
+		{
+			$resp = ADNI_Activate::deregister(array('license-key' => $activation['license-key']));
+			return $resp['msg'];
+		}
+	}
 	
 	
 	
@@ -68,6 +91,7 @@ class ADNI_Init {
 		define( "ADNI_ADMIN_ROLE", ADNI_Main::ADNI_capability($settings['roles']['admin_role']) );
 		define( "ADNI_BANNERS_ROLE", ADNI_Main::ADNI_capability($settings['roles']['create_banner_role']) );
 		define( "ADNI_ADZONES_ROLE", ADNI_Main::ADNI_capability($settings['roles']['create_adzone_role']) );
+		define( "ADNI_CAMPAIGNS_ROLE", ADNI_Main::ADNI_capability($settings['roles']['create_campaign_role']) );
 	}
 	
 	
@@ -290,6 +314,10 @@ class ADNI_Init {
 				wp_enqueue_media();
 			}
 		}
+
+		
+		// Check if plugin needs update
+		ADNI_Updates::needs_update();
 		
 		
 		// Create menu
@@ -346,15 +374,18 @@ class ADNI_Init {
 		{
 			$arr = array();
 			$itms = count($submenu['adning']);
+			//echo '<pre>'.print_r($submenu['adning'],true).'</pre>';
 			
-			if( array_key_exists(2, $submenu['adning']) ){ $arr[] = $submenu['adning'][2]; }
+			if( array_key_exists(3, $submenu['adning']) && $submenu['adning'][3][0] === 'ADning' ){ $arr[] = $submenu['adning'][3]; }
 			$arr[] = $submenu['adning'][0];
 			$arr[] = $submenu['adning'][1];
+			$arr[] = $submenu['adning'][2];
+			
 			
 			// Allow (3rd party) add-ons to add item to menu
-			if( $itms > 3 )
+			if( $itms > 4 )
 			{
-				for($m = 3; $m < $itms; $m++)
+				for($m = 4; $m < $itms; $m++)
 				{
 					$arr[] = $submenu['adning'][$m];
 				}

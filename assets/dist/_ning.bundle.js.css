@@ -54,6 +54,7 @@
 }
 ._ning_outer.has_label ._ning_label{
 	padding: 5px 0;
+	font-size: 13px;
 }
 ._ning_outer.has_label ._ning_label._left{
 	float:left;
@@ -94,7 +95,7 @@
 	}
 ._ning_cont {
 	margin:0px auto;
-	background-color:#EFEFEF;
+	background-color:transparent;
 	width:300px;
 	height:250px;
 	overflow:hidden;
@@ -132,7 +133,7 @@
 
 
 .spot_box{
-	width: 80px;
+	width: 78px;
 	position: relative;
 	border: solid 1px #ededed;
     border-radius: 3px;
@@ -140,6 +141,7 @@
 	cursor: pointer;
 	float: left;
 	margin-right: 15px;
+	margin-bottom: 15px;
 }
 .spot_box.selected{
 	border: solid 5px #d9e89b;

@@ -44,24 +44,24 @@ class ADNI_Activate {
 			return array('server_status' => 1, 'body' => $response_body);
 		}
 	}
-	
-	
-	
+
+
+
+
 	/*
-	 * REGISTER Plugin
+	 * CHECK License
 	 *
 	 * @access public
 	 * @return array
 	*/
-	public static function register($args = array())
+	public static function check($args = array())
 	{	
 		$defaults = array(
-			'action'       => 'register_v5', //'check',
-			'license-key'  => '',
+			'action'       => 'check',
+			'license-key'  => ''
 		);
         $args = wp_parse_args( $args, $defaults );
         $set = ADNI_Main::settings();
-		//$set = get_option('_adning_settings', array());
 		$debug = $set['settings']['debug'];
 		
 		$request_body = array(
@@ -79,14 +79,71 @@ class ADNI_Activate {
 		$response = self::remote_post($request_body);
 		echo $debug ? '<pre>'.print_r($response,true).'</pre>' : '';
 		
-		// If plugin registered succesfully
+		if( $response['server_status'] )
+		{
+			$resp = json_decode($response['body']);
+
+			if(empty($resp->data))
+			{
+				$notice = ADNI_Init::deactivate();
+			}
+			
+			return $resp;
+		}
+		// In case of error.
+		else
+		{
+			return array('error' => __('Could not connect with server. Please try again in a few minutes.','adn'), 'error' => $response['body']);
+		}
+	}
+
+
+	
+	
+	
+	/*
+	 * REGISTER Plugin
+	 *
+	 * @access public
+	 * @return array
+	*/
+	public static function register($args = array())
+	{	
+		$defaults = array(
+			'action'       => 'register_v6', //'check',
+			'license-key'  => ''
+		);
+        $args = wp_parse_args( $args, $defaults );
+        $set = ADNI_Main::settings();
+		$debug = $set['settings']['debug'];
+		
+		$request_body = array(
+			'body' => array(
+				'action'      => $args['action'], 
+				'envato_id'   => ADNI_ENVATO_ID,
+				'item_slug'   => ADNI_BASENAME,
+				'license-key' => $args['license-key'],
+				'api-key'     => md5(get_bloginfo('url')),
+				'url'         => get_bloginfo('url'),
+				'email'       => get_bloginfo('admin_email')
+			)
+		);
+		
+		$response = self::remote_post($request_body);
+		echo $debug ? '<pre>'.print_r($response,true).'</pre>' : '';
+		
+		// If plugin registered succesfully	
 		if( $response['server_status'] )
 		{
 			$resp = json_decode($response['body']);
 			
 			if($resp->registered)
 			{
-				ADNI_multi::update_option( 'adning_activation', array('license-key' => $args['license-key'], 'verify' => $resp->verify, 'user_data' => $resp->user_data) );
+				ADNI_multi::update_option( 'adning_activation', array(
+					'license-key' => $args['license-key'], 
+					'verify' => $resp->verify, 
+					'user_data' => $resp->user_data
+				));
 				//update_option( 'adning_activation', array('license-key' => $args['license-key'], 'verify' => $resp->verify, 'user_data' => $resp->user_data) );
 			}
 			else

@@ -26,12 +26,14 @@ $auto_pos = ADNI_Main::auto_positioning();
 */
 $adzone = ADNI_CPT::load_post($id, array('post_type' => ADNI_CPT::$adzone_cpt));
 
-if( !current_user_can(ADNI_ADMIN_ROLE) && $user_id != $adzone['post']->post_author)
+if( !current_user_can(ADNI_ADZONES_ROLE) && $user_id != $adzone['post']->post_author)
 {
     echo '<div style="margin-top:50px;text-align:center;">'.__('Sorry, This adzone does not exists.','adn').'</div>';
     return;
 }
 //echo '<pre>'.print_r($adzone,true).'</pre>';
+//echo '<pre>'.print_r(ADNI_Sell::adzones_for_sale(),true).'</pre>';
+
 
 /**
  * Check if user has access to this banner
@@ -81,34 +83,16 @@ if( !empty( $adzone['post'] ))
                                     <span class="description bottom"><?php _e('Add the adzone title.','adn'); ?></span>
                                  </div>
                                  <!-- end .input_container -->
-                                 
-                                 
-                                 <div class="input_container">
-                                    <h3 class="title"><?php _e('Transition','adn'); ?></h3>
-                                    <div class="input_container_inner">
-                                     <select name="adzone_transition" id="ssTransition">
-                                     	<?php require_once(ADNI_INC_DIR.'/files/animations.php'); ?>
-                                     </select>
-                
-                						</div>
-                                    <span class="description bottom"><?php _e('Transission Effect.','adn'); ?></span>
-                                 </div>
-                                 <!-- end .input_container -->
 
                                  <div class="input_container">
-                                    <h3 class="title"><?php _e('Transition time','adn'); ?></h3>
+                                    <h3 class="title"><?php _e('Description','adn'); ?></h3>
                                     <div class="input_container_inner">
-                                        <input 
-                                            type="text" 
-                                            class="" 
-                                            name="adzone_transition_time" 
-                                            value="<?php echo !empty($adzone['args']['adzone_transition_time']) ? $adzone['args']['adzone_transition_time'] : 5; ?>" 
-                                            placeholder="<?php _e('Transition seconds','adn'); ?>">
-                                        <i class="input_icon fa fa-pencil" aria-hidden="true"></i>
+                                        <textarea id="adzoneDesc" name="description" style="min-height:120px;font-size:11px;"><?php echo $adzone['args']['description']; ?></textarea>
                                     </div>
-                                    <span class="description bottom"><?php _e('Amount of seconds between banner transitions.','adn'); ?></span>
-                                 </div>
-                                 <!-- end .input_container -->
+                                    <span class="description bottom"><?php _e('Adzone description.','adn'); ?></span>
+                                </div>
+                                <!-- end .input_container -->
+                                 
                                  
                                  <div class="input_container">
                                 	 	<div class="input_container_inner">
@@ -122,6 +106,13 @@ if( !empty( $adzone['post'] ))
                              </div>
                              <!-- end .option_box -->
                             
+
+                            <!--
+                            /**
+                            * CAMPAIGNS
+                            */
+                            -->
+                            <?php echo ADNI_Templates::link_campaign_tpl($adzone['args']); ?>
 
 
                             <!--
@@ -157,7 +148,7 @@ if( !empty( $adzone['post'] ))
                                     <div class="input_container">
                                         <h3 class="title"><?php _e('','adn'); ?></h3>
                                             <div class="input_container_inner">
-                                            <input id="sc_code" style="font-size:11px;" value='[adning id="<?php echo $id; ?>"]' />
+                                            <input id="sc_code" style="font-size:11px;" type="text" value='[adning id="<?php echo $id; ?>"]' />
                                         </div>
                                         <span class="description bottom"><?php _e('Shortcode.','adn'); ?></span>
                                     </div>
@@ -166,8 +157,11 @@ if( !empty( $adzone['post'] ))
                                     <div class="input_container">
                                         <h3 class="title"><?php _e('','adn'); ?></h3>
                                             <div class="input_container_inner">
-                                            <textarea id="embed_code" style="min-height:120px;font-size:11px;"><script type="text/javascript">var _ning_embed = {"id":"<?php echo $id; ?>","width":<?php echo $adzone['args']['adzone_size_w']; ?>,"height":<?php echo $adzone['args']['adzone_size_h']; ?>};</script><script type="text/javascript" src="<?php echo get_bloginfo('url'); ?>?_dnembed=true"></script></textarea>
-                                        </div>
+                                                <?php
+                                                $code = '<script type="text/javascript">var _ning_embed = {"id":"'.$id.'","width":'.$adzone['args']['size_w'].',"height":'.$adzone['args']['size_h'].'};</script><script type="text/javascript" src="'.get_bloginfo('url').'?_dnembed=true"></script>';
+                                                ?>
+                                                <textarea id="embed_code" style="min-height:120px;font-size:11px;"><?php echo $code; ?></textarea>
+                                            </div>
                                         <span class="description bottom"><?php _e('Embed code.','adn'); ?></span>
                                     </div>
                                     <!-- end .input_container -->
@@ -213,14 +207,14 @@ if( !empty( $adzone['post'] ))
                                             <div class="input_container">
                                                 <h3 class="title"><?php _e('','adn'); ?></h3>
                                                     <div class="input_container_inner">
-                                                    <select id="ADNI_size" name="adzone_size" class="">
+                                                    <select id="ADNI_size" name="size" class="">
                                                         <?php
                                                             foreach(ADNI_Main::banner_sizes() as $size)
                                                             {
-                                                                echo '<option value="'.$size['size'].'" '.selected( $adzone['args']['adzone_size'], $size['size'] ).'>'.$size['name'].' ('.$size['size'].')</option>';
+                                                                echo '<option value="'.$size['size'].'" '.selected( $adzone['args']['size'], $size['size'] ).'>'.$size['name'].' ('.$size['size'].')</option>';
                                                             }
                                                             ?>
-                                                      <option value="custom" <?php selected( $adzone['args']['adzone_size'], 'custom' ); ?>>Custom</option>
+                                                      <option value="custom" <?php selected( $adzone['args']['size'], 'custom' ); ?>>Custom</option>
                                                     </select>
                                                 </div>
                                                 <span class="description bottom"><?php _e('Select one of the common banner sizes.','adn'); ?></span>
@@ -239,7 +233,7 @@ if( !empty( $adzone['post'] ))
                                                 <h3 class="title"><?php _e('','adn'); ?></h3>
                                                 <div class="input_container_inner">
                                                     <label class="switch switch-slide small input_h ttip" title="<?php _e('Responsive adzone.','adn'); ?>">
-                                                        <input class="switch-input" type="checkbox" id="ADNI_responsive" name="adzone_responsive" value="1" <?php checked( $adzone['args']['adzone_responsive'], 1 ); ?> />
+                                                        <input class="switch-input" type="checkbox" id="ADNI_responsive" name="responsive" value="1" <?php checked( $adzone['args']['responsive'], 1 ); ?> />
                                                         <span class="switch-label" data-on="<?php _e('On','adn'); ?>" data-off="<?php _e('Off','adn'); ?>"></span> 
                                                         <span class="switch-handle"></span>
                                                     </label>
@@ -267,8 +261,8 @@ if( !empty( $adzone['post'] ))
                                                                     type="text" 
                                                                     class="_ning_custom_size" 
                                                                     id="ADNI_size_w" 
-                                                                    name="adzone_size_w" 
-                                                                    value="<?php echo $adzone['args']['adzone_size_w']; ?>" 
+                                                                    name="size_w" 
+                                                                    value="<?php echo $adzone['args']['size_w']; ?>" 
                                                                     placeholder="<?php _e('','adn'); ?>">
                                                                 <i class="input_icon fa fa-arrows-h" aria-hidden="true"></i>
                                                             </div>
@@ -289,8 +283,8 @@ if( !empty( $adzone['post'] ))
                                                                     type="text" 
                                                                     class="_ning_custom_size" 
                                                                     id="ADNI_size_h" 
-                                                                    name="adzone_size_h" 
-                                                                    value="<?php echo $adzone['args']['adzone_size_h']; ?>" 
+                                                                    name="size_h" 
+                                                                    value="<?php echo $adzone['args']['size_h']; ?>" 
                                                                     placeholder="<?php _e('','adn'); ?>">
                                                                 <i class="input_icon fa fa-arrows-v" aria-hidden="true"></i>
                                                             </div>
@@ -318,97 +312,182 @@ if( !empty( $adzone['post'] ))
                                             <div class="banner_holder clear" style="padding:20px;">
                                                 <div class="banner_notice"></div>
                                                
-                                               <?php echo ADNI_Templates::adzone_tpl($id, array()); ?>  
+                                               <?php echo ADNI_Templates::adzone_tpl($id, array('filter' => 0, 'stats' => 0)); ?>  
                                             </div>
                                             <!-- end .banner_holder -->
                                             
-                                           <div class="sep_line" style="margin:0 0 25px 0;"><span><strong><?php _e('Linked Banners','adn'); ?></strong></span></div>
+                                            <div class="sep_line" style="margin:0 0 25px 0;"><span><strong><?php _e('Linked Banners','adn'); ?></strong></span></div>
                                            
-                                           <!-- LINKED BANNERS BOX -->
-                                           <div class="spr_column"> <!-- spr_col-4 -->
-                                               <div class="spr_column-inner">
-                                                   <div class="spr_wrapper">
-                                                   	<div class="input_container">
-                                                        <h3 class="title"><?php _e('','adn'); ?></h3>
+                                            <!-- LINKED BANNERS BOX -->
+                                            <div class="spr_column"> <!-- spr_col-4 -->
+                                                <div class="spr_column-inner">
+                                                    <div class="spr_wrapper">
+                                                        <div class="input_container">
+                                                            <h3 class="title"><?php _e('','adn'); ?></h3>
                                                             <div class="input_container_inner">
-                                                            <?php
-																	$fitting_banners = ADNI_CPT::get_posts(array(
-																		'post__not_in' => $adzone['args']['linked_banners'],
-																		'meta_query' => array(
-																			array(
-																				'key'     => '_adning_size',
-																				'value'   => array($adzone['args']['adzone_size']),
-																				'compare' => 'IN',
-																			),
-																		)
-																	));
-																	$not_fitting_banners = ADNI_CPT::get_posts(array(
-																		'post__not_in' => $adzone['args']['linked_banners'],
-																		'meta_query' => array(
-																			array(
-																				'key'     => '_adning_size',
-																				'value'   => array($adzone['args']['adzone_size']),
-																				'compare' => 'NOT IN',
-																			),
-																		)
-                                                                    ));
-																   ?>
-                                                            <select name="linked_banners[]" multiple data-placeholder="Select Banners" class="chosen-select chosen-sortable">
-                                                             <?php
-																	if( !empty($adzone['args']['linked_banners']))
-																	{
-																		echo '<optgroup label="'.__('Linked Banners','adn').'">';
-																		foreach( $adzone['args']['linked_banners'] as $banner_id)
-																		{
-																			echo '<option value="'.$banner_id.'" selected>'.get_the_title($banner_id).'</option>';
-																		}
-																		echo '</optgroup>';
-																	}
-																	?>
-                                                            	<optgroup label="<?php echo sprintf(__('Fitting Banners (%s)','adn'), $adzone['args']['adzone_size']); ?>">
                                                                 <?php
-                                                                    if( !empty($fitting_banners))
-                                                                    {
-                                                                        foreach( $fitting_banners as $banner)
-                                                                        {
-                                                                            echo '<option value="'.$banner->ID.'">'.$banner->post_title.'</option>';
-                                                                        }
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        echo '<option value="" disabled>'.sprintf(__('No %s banners found.','adn'), $adzone['args']['adzone_size']).'</option>';
-                                                                    }
+                                                                $fitting_banners = ADNI_CPT::get_posts(array(
+                                                                    'post__not_in' => $adzone['args']['linked_banners'],
+                                                                    'meta_query' => array(
+                                                                        array(
+                                                                            'key'     => '_adning_size',
+                                                                            'value'   => array($adzone['args']['size']),
+                                                                            'compare' => 'IN',
+                                                                        ),
+                                                                    )
+                                                                ));
+                                                                $not_fitting_banners = ADNI_CPT::get_posts(array(
+                                                                    'post__not_in' => $adzone['args']['linked_banners'],
+                                                                    'meta_query' => array(
+                                                                        array(
+                                                                            'key'     => '_adning_size',
+                                                                            'value'   => array($adzone['args']['size']),
+                                                                            'compare' => 'NOT IN',
+                                                                        ),
+                                                                    )
+                                                                ));
                                                                 ?>
-                                                              </optgroup>
-                                                              <optgroup label="<?php _e('Other Banners','adn'); ?>">
-                                                                <?php
-                                                                    if( !empty($not_fitting_banners))
+                                                                <select name="linked_banners[]" multiple data-placeholder="Select Banners" class="chosen-select chosen-sortable">
+                                                                    <?php
+                                                                    if( !empty($adzone['args']['linked_banners']))
                                                                     {
-                                                                        
-                                                                        foreach( $not_fitting_banners as $banner)
+                                                                        echo '<optgroup label="'.__('Linked Banners','adn').'">';
+                                                                        foreach( $adzone['args']['linked_banners'] as $banner_id)
                                                                         {
-                                                                            echo '<option value="'.$banner->ID.'">'.$banner->post_title.'</option>';
+                                                                            echo '<option value="'.$banner_id.'" selected>'.get_the_title($banner_id).'</option>';
                                                                         }
+                                                                        echo '</optgroup>';
                                                                     }
-                                                                    else
-                                                                    {
-                                                                        echo '<option value="" disabled>'.__('No other banners found.','adn').'</option>';
-                                                                    }
-                                                                ?>
-                                                              </optgroup>
-                                                            </select>
+                                                                    ?>
+                                                                    <optgroup label="<?php echo sprintf(__('Fitting Banners (%s)','adn'), $adzone['args']['size']); ?>">
+                                                                        <?php
+                                                                        if( !empty($fitting_banners))
+                                                                        {
+                                                                            foreach( $fitting_banners as $banner)
+                                                                            {
+                                                                                echo '<option value="'.$banner->ID.'">'.$banner->post_title.'</option>';
+                                                                            }
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            echo '<option value="" disabled>'.sprintf(__('No %s banners found.','adn'), $adzone['args']['size']).'</option>';
+                                                                        }
+                                                                        ?>
+                                                                    </optgroup>
+                                                                    <optgroup label="<?php _e('Other Banners','adn'); ?>">
+                                                                        <?php
+                                                                        if( !empty($not_fitting_banners))
+                                                                        {
+                                                                            
+                                                                            foreach( $not_fitting_banners as $banner)
+                                                                            {
+                                                                                echo '<option value="'.$banner->ID.'">'.$banner->post_title.'</option>';
+                                                                            }
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            echo '<option value="" disabled>'.__('No other banners found.','adn').'</option>';
+                                                                        }
+                                                                        ?>
+                                                                    </optgroup>
+                                                                </select>
+                                                            </div>
+                                                            <!-- end .input_container_inner -->
+                                                            <span class="description bottom"><?php _e('Select the banners to link to this adzone. Drag to change the order.','adn'); ?></span>
                                                         </div>
-                                                        <span class="description bottom"><?php _e('Select the banners to link to this adzone. Drag to change the order.','adn'); ?></span>
-                                                     </div>
-                                                     <!-- end .input_container -->
-                                                   </div>
-                                                   <!-- end .spr_wrapper -->
+                                                        <!-- end .input_container -->
+                                                    </div>
+                                                    <!-- end .spr_wrapper -->
                                                </div>
                                                <!-- end .spr_column-inner -->
-                                           </div>
-                                           <!-- end .spr_column -->
-                                           
-                                    
+                                            </div>
+                                            <!-- end .spr_column -->
+                                                                    
+
+                                            
+                                            <div class="spr_column"> <!-- spr_col-4 -->
+                                               <div class="spr_column-inner">
+                                                    <div class="spr_wrapper">
+                                                        <div class="sep_line" style="margin:0 0 25px 0;"><span><strong><?php _e('Order and Loading settings','adn'); ?></strong></span></div>
+                                                        
+                                                        <div class="spr_column spr_col-3">
+                                                            <div class="spr_column-inner">
+                                                                <div class="spr_wrapper">
+                                                                    <div class="input_container">
+                                                                        <h3 class="title"><?php _e('Random Order','adn'); ?></h3>
+                                                                        <div class="input_container_inner">
+                                                                            <label class="switch switch-slide small input_h ttip" title="<?php _e('Load random order.','adn'); ?>">
+                                                                                <input class="switch-input" type="checkbox" name="random_order" value="1" <?php checked( $adzone['args']['random_order'], 1 ); ?> />
+                                                                                <span class="switch-label" data-on="<?php _e('Yes','adn'); ?>" data-off="<?php _e('No','adn'); ?>"></span> 
+                                                                                <span class="switch-handle"></span>
+                                                                            </label>
+                                                                        </div>
+                                                                        <span class="description bottom"><?php _e('Load banners in random order.','adn'); ?></span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="spr_column spr_col-3">
+                                                            <div class="spr_column-inner">
+                                                                <div class="spr_wrapper">
+                                                                    <div class="input_container">
+                                                                        <h3 class="title"><?php _e('Load one banner','adn'); ?></h3>
+                                                                        <div class="input_container_inner">
+                                                                            <label class="switch switch-slide small input_h ttip" title="<?php _e('Load single banner.','adn'); ?>">
+                                                                                <input class="switch-input" type="checkbox" name="load_single" value="1" <?php checked( $adzone['args']['load_single'], 1 ); ?> />
+                                                                                <span class="switch-label" data-on="<?php _e('Yes','adn'); ?>" data-off="<?php _e('No','adn'); ?>"></span> 
+                                                                                <span class="switch-handle"></span>
+                                                                            </label>
+                                                                        </div>
+                                                                        <span class="description bottom"><?php _e('Load one banner at the time (no transition, one banner on page load).','adn'); ?></span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div class="spr_column spr_col-3">
+                                                            <div class="spr_column-inner">
+                                                                <div class="spr_wrapper">
+                                                                    <div class="input_container">
+                                                                        <h3 class="title"><?php _e('Transition','adn'); ?></h3>
+                                                                        <div class="input_container_inner">
+                                                                            <select name="adzone_transition" id="ssTransition">
+                                                                                <?php require_once(ADNI_INC_DIR.'/files/animations.php'); ?>
+                                                                            </select>
+                                                                        </div>
+                                                                        <span class="description bottom"><?php _e('Transission Effect.','adn'); ?></span>
+                                                                    </div>
+                                                                    <!-- end .input_container -->
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="spr_column spr_col-3">
+                                                            <div class="spr_column-inner">
+                                                                <div class="spr_wrapper">
+
+                                                                    <div class="input_container">
+                                                                        <h3 class="title"><?php _e('Transition time','adn'); ?></h3>
+                                                                        <div class="input_container_inner">
+                                                                            <input 
+                                                                                type="text" 
+                                                                                class="" 
+                                                                                name="adzone_transition_time" 
+                                                                                value="<?php echo !empty($adzone['args']['adzone_transition_time']) ? $adzone['args']['adzone_transition_time'] : 5; ?>" 
+                                                                                placeholder="<?php _e('Transition seconds','adn'); ?>">
+                                                                            <i class="input_icon fa fa-pencil" aria-hidden="true"></i>
+                                                                        </div>
+                                                                        <span class="description bottom"><?php _e('Amount of seconds between banner transitions.','adn'); ?></span>
+                                                                    </div>
+                                                                    <!-- end .input_container -->
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                            </div>
                                            
                                            
                                        </div>
@@ -431,6 +510,11 @@ if( !empty( $adzone['post'] ))
                         <?php
                         echo ADNI_Templates::auto_positioning_template($id, $adzone);
                         echo ADNI_templates::display_filters_tpl($adzone);
+
+                        /*
+                         * Action: 'adning_single_adzone_settings' - Allow other plugins to add options inside the Adzone settings section.
+                        */
+                        do_action( 'adning_single_adzone_settings', $adzone );
                         ?>
                     </div>
                     <!-- end .spr_column -->
@@ -458,34 +542,6 @@ if( !empty( $adzone['post'] ))
 jQuery(document).ready(function($) {
 
     Adning_global.activate_tooltips($('.adning_dashboard'));
-
-
-    /*// POSITIONING OPTIONS
-    if( $('.spot_box.selected').data('custom') === 1){
-        $('.custom_placement_settings_cont').show();
-        $('.custom_placement_settings_cont').find('.option_'+$('.spot_box.selected').data('pos')).show();
-    }
-
-    $('.spot_box').on('click', function(){
-        var pos = $(this).data('pos'),
-            has_custom = $(this).data('custom');
-
-        $('.spot_box').removeClass('selected');
-        if( pos !== ''){
-            $(this).addClass('selected');
-        }
-
-        if( has_custom ){
-            $('.custom_placement_settings_cont').show();
-            $('.custom_placement_settings_cont').find('.option_'+pos).show();
-        }else{
-            $('.custom_placement_settings_cont').hide();
-            $('.custom_placement_settings_cont').find('.custom_box').hide();
-        }
-        console.log(pos);
-        $('.adning_auto_position').val(pos);
-    });
-    */
     
 	$('#ADNI_size').on('change', function(){
 		var size = $(this).val(),
@@ -503,7 +559,7 @@ jQuery(document).ready(function($) {
 			//banner_resized_notice();
 		}
 	});
-	//$('#banner_size').trigger("change");
+	
 	
 	$('._ning_custom_size').on('change', function(){
 		var w = $('#ADNI_size_w').val(),

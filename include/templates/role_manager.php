@@ -7,7 +7,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
 	if(isset($_POST['save_role_settings']))
 	{
 		ADNI_CPT::add_custom_caps(array('role' => $_POST['create_banner_role'], 'cpt' => ADNI_CPT::$banner_cpt));
-		ADNI_CPT::add_custom_caps(array('role' => $_POST['create_adzone_role'], 'cpt' => ADNI_CPT::$adzone_cpt));
+        ADNI_CPT::add_custom_caps(array('role' => $_POST['create_adzone_role'], 'cpt' => ADNI_CPT::$adzone_cpt));
+        ADNI_CPT::add_custom_caps(array('role' => $_POST['create_campaign_role'], 'cpt' => ADNI_CPT::$campaign_cpt));
         ADNI_Multi::update_option('_adning_roles', $_POST);
         //update_option('_adning_roles', $_POST);
 	}
@@ -47,12 +48,12 @@ $settings = ADNI_Main::settings();
                         <div class="option_box">
                             <div class="info_header">
                                 <span class="icon"><i class="input_icon fa fa-cog" aria-hidden="true"></i></span>
-                                <span class="text"><?php _e('Role Settings','adn'); ?></span>
+                                <span class="text"><?php _e('Admin Role Settings','adn'); ?></span>
                                 <input type="submit" value="<?php _e('Save Role Settings','adn'); ?>" class="button-primary" name="save_role_settings" style="width:auto;float:right;margin:8px;">
                             </div>
                             <div class="spr_row"> 
-                                
-                                <div class="spr_column spr_col-4">
+
+                                <div class="spr_column spr_col-3">
                                     <div class="spr_column-inner" style="padding: 0 0 20px 0;">
                                         <div class="spr_wrapper">
                                             <div class="input_container">
@@ -68,33 +69,49 @@ $settings = ADNI_Main::settings();
                                         </div>
                                     </div>
                                 </div> 
-                                <div class="spr_column spr_col-4">
+                                <div class="spr_column spr_col-3">
                                     <div class="spr_column-inner" style="padding: 0 0 20px 0;">
                                         <div class="spr_wrapper">
                                             <div class="input_container">
-                                                <h3 class="title"><?php _e('Create Banner Role','adn'); ?></h3>
+                                                <h3 class="title"><?php _e('Manage Banner Role','adn'); ?></h3>
                                                 <div class="input_container_inner">
                                                     <select name="create_banner_role" class="active">
                                                         <?php wp_dropdown_roles($settings['roles']['create_banner_role']); ?>
                                                     </select>
                                                 </div>
-                                                <span class="description bottom"><?php _e('Specify who can create banners.','adn'); ?></span>
+                                                <span class="description bottom"><?php _e('Specify who has admin privileges to manage all banners.','adn'); ?></span>
                                             </div>
                                             <!-- end .input_container -->
                                         </div>
                                     </div>
                                 </div>
-                                <div class="spr_column spr_col-4">
+                                <div class="spr_column spr_col-3">
                                     <div class="spr_column-inner" style="padding: 0 0 20px 0;">
                                         <div class="spr_wrapper">
                                             <div class="input_container">
-                                                <h3 class="title"><?php _e('Create adzone Role','adn'); ?></h3>
+                                                <h3 class="title"><?php _e('Manage adzone Role','adn'); ?></h3>
                                                 <div class="input_container_inner">
                                                     <select name="create_adzone_role" class="active">
                                                         <?php wp_dropdown_roles($settings['roles']['create_adzone_role']); ?>
                                                     </select>
                                                 </div>
-                                                <span class="description bottom"><?php _e('Specify who can create adzones.','adn'); ?></span>
+                                                <span class="description bottom"><?php _e('Specify who has admin privileges to manage all adzones.','adn'); ?></span>
+                                            </div>
+                                            <!-- end .input_container -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="spr_column spr_col-3">
+                                    <div class="spr_column-inner" style="padding: 0 0 20px 0;">
+                                        <div class="spr_wrapper">
+                                            <div class="input_container">
+                                                <h3 class="title"><?php _e('Manage campaigns Role','adn'); ?></h3>
+                                                <div class="input_container_inner">
+                                                    <select name="create_campaign_role" class="active">
+                                                        <?php wp_dropdown_roles($settings['roles']['create_campaign_role']); ?>
+                                                    </select>
+                                                </div>
+                                                <span class="description bottom"><?php _e('Specify who has admin privileges to manage all campaigns.','adn'); ?></span>
                                             </div>
                                             <!-- end .input_container -->
                                         </div>

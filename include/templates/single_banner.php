@@ -5,10 +5,13 @@ if( !is_user_logged_in() )
     return;
 }
 
+
 $id = isset($_GET['id']) ? $_GET['id'] : 0;
 $id = !$id && isset($_POST['post_id']) ? $_POST['post_id'] : $id;
 $is_frontend = isset($is_frontend) ? $is_frontend : 0;
 $user_id = get_current_user_id();
+
+//echo ADNI_Filters::get_country( ADNI_Main::get_visitor_ip() );
 
 // Create draft post ( just to get a banner ID )
 if( !$id )
@@ -18,7 +21,7 @@ if( !$id )
             'post_type' => ADNI_CPT::$banner_cpt,
             'post_id' => 0,
             'post_title' => '',
-            'banner_responsive' => 1,
+            'responsive' => 1,
             'df_show_desktop' => 1,
             'df_show_tablet' => 1,
             'df_show_mobile' => 1
@@ -49,12 +52,14 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
 $set_arr = ADNI_Main::settings();
 $settings = $set_arr['settings'];
 
+
+
 /*
  * Load Post data or default values
 */
-$banner_post = ADNI_CPT::load_post($id, array('post_type' => ADNI_CPT::$banner_cpt));
+$banner_post = ADNI_CPT::load_post($id, array('post_type' => ADNI_CPT::$banner_cpt, 'filter' => 0));
 
-if( !current_user_can(ADNI_ADMIN_ROLE) && $user_id != $banner_post['post']->post_author || empty( $banner_post['post'] ))
+if( !current_user_can(ADNI_BANNERS_ROLE) && $user_id != $banner_post['post']->post_author || empty( $banner_post['post'] ))
 {
     echo '<div style="margin-top:50px;text-align:center;">'.__('Sorry, This banner does not exists.','adn').'</div>';
     return;
@@ -111,6 +116,20 @@ if( !empty( $banner_post['post'] ))
                                     <i class="input_icon fa fa-pencil" aria-hidden="true"></i>
                                 </div>
                                 <span class="description bottom"><?php _e('Add a banner title.','adn'); ?></span>
+                             </div>
+                             <!-- end .input_container -->
+
+                             <div class="input_container">
+                             	<h3 class="title"><?php _e('Status','adn'); ?></h3>
+                                	<div class="input_container_inner">
+                                        <select name="status" class="">
+                                            <option value="active" <?php selected( $b['status'], 'active' ); ?>><?php _e('Active','adn'); ?></option>
+                                            <option value="expired" <?php selected( $b['status'], 'expired' ); ?>><?php _e('Expired','adn'); ?></option>
+                                            <option value="draft" <?php selected( $b['status'], 'draft' ); ?>><?php _e('Draft','adn'); ?></option>
+                                            <option value="on-hold" <?php selected( $b['status'], 'on-hold' ); ?>><?php _e('On Hold','adn'); ?></option>
+                                        </select>
+                                    </div>
+                                <span class="description bottom"><?php _e('Banner status.','adn'); ?></span>
                              </div>
                              <!-- end .input_container -->
                              
@@ -203,6 +222,13 @@ if( !empty( $banner_post['post'] ))
                         <!-- end .option_box -->
                         
 
+                        <!--
+                        /**
+                         * CAMPAIGNS
+                        */
+                        -->
+                        <?php echo ADNI_Templates::link_campaign_tpl($b); ?>
+
 
 
                         <!--
@@ -239,7 +265,7 @@ if( !empty( $banner_post['post'] ))
                                 <div class="input_container">
                                     <h3 class="title"><?php _e('','adn'); ?></h3>
                                         <div class="input_container_inner">
-                                        <input id="sc_code" style="font-size:11px;" value='[adning id="<?php echo $id; ?>"]' />
+                                        <input id="sc_code" style="font-size:11px;" type="text" value='[adning id="<?php echo $id; ?>"]' />
                                     </div>
                                     <span class="description bottom"><?php _e('Shortcode.','adn'); ?></span>
                                 </div>
@@ -248,8 +274,11 @@ if( !empty( $banner_post['post'] ))
                                 <div class="input_container">
                                     <h3 class="title"><?php _e('','adn'); ?></h3>
                                         <div class="input_container_inner">
-                                        <textarea id="embed_code" style="min-height:120px;font-size:11px;"><script type="text/javascript">var _ning_embed = {"id":"<?php echo $id; ?>","width":<?php echo $b['banner_size_w']; ?>,"height":<?php echo $b['banner_size_h']; ?>};</script><script type="text/javascript" src="<?php echo get_bloginfo('url'); ?>?_dnembed=true"></script></textarea>
-                                    </div>
+                                            <?php 
+                                            $code = '<script type="text/javascript">var _ning_embed = {"id":"'.$id.'","width":'.$b['size_w'].',"height":'.$b['size_h'].'};</script><script type="text/javascript" src="'.get_bloginfo('url').'?_dnembed=true"></script>';
+                                            ?>
+                                            <textarea id="embed_code" style="min-height:120px;font-size:11px;"><?php echo $code; ?></textarea>
+                                        </div>
                                     <span class="description bottom"><?php _e('Embed code.','adn'); ?></span>
                                 </div>
                                 <!-- end .input_container -->
@@ -272,17 +301,17 @@ if( !empty( $banner_post['post'] ))
                 <div class="spr_column-inner">
                     <div class="spr_wrapper">
                         <div class="option_box">
-                        		<div class="info_header">
-                                	<span class="nr">2</span>
-                            		<span class="text"><?php _e('Banner','adn'); ?></span>
-                                    <input type="submit" value="<?php _e('Save Banner','adn'); ?>" class="button-primary" name="save_banner" style="width:auto;float:right;margin:8px;">
-                                
-                                    <?php 
-								    if( $id ){
-                                		//echo '<a href="'.get_permalink($id).'" target="_blank" class="button" style="width:auto;float:right;margin:8px;">'.__('Preview Banner','adn').'</a>';
-									}
-									?>
-                             </div>
+                            <div class="info_header">
+                                <span class="nr">2</span>
+                                <span class="text"><?php _e('Banner','adn'); ?></span>
+                                <input type="submit" value="<?php _e('Save Banner','adn'); ?>" class="button-primary" name="save_banner" style="width:auto;float:right;margin:8px;">
+                            
+                                <?php 
+                                if( $id ){
+                                    //echo '<a href="'.get_permalink($id).'" target="_blank" class="button" style="width:auto;float:right;margin:8px;">'.__('Preview Banner','adn').'</a>';
+                                }
+                                ?>
+                            </div>
                              
                              <div class="sep_line" style="margin:0 0 15px 0;"><span><strong><?php _e('Sizing','adn'); ?></strong></span></div>
                              <div class="spr_column spr_col-4">
@@ -291,14 +320,14 @@ if( !empty( $banner_post['post'] ))
                                     	<div class="input_container">
                                             <h3 class="title"><?php _e('','adn'); ?></h3>
                                                 <div class="input_container_inner">
-                                                <select id="ADNI_size" name="banner_size" class="">
+                                                <select id="ADNI_size" name="size" class="">
                                                 	<?php
 														foreach(ADNI_Main::banner_sizes() as $size)
 														{
-															echo '<option value="'.$size['size'].'" '.selected( $b['banner_size'], $size['size'] ).'>'.$size['name'].' ('.$size['size'].')</option>';
+															echo '<option value="'.$size['size'].'" '.selected( $b['size'], $size['size'] ).'>'.$size['name'].' ('.$size['size'].')</option>';
 														}
 													?>
-                                                  <option value="custom" <?php selected( $b['banner_size'], 'custom' ); ?>>Custom</option>
+                                                  <option value="custom" <?php selected( $b['size'], 'custom' ); ?>>Custom</option>
                                                 </select>
                                             </div>
                                             <span class="description bottom"><?php _e('Select one of the common banner sizes.','adn'); ?></span>
@@ -316,7 +345,7 @@ if( !empty( $banner_post['post'] ))
                                             <h3 class="title"><?php _e('','adn'); ?></h3>
                                             <div class="input_container_inner">
                                                 <label class="switch switch-slide small input_h ttip" title="<?php _e('Responsive banner.','adn'); ?>">
-                                                    <input class="switch-input" type="checkbox" id="ADNI_responsive" name="banner_responsive" value="1" <?php checked( $b['banner_responsive'], 1 ); ?> />
+                                                    <input class="switch-input" type="checkbox" id="ADNI_responsive" name="responsive" value="1" <?php checked( $b['responsive'], 1 ); ?> />
                                                     <span class="switch-label" data-on="<?php _e('On','adn'); ?>" data-off="<?php _e('Off','adn'); ?>"></span> 
                                                     <span class="switch-handle"></span>
                                                 </label>
@@ -344,8 +373,8 @@ if( !empty( $banner_post['post'] ))
                                                                 type="text" 
                                                                 class="_ning_custom_size" 
                                                                 id="ADNI_size_w" 
-                                                                name="banner_size_w" 
-                                                                value="<?php echo $b['banner_size_w']; ?>" 
+                                                                name="size_w" 
+                                                                value="<?php echo $b['size_w']; ?>" 
                                                                 placeholder="<?php _e('','adn'); ?>">
                                                             <i class="input_icon fa fa-arrows-h" aria-hidden="true"></i>
                                                         </div>
@@ -366,8 +395,8 @@ if( !empty( $banner_post['post'] ))
                                                                 type="text" 
                                                                 class="_ning_custom_size" 
                                                                 id="ADNI_size_h" 
-                                                                name="banner_size_h" 
-                                                                value="<?php echo $b['banner_size_h']; ?>" 
+                                                                name="size_h" 
+                                                                value="<?php echo $b['size_h']; ?>" 
                                                                 placeholder="<?php _e('','adn'); ?>">
                                                             <i class="input_icon fa fa-arrows-v" aria-hidden="true"></i>
                                                         </div>
@@ -397,7 +426,7 @@ if( !empty( $banner_post['post'] ))
                                     	<div class="banner_holder clear" style="padding:20px;">
                                         	<div class="banner_notice"></div>
                                            
-                                           <?php echo ADNI_Templates::banner_tpl($id, array('add_url' => 0));  ?>  
+                                           <?php echo ADNI_Templates::banner_tpl($id, array('add_url' => 0, 'filter' => 0, 'stats' => 0));  ?>  
                                        	</div>
                                         <!-- end .banner_holder -->
                                         
@@ -586,7 +615,7 @@ if( !empty( $banner_post['post'] ))
                                                	<div class="input_container">
                                                    	<h3 class="title"><?php _e('','adn'); ?></h3>
                                                     	<div class="input_container_inner">
-                                                        <textarea id="banner_content" name="banner_content" style="min-height:200px;font-size: 13px;"><?php echo $b['banner_content']; ?></textarea>
+                                                        <textarea id="banner_content" class="code_editor" name="banner_content" data-lang="htmlmixed" style="min-height:200px;font-size: 13px;"><?php echo $b['banner_content']; ?></textarea>
                                                    	</div>
                                                    	<span class="description bottom"><?php _e('Banner HTML content.','adn'); ?></span>
                                                	</div>
@@ -612,7 +641,7 @@ if( !empty( $banner_post['post'] ))
                 <div class="spr_column">
                     <?php
                     echo ADNI_Templates::auto_positioning_template($id, $banner_post);
-                    echo ADNI_templates::display_filters_tpl($banner_post);
+                    echo ADNI_templates::display_filters_tpl($banner_post, $settings);
                     ?>
                 </div>
                 <!-- end .spr_column -->
@@ -659,7 +688,6 @@ jQuery(document).ready(function($) {
 			banner_resized_notice();
 		}
 	});
-	//$('#banner_size').trigger("change");
 	
 	$('._ning_custom_size').on('change', function(){
 		var w = $('#ADNI_size_w').val(),
@@ -701,10 +729,11 @@ jQuery(document).ready(function($) {
 	});
 	
 	
-	$('#banner_content').on('change', function(){
-		$("._ning_cont").find('._ning_inner').html($(this).val()); // .find('._ning_inner')
-		console.log('banner_content change');
-	});
+	/*$('#banner_content').on('change', function(){
+        $("._ning_cont").find('._ning_inner').html($(this).val()); // .find('._ning_inner')
+        console.log( $(this).val() );
+        console.log('banner_content change');
+	});*/
 	
 	
 	$(window).on('resize', banner_resized_notice);
@@ -832,7 +861,8 @@ jQuery(document).ready(function($) {
                 cont = '<img src="'+src+'" />';
             }else{
                 src = obj.unzip.url;
-                cont = '<iframe src="'+src+'" style="border:none;width:'+w+'px;height:'+h+'px;"></iframe>';
+                cont = '<div style="max-width:'+w+'px; width:100%; height:'+h+'px;"><iframe src="'+src+'" border="0" scrolling="no" allowtransparency="true" style="width:1px;min-width:100%;*width:100%;height:100%;border:0;"></iframe></div>';
+                //cont = '<iframe src="'+src+'" style="border:none;width:'+w+'px;height:'+h+'px;"></iframe>';
             }
 
             $('#banner_content').val( cont ).trigger( "change" );
@@ -963,7 +993,7 @@ function _imc_save_to_adning(_obj, arr, settings){
     console.log('SAVE imgMCE from ADNING');
     console.log(arr);
     
+    $('#banner_content').val( '[imgmce_element id="'+arr.banner_obj.id+'" user_id="'+arr.banner_obj.user_id+'" iframe_id="_dn<?php echo $id; ?>"]' ).trigger( "change" );
     $('._ning_inner').html( arr.banner_template );
-    $('#banner_content').val( '[imgmce_element id="'+arr.banner_obj.id+'" user_id="'+arr.banner_obj.user_id+'" iframe_id="_dn<?php echo $id; ?>"]' );
 }
 </script>

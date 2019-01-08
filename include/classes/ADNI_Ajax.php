@@ -29,7 +29,13 @@ class ADNI_Ajax {
 
     public static function adblocker_detected()
     {
-        echo json_encode(array('alert' => 'You are using AD Blocker!'));
+		$set_arr = ADNI_Main::settings();
+		$settings = $set_arr['settings'];
+
+		if( $settings['adblock_detect'] )
+		{
+			echo json_encode(array('alert' => $settings['adblock_message']));
+		}
         exit;
     }
 

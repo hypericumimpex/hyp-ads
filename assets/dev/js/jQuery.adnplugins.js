@@ -30,10 +30,10 @@
 				maxHeight = settings.height ? settings.height : _ning_size[1];
 			//console.log(maxWidth);
 			if(maxWidth == 'full'){
-				$(el).css({'max-width': '100%', 'width':'100%', 'max-height': maxHeight+'px'});
+				$(el).css({'max-width': '100%', 'width':'100%'}); // , 'max-height': maxHeight+'px'
 				$(el).find('._ning_inner').css({'max-width': '100%', 'width':'100%', 'height': maxHeight+'px'});
 			}else{
-				$(el).css({'max-width': maxWidth+'px', 'width':'100%', 'max-height': maxHeight+'px'});
+				$(el).css({'max-width': maxWidth+'px', 'width':'100%'}); // , 'max-height': maxHeight+'px'
 				// Set hight
 				_ning_adjust_height();
 				 
