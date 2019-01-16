@@ -1,5 +1,6 @@
 	
-	<footer>
+	<?php
+	/*<footer>
 		<div class="footer_content">
 			<section class="footer_description">
 
@@ -24,6 +25,8 @@
 
 		</div>
 	</footer>
+	*/
+	?>
 	
    
     

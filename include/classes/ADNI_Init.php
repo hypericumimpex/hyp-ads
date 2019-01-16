@@ -23,7 +23,7 @@ class ADNI_Init {
 		new ADNI_Multi();
 		new ADNI_Frontend();
 		new ADNI_Updates();
-		//new ADNI_Sell();
+		new ADNI_Sell();
 		
 		
 		// Load Extensions -----------------------------------------------
@@ -39,6 +39,10 @@ class ADNI_Init {
 		add_action( 'admin_menu', array(__CLASS__, 'register_admin_menu'));
 		add_action( 'parent_file', array( __CLASS__, 'menu_highlight' ) );
 		add_action( 'admin_init', array( __CLASS__, 'check_for_plugin_updates') );
+		add_action( 'widgets_init', array(__CLASS__, 'register_widgets'), 30 );
+
+		// Filters --------------------------------------------------------
+		
 		
 		// Banner click ---------------------------------------------------
 		add_action( 'wp', array( __CLASS__, 'banner_click_action' ), 4);	
@@ -70,7 +74,7 @@ class ADNI_Init {
 	public static function deactivate()
 	{
 		// Deregister Adning License
-		$activation = ADNI_Multi::get_option('adning_activation', array());
+		$activation = true;
 		if( !empty($activation))
 		{
 			$resp = ADNI_Activate::deregister(array('license-key' => $activation['license-key']));
@@ -109,13 +113,22 @@ class ADNI_Init {
 		{
 			add_filter('strack_track_page_view', 0);
 			$banner_id = is_numeric($_GET['_dnlink']) ? $_GET['_dnlink'] : base64_decode($_GET['_dnlink']);
-			$banner = ADNI_CPT::load_post($banner_id);
+			$adzone_id = isset($_GET['aid']) && is_numeric($_GET['aid']) ? $_GET['aid'] : 0;
+			$banner = ADNI_CPT::load_post($banner_id, array('filter' => 0));
+			$save_stats = $banner['args']['enable_stats'];
 			
 			// Filter -------------------------------------------------------
-			apply_filters('adning_save_stats', array(
-				'type' => 'click',
-				'banner_id' => $banner_id
-			));
+			if( $save_stats )
+			{
+				if(!is_admin())
+				{
+					apply_filters('adning_save_stats', array(
+						'type' => 'click',
+						'banner_id' => $banner_id,
+						'adzone_id' => $adzone_id
+					));
+				}
+			}
 			
 			header('Location: '. $banner['args']['banner_url']);
 			exit;
@@ -123,6 +136,11 @@ class ADNI_Init {
 	}
 
 
+
+	public static function register_widgets()
+	{
+		register_widget('ADNI_Widgets');
+	}
 
 	
 	
@@ -187,6 +205,7 @@ class ADNI_Init {
 		// Scripts
 		wp_register_script( '_ning_global', ADNI_ASSETS_URL.'/dist/_ning.bundle.js', array( 'jquery' ), ADNI_VERSION, true );
 		wp_localize_script( '_ning_global', '_adn_', $var_array );
+		//wp_register_script( '_ning_uploader', ADNI_ASSETS_URL.'/dev/js/_ning_uploader.js', array( 'jquery' ), ADNI_VERSION, true );
 		wp_register_script( '_ning_admin_global', ADNI_ASSETS_URL.'/dist/_ning_admin.bundle.js', array( 'jquery' ), ADNI_VERSION, true );
 		/*wp_register_script( '_ning_global', ADNI_ASSETS_URL.'/dev/js/_ning.js', array( 'jquery' ), ADNI_VERSION, true );
 		wp_localize_script( '_ning_global', '_adn_', $var_array );
@@ -203,6 +222,7 @@ class ADNI_Init {
 		// styles
 		wp_register_style( '_ning_css', ADNI_ASSETS_URL. '/dist/_ning.bundle.js.css', false, ADNI_VERSION, "all" );
 		wp_register_style( '_ning_admin_css', ADNI_ASSETS_URL. '/dist/_ning_admin.bundle.js.css', false, ADNI_VERSION, "all" );
+		wp_register_style( '_ning_frontend_manager_css', ADNI_ASSETS_URL. '/dist/_ning_frontend_manager.bundle.js.css', false, ADNI_VERSION, "all" );
 		/*wp_register_style( '_ning_css', ADNI_ASSETS_URL. '/dev/css/_ning.css', false, ADNI_VERSION, "all" );
 		wp_register_style( '_ning_admin_css', ADNI_ASSETS_URL. '/dev/css/_ning_admin.css', false, ADNI_VERSION, "all" );
 		*/
@@ -226,6 +246,7 @@ class ADNI_Init {
 		// Scripts
 		wp_enqueue_script('jquery');
 		wp_enqueue_script('jquery-ui-core');
+		wp_enqueue_script('jquery-ui-autocomplete');
 
 		// Ad Block detection
 		wp_enqueue_script('adning_dummy_advertising', ADNI_ASSETS_URL . '/dev/js/advertising.js');
@@ -287,59 +308,62 @@ class ADNI_Init {
 	 * ---------------------------------------------------------------- */
 	public static function register_admin_menu()
 	{	
-		if( 
-			isset( $_GET['page'] ) && $_GET['page'] == 'adning' || 
-			isset( $_GET['page'] ) && $_GET['page'] == 'ADNI_banners' || 
-			isset( $_GET['page'] ) && $_GET['page'] == 'adning-settings' || 
-			isset( $_GET['page'] ) && $_GET['page'] == 'adning-role-manager' ||
-			isset( $_GET['page'] ) && $_GET['page'] == 'adning-updates' 
-			//isset( $_GET['post_type'] ) && $_GET['post_type'] == 'ADNI_single_banner' 
-			//isset($_GET['post']) && get_post_type($_GET['post']) == 'vidana' 
-		)
+		if( ADNI_Multi::load_admin_data() )
 		{
-			self::enqueue(
-				array(
-					'files' => array(
-						array('file' => '_ning_css', 'type' => 'style'),
-						array('file' => '_ning_admin_css', 'type' => 'style'),
-						array('file' => '_ning_global', 'type' => 'script'),
-						array('file' => '_ning_admin_global', 'type' => 'script')
+			$admin_pages = apply_filters('ADNI_admin_pages', array(
+				'adning',
+				'ADNI_banners',
+				'adning-settings',
+				'adning-role-manager',
+				'adning-updates' 
+			));
+
+			if( isset( $_GET['page'] ) && in_array($_GET['page'], $admin_pages) )
+			{
+				self::enqueue(
+					array(
+						'files' => array(
+							array('file' => '_ning_css', 'type' => 'style'),
+							array('file' => '_ning_admin_css', 'type' => 'style'),
+							array('file' => '_ning_global', 'type' => 'script'),
+							array('file' => '_ning_uploader', 'type' => 'script'),
+							array('file' => '_ning_admin_global', 'type' => 'script')
+						)
 					)
-				)
+				);
+				
+				// Load media
+				if( function_exists('wp_enqueue_media') )
+				{
+					wp_enqueue_media();
+				}
+			}
+
+			
+			// Check if plugin needs update
+			ADNI_Updates::needs_update();
+			
+			
+			// Create menu
+			add_menu_page(
+				__('ADning', 'adn'), 
+				__('ADning', 'adn'), 
+				ADNI_ACCESS_ROLE,  
+				'adning', 
+				array( __CLASS__, 'dashboard_template'),
+				ADNI_ASSETS_URL.'/images/logo_20.png',
+				20 
 			);
 			
-			// Load media
-			if( function_exists('wp_enqueue_media') )
+			add_submenu_page('adning', 'ADning', 'ADning', ADNI_ACCESS_ROLE, 'adning', array( __CLASS__, "dashboard_template"));
+			add_submenu_page("adning", __('General Settings', 'adn'), __('General Settings', 'adn'), ADNI_ADMIN_ROLE, "adning-settings", array( __CLASS__, "settings_template"));
+			add_submenu_page("adning", __('Role Manager', 'adn'), __('Role Manager', 'adn'), ADNI_ADMIN_ROLE, "adning-role-manager", array( __CLASS__, "role_manager_template"));
+			add_submenu_page("adning", __('Product License', 'adn'), __('Product License', 'adn'), ADNI_ADMIN_ROLE, "adning-updates", array( __CLASS__, "updates_template"));
+			
+			if( current_user_can(ADNI_ACCESS_ROLE))
 			{
-				wp_enqueue_media();
+				add_filter( 'custom_menu_order', array(__CLASS__, 'submenu_order') );
 			}
-		}
-
-		
-		// Check if plugin needs update
-		ADNI_Updates::needs_update();
-		
-		
-		// Create menu
-		add_menu_page(
-			__('ADning', 'adn'), 
-			__('ADning', 'adn'), 
-			ADNI_ACCESS_ROLE,  
-			'adning', 
-			array( __CLASS__, 'dashboard_template'),
-			ADNI_ASSETS_URL.'/images/logo_20.png',
-			20 
-		);
-		
-		add_submenu_page('adning', 'ADning', 'ADning', ADNI_ACCESS_ROLE, 'adning', array( __CLASS__, "dashboard_template"));
-		add_submenu_page("adning", __('General Settings', 'adn'), __('General Settings', 'adn'), ADNI_ADMIN_ROLE, "adning-settings", array( __CLASS__, "settings_template"));
-		add_submenu_page("adning", __('Role Manager', 'adn'), __('Role Manager', 'adn'), ADNI_ADMIN_ROLE, "adning-role-manager", array( __CLASS__, "role_manager_template"));
-		add_submenu_page("adning", __('Product License', 'adn'), __('Product License', 'adn'), ADNI_ADMIN_ROLE, "adning-updates", array( __CLASS__, "updates_template"));
-		
-		
-		if( current_user_can(ADNI_ACCESS_ROLE))
-		{
-			add_filter( 'custom_menu_order', array(__CLASS__, 'submenu_order') );
 		}
 	}
 	
@@ -360,7 +384,6 @@ class ADNI_Init {
 	{
 		include( ADNI_TPL_DIR .'/updates.php');
 	}
-	
 	
 	
 	public static function submenu_order( $menu_ord ) 
@@ -438,7 +461,7 @@ class ADNI_Init {
 	{
 		//set_site_transient('update_plugins', null); // Just for testing to see if the available plugin update gets shown. IF THIS IS ON ACTUALL PLUGIN UPDATES MAY NOT WORK: WP error: Plugin update failed.
 		//$activation = get_option('adning_activation', array());
-		$activation = ADNI_Multi::get_option('adning_activation', array());
+		$activation = true;
 		$license_key = !empty($activation) ? $activation['license-key'] : '';
 
 		require( ADNI_CLASSES_DIR.'/ADNING_PLU_Auto_Plugin_Updater.php');

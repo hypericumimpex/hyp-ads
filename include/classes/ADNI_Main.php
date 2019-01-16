@@ -102,8 +102,8 @@ class ADNI_Main {
 		$roles = wp_parse_args(ADNI_Multi::get_option('_adning_roles', array()), $default_roles);
 		
 		return array(
-			'settings' => $settings,
-			'roles' => $roles
+			'settings' => apply_filters('ADNI_main_settings', $settings),
+			'roles' => apply_filters('ADNI_default_roles', $roles)
 		);	
 	}
 
@@ -141,9 +141,10 @@ class ADNI_Main {
 	 * @access public
 	 * @return url
 	*/
-	public static function link_masking($id)
+	public static function link_masking($id, $adzone_id = 0)
 	{
-		return get_bloginfo('url').'?_dnlink='.$id;
+		$adzone_str = !empty($adzone_id) ? '&aid='.$adzone_id : '';
+		return get_bloginfo('url').'?_dnlink='.$id.$adzone_str;
 	}
 
 
@@ -636,6 +637,122 @@ class ADNI_Main {
 		);
 		
 		return $countries;
+	}
+
+	
+
+
+
+
+	/**
+	 * Has stats 
+	 * (Check if a stats plugin is installed)
+	 * 
+	 * return array
+	 */
+	public static function has_stats()
+	{
+		$has_stats = array();
+		// Check if smarTrack is active.
+		$has_stats = class_exists('sTrack_DB') ? array('smartrack') : $has_stats;
+
+		return apply_filters('ADNI_has_stats',$has_stats);
+	}
+
+
+
+	/**
+	 * Count Stats (from SmarTrack)
+	 */
+	public static function count_stats($args = array())
+	{
+		$defaults = array(
+			'type' => 'impression',
+			'unique' => 0,
+			'group' => 'id_1', 
+			'id' => 0,
+			'time_range' => '' //custom_TIMESTAMP::TIMESTAMP
+		);
+		$args = wp_parse_args($args, $defaults);
+		$has_stats = self::has_stats();
+
+		if( empty($has_stats) )
+			return '';
+
+		if( $has_stats[0] === 'smartrack' )
+		{
+			$group_by = $args['group'] === 'id_1' ? 'ev.event_id' : 'ev.id_2,ev.id';
+			$between = !empty($args['time_range']) ? array('key' => 'ev.tm', 'val' => sTrack_Core::time_range(array('condition' => $args['time_range']))) : array();
+			$value = sTrack_DB::count_stats(array(
+				'event_type' => $args['type'],
+				'group' => $args['unique'] ? 'ev.id' : $group_by,
+				//'group' => $args['unique'] ? 'st.ip' : $group_by, //ev.event_id',
+				//'group' => 'ev.id',
+				'where' => array( array($args['group'], $args['id'])),
+				'between' => $between,
+				'unique' => $args['unique']
+			));
+		}
+	
+		return $value;
+	}
+
+
+
+	/**
+	 * Reset Stats
+	 */
+	public static function reset_stats($id, $group = '')
+	{
+		if( self::has_stats() )
+		{
+			/*$row_arr = array();
+			$row_arr[$group] = 0;
+			sTrack_DB::update_row( $row_arr, $GLOBALS[ 'wpdb' ]->prefix.'strack_ev' );*/
+			$GLOBALS[ 'wpdb' ]->query("UPDATE ".$GLOBALS[ 'wpdb' ]->prefix."strack_ev SET ".$group." = '0' WHERE ".$group." = '".$id."'");
+
+			//sTrack_DB::delete_stats(array('delete' => 'ev.*', 'id' => $id, 'group' => 'id_2'));
+			sTrack_DB::delete_stats(array('delete' => 'ev.*', 'where' => array(
+					array('ev.id_1','0'),
+					array('ev.id_2','0'),
+					array('ev.id_3','0')
+				) 
+			));
+		}
+	}
+
+
+
+	/**
+	 * Remove folder
+	 */
+	public static function delete_dir($dir) 
+	{
+		$res = array('removed' => 0, 'msg' => __('Folder could not be removed. Please try again.','adn'));
+		$dirPath = '';
+
+		if (! is_dir($dir)) {
+			//throw new InvalidArgumentException("$dir must be a directory");
+			return array('removed' => 0, 'msg' => sprintf(__('Error: %s is no directory.','adn'), $dir));
+		}
+		if(! is_writable($dir)) {
+			return array('removed' => 0, 'msg' => sprintf(__('Error: permission denied. %s','adn'), $dir));
+		}
+		if (substr($dir, strlen($dir) - 1, 1) != '/') {
+			$dirPath .= '/';
+		}
+		$files = glob($dir . '*', GLOB_MARK);
+		foreach ($files as $file) {
+			if (is_dir($file)) {
+				self::delete_dir($file);
+			} else {
+				unlink($file);
+			}
+		}
+		if( is_dir($dir) )
+			rmdir($dir);
+
+		return array('removed' => 1, 'msg' => __('Folder removed successfully.','adn'));
 	}
 
 }

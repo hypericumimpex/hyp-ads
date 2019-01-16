@@ -1,4 +1,5 @@
 import '../css/_ning.css';
+import '../css/_ning_sell.css';
 import '../../packages/modaljs/index.bundle.js.css';
 import '../../packages/cornerpeel/cornerpeel.css';
 import '../../packages/bg_takeover/bg_takeover.css';

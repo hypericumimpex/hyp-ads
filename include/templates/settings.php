@@ -470,6 +470,16 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                                             </div>
                                             <div class="option_box">
                                                 <?php 
+                                                _e('cURL Support:', 'adn');
+                                                if( function_exists('curl_version')) {
+                                                    _e( '<code class="status-good">Yes</code>', 'adn' ); 
+                                                } else {
+                                                    echo sprintf( __( '<code class="status-bad">No</code> cURL is required to activate the plugin and receive automatic updates.<br><span>Please contact your hosting provider.</span>', 'adn' ));
+                                                }
+                                                ?>
+                                            </div>
+                                            <div class="option_box">
+                                                <?php 
                                                 _e('PHP Version:', 'adn');
                                                 if(phpversion() >= 5.3){
                                                     echo '<code class="status-good">'.phpversion().'</code>';

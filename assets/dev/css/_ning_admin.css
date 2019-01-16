@@ -32,6 +32,22 @@
 }
 
 
+.adning_cont .spr_column.stats_box .input_container_inner{
+    background: #e5e5e5;
+    color: #9b9b9b;
+    padding: 10px 0;
+    font-size: 24px;
+}
+
+
+.adning_cont .approve_banner_box{
+    padding: 20px;
+    margin-bottom: 10px;
+    background: #f8ffdb;
+    color: #5f7a35;
+}
+
+
 
 /**
  * Option Boxes

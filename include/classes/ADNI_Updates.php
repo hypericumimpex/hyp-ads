@@ -74,7 +74,7 @@ class ADNI_Updates {
 
 
         // Check license
-        $activation = ADNI_Multi::get_option('adning_activation', array());
+        $activation = true;
         if( !empty($activation))
         {
             $resp = ADNI_Activate::check(array(

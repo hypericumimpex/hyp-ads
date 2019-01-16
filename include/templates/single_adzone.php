@@ -7,6 +7,11 @@ $is_frontend = isset($is_frontend) ? $is_frontend : 0;
 $adzone_post = array();
 $user_id = get_current_user_id();
 
+if( isset($_GET['reset_stats']) && !empty($_GET['reset_stats']))
+{
+    ADNI_Main::reset_stats($id, 'id_2');
+}
+
 /**
  * POST
 */
@@ -31,7 +36,7 @@ if( !current_user_can(ADNI_ADZONES_ROLE) && $user_id != $adzone['post']->post_au
     echo '<div style="margin-top:50px;text-align:center;">'.__('Sorry, This adzone does not exists.','adn').'</div>';
     return;
 }
-//echo '<pre>'.print_r($adzone,true).'</pre>';
+//echo '<pre>'.print_r($adzone['args'],true).'</pre>';
 //echo '<pre>'.print_r(ADNI_Sell::adzones_for_sale(),true).'</pre>';
 
 
@@ -103,8 +108,17 @@ if( !empty( $adzone['post'] ))
                              	 </div>
                              	 <!-- end .input_container -->
                                  
-                             </div>
-                             <!-- end .option_box -->
+                            </div>
+                            <!-- end .option_box -->
+
+
+                            <!--
+                            /**
+                            * ADZONE STATS
+                            */
+                            -->
+                            <?php echo ADNI_Templates::stats_settings_tpl(array('id' => $id, 'frontend' => $is_frontend), $adzone['args']); ?>
+
                             
 
                             <!--
@@ -129,7 +143,11 @@ if( !empty( $adzone['post'] ))
                             */
                             -->
                             <?php echo ADNI_Templates::border_settings_tpl($adzone['args']); ?>
-                             
+                            
+
+                            
+
+
                              
                             <!--
                             /**
@@ -402,7 +420,6 @@ if( !empty( $adzone['post'] ))
                                                <!-- end .spr_column-inner -->
                                             </div>
                                             <!-- end .spr_column -->
-                                                                    
 
                                             
                                             <div class="spr_column"> <!-- spr_col-4 -->
@@ -484,6 +501,75 @@ if( !empty( $adzone['post'] ))
                                                                 </div>
                                                             </div>
                                                         </div>
+
+
+                                                        <div class="clearFix"></div>
+
+                                                        <div class="spr_column spr_col-3">
+                                                            <div class="spr_column-inner">
+                                                                <div class="spr_wrapper">
+                                                                    <div class="input_container">
+                                                                        <h3 class="title"><?php _e('Load as Grid','adn'); ?></h3>
+                                                                        <div class="input_container_inner">
+                                                                            <label class="switch switch-slide small input_h ttip" title="<?php _e('Load as grid (multiple banners).','adn'); ?>">
+                                                                                <input class="switch-input" type="checkbox" name="load_grid" value="1" <?php checked( $adzone['args']['load_grid'], 1 ); ?> />
+                                                                                <span class="switch-label" data-on="<?php _e('Yes','adn'); ?>" data-off="<?php _e('No','adn'); ?>"></span> 
+                                                                                <span class="switch-handle"></span>
+                                                                            </label>
+                                                                        </div>
+                                                                        <span class="description bottom"><?php _e('Load multiple banners at the same time.','adn'); ?></span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+
+                                                        <div class="spr_column spr_col-3">
+                                                            <div class="spr_column-inner">
+                                                                <div class="spr_wrapper">
+
+                                                                    <div class="input_container">
+                                                                        <h3 class="title"><?php _e('Grid Columns','adn'); ?></h3>
+                                                                        <div class="input_container_inner">
+                                                                            <input 
+                                                                                type="text" 
+                                                                                class="" 
+                                                                                name="grid_columns" 
+                                                                                value="<?php echo !empty($adzone['args']['grid_columns']) ? $adzone['args']['grid_columns'] : 2; ?>" 
+                                                                                placeholder="">
+                                                                            <i class="input_icon fa fa-arrows-v" aria-hidden="true"></i>
+                                                                        </div>
+                                                                        <span class="description bottom"><?php _e('Amount of columns (vertical) for the grid (int value).','adn'); ?></span>
+                                                                    </div>
+                                                                    <!-- end .input_container -->
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+
+                                                        <div class="spr_column spr_col-3">
+                                                            <div class="spr_column-inner">
+                                                                <div class="spr_wrapper">
+
+                                                                    <div class="input_container">
+                                                                        <h3 class="title"><?php _e('Grid Rows','adn'); ?></h3>
+                                                                        <div class="input_container_inner">
+                                                                            <input 
+                                                                                type="text" 
+                                                                                class="" 
+                                                                                name="grid_rows" 
+                                                                                value="<?php echo !empty($adzone['args']['grid_rows']) ? $adzone['args']['grid_rows'] : 2; ?>" 
+                                                                                placeholder="">
+                                                                            <i class="input_icon fa fa-arrows-h" aria-hidden="true"></i>
+                                                                        </div>
+                                                                        <span class="description bottom"><?php _e('Amount of rows (horizontal) for the grid (int value).','adn'); ?></span>
+                                                                    </div>
+                                                                    <!-- end .input_container -->
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        
 
                                                     </div>
                                                 </div>
@@ -577,7 +663,7 @@ jQuery(document).ready(function($) {
 		// Change preview banner size
 		//$("._ning_cont").ningResponsive({width:w, height:h});
 		//banner_resized_notice();
-	});
+    });
 	
 	
 	/**
@@ -595,17 +681,42 @@ jQuery(document).ready(function($) {
 	
 	
 	
-	var config = {
-	  '.chosen-select'           : {},
-	  '.chosen-select-deselect'  : { allow_single_deselect: true },
-	  '.chosen-select-no-single' : { disable_search_threshold: 10 },
-	  '.chosen-select-no-results': { no_results_text: 'Oops, nothing found!' },
-	  '.chosen-select-rtl'       : { rtl: true },
-	  //'.chosen-select-width'     : { width: '100%' }
+	/*var config = {
+	    '.chosen-select'           : {},
+	    '.chosen-select-deselect'  : { allow_single_deselect: true },
+	    '.chosen-select-no-single' : { disable_search_threshold: 10 },
+	    '.chosen-select-no-results': { no_results_text: 'Oops, nothing found!' },
+	    '.chosen-select-rtl'       : { rtl: true },
+	    //'.chosen-select-width'     : { width: '100%' }
 	}
 	for (var selector in config) {
-	  $(selector).chosen(config[selector]).chosenSortable();
-	}
+        $(selector).chosen(config[selector]).chosenSortable();
+    }
+    
+    $('.chosen-search-input').autocomplete({
+        source: function( request, response ) {
+            console.log('search: '+request.term);
+            var select_obj = this.element.closest('.ning_chosen_select').find('.chosen-select');
+            if( select_obj.hasClass('ning_chosen_posttype_select') ){ 
+                var post_type = select_obj.data('ptype');
+                
+                $.ajax({
+                type: "POST",
+                url: _adn_.ajaxurl,
+                dataType: "json",
+                data: "action=display_filter_load_posts&search="+request.term+"&post_type="+post_type
+                }).done(function( obj ) {
+                    console.log(obj);
+                    $.map( obj, function( item ) {
+                        if( !select_obj.find('.opt_'+item.id).length ){
+                            select_obj.append('<option class="opt_'+item.id+'" value="'+item.id+'">' + item.name + ' - (#'+item.id+')</option>');
+                        }
+                    });
+                    select_obj.trigger("chosen:updated");
+                });
+            }
+        }
+    });*/
 	
 });
 </script>

@@ -23,11 +23,15 @@ class ADNI_CPT {
 		add_filter( 'admin_url', array(__CLASS__,'change_add_new_link_for_adzones'), 10, 2 );
 		add_filter( 'admin_url', array(__CLASS__,'change_add_new_link_for_campaigns'), 10, 2 );
 		add_action( 'wp_trash_post', array(__CLASS__,'trash_post'));
+		add_action( 'before_delete_post', array(__CLASS__,'delete_post'));
 	}
 	
 
 
 
+	/**
+	 * Trash banner / post
+	 */
 	public static function trash_post( $post_id )
 	{
 		$post_type = get_post_type( $post_id );
@@ -36,17 +40,40 @@ class ADNI_CPT {
 			$auto_pos = ADNI_Main::auto_positioning();
 			if( array_key_exists($post_id, $auto_pos)) 
 			{
-				$post = self::load_post($post_id);
+				$post = self::load_post($post_id, array('filter' => 0));
 				$new_args = $post['args'];
 				$new_args['positioning'] = '';
 				$id = self::add_update_post($new_args);
 
 				unset($auto_pos[$post_id]);
 				ADNI_Multi::update_option('_adning_auto_positioning', $auto_pos);
-				//update_option('_adning_auto_positioning', $auto_pos);
             }
 		}
 	}
+
+
+	/**
+	 * Remove - Delete banner / adzone
+	 */
+	public static function delete_post( $post_id )
+	{
+		$post_type = get_post_type( $post_id );
+		if($post_type === strtolower(self::$banner_cpt) || $post_type === strtolower(self::$adzone_cpt))
+		{
+			// Remove folder
+			ADNI_Main::delete_dir(ADNI_UPLOAD_DIR.'banners/'.$post_id);
+
+			// Remove stats
+			if( !class_exists('sTrack_DB') )
+			{
+				$group = $post_type === strtolower(self::$adzone_cpt) ? 'id_2' : 'id_1';
+				sTrack_DB::delete_stats(array('id' => $post_id, 'group' => $group));
+			}
+		}
+	}
+
+
+
 	
 	public static function change_add_new_link_for_banners( $url, $path )
 	{
@@ -367,6 +394,7 @@ class ADNI_CPT {
 		//$columns['b_banner'] = __('<img src="'.WP_ADS_URL.'images/banner_icon_20.png" />', 'wpproads');
 		$columns['_adn_b_name'] = __('Title', 'adn');
 		$columns['_adn_b_advertiser'] = __('Advertiser', 'adn');
+		$columns['_adn_b_status'] = __('Status', 'adn');
 		/*$columns['b_campaign'] = __('Campaign', 'wpproads');
 		$columns['b_status'] = __('Status', 'wpproads');
 		$columns['b_stats'] = __('Stats', 'wpproads');*/
@@ -457,6 +485,11 @@ class ADNI_CPT {
 			break;
 			case '_adn_b_advertiser':
 				echo get_the_author_meta('display_name', $post->post_author);
+			break;
+			case '_adn_b_status':
+				$post_args = ADNI_Multi::get_post_meta($post->ID, '_adning_args', array());
+				$status = self::status(array('key' => $post_args['status']));
+				echo $status['name'];
 			break;
 		}
 	}
@@ -723,7 +756,9 @@ class ADNI_CPT {
 			'size_w' => 300,
 			'size_h' => 250,
 			'campaigns' => array(),
+			'adzones' => array(),
 			'responsive' => $args['empty_checkbox_values'] ? 0 : 1,
+			'enable_stats' => 0,
 			'banner_size' => '300x250', // @since v1.0.7 deprecated - start using size
 			'banner_size_w' => 300, // @since v1.0.7 deprecated - start using size_w
 			'banner_size_h' => 250, // @since v1.0.7 deprecated - start using size_h
@@ -763,7 +798,8 @@ class ADNI_CPT {
 				'tags' => array(),
 				'post_types' => array()
 			),
-			'adsense_settings' => array()
+			'adsense_settings' => array(),
+			'sell' => array()
 		));	
 	}
 	
@@ -783,8 +819,13 @@ class ADNI_CPT {
 			'size_h' => 250,
 			'campaigns' => array(),
 			'responsive' => $args['empty_checkbox_values'] ? 0 : 1,
+			'no_banner_filter' => 0,
+			'enable_stats' => 0,
 			'random_order' => 0,
 			'load_single' => 0,
+			'load_grid' => 0,
+			'grid_columns' => 2,
+			'grid_rows' => 2,
 			'adzone_size' => '300x250', // @since v1.0.7 deprecated - start using size
 			'adzone_size_w' => 300, // @since v1.0.7 deprecated - start using size_w
 			'adzone_size_h' => 250, // @since v1.0.7 deprecated - start using size_h
@@ -884,15 +925,20 @@ class ADNI_CPT {
 
 		$b_id = $post['post_id'];
 		$post_type = $post['post_type'];
-		$b_title = !empty($post['title']) ? $post['title'] : sprintf(__('Banner created on: %s','adn'), date('D j F Y, H:s', current_time( 'timestamp' )) );
-		$b_args = array();
+		$advertiser = isset($post['advertiser']) ? $post['advertiser'] : $current_user->ID;
 		$type = self::get_type($post_type);
-		//$type = strtolower($post_type) === strtolower(self::$banner_cpt) ? 'banner' : 'adzone';
+		$b_title = !empty($post['title']) ? $post['title'] : sprintf(__('%s created on: %s','adn'), ucfirst($type), date('D j F Y, H:s', current_time( 'timestamp' )) );
+		$b_args = array();
+		
 
 		$display_filter = array();
+		$post['responsive'] = isset($post['responsive']) ? $post['responsive'] : 0;
 
 		// Allow 3rd party plugins to adjust the post data.
 		$post = apply_filters( 'ADNI_save_post', $post );
+
+		
+
 
 		if( $type !== 'campaign')
 		{
@@ -901,8 +947,13 @@ class ADNI_CPT {
 			$display_filter['show_desktop'] = isset($post['df_show_desktop']) ? $post['df_show_desktop'] : 0;
 			$display_filter['show_tablet'] = isset($post['df_show_tablet']) ? $post['df_show_tablet'] : 0;
 			$display_filter['show_mobile'] = isset($post['df_show_mobile']) ? $post['df_show_mobile'] : 0;
+			// remove post values we dont need anymore.
+			unset($_POST['df_show_desktop']);
+			unset($_POST['df_show_tablet']);
+			unset($_POST['df_show_mobile']);
 
-			if( isset($post['display_filter']['post_types']))
+			
+			if( current_user_can(ADNI_BANNERS_ROLE) && isset($post['display_filter']['post_types']))
 			{
 				foreach( $post['display_filter']['post_types'] as $key => $post_arr)
 				{
@@ -923,79 +974,79 @@ class ADNI_CPT {
 					unset($post['display_filter']['post_types'][$key]);
 				}
 			}
-			// remove post values we dont need anymore.
-			unset($_POST['df_show_desktop']);
-			unset($_POST['df_show_tablet']);
-			unset($_POST['df_show_mobile']);
+			
 			
 			//echo '<pre>'.print_r($display_filter,true).'</pre>';
-
-			// POSITIONING SETTINGS
-			$custom_positioning_arr = array();
-			$auto_pos = ADNI_Main::auto_positioning();
-			if( !empty($post['positioning']))
+			if( current_user_can(ADNI_BANNERS_ROLE) )
 			{
-				$popup_w = isset($post['popup_width']) ? $post['popup_width'] : '';
-				$popup_h = isset($post['popup_height']) ? $post['popup_height'] : '';
-				$popup_w = empty($popup_w) && $post['positioning'] === 'popup' ? $post['size_w'] : $popup_w;
-				$popup_h = empty($popup_h) && $post['positioning'] === 'popup' ? $post['size_h'] : $popup_h;
-				
-				$custom_pos_arr = array(
-					'position_after_x_p' => isset($post['position_after_x_p']) ? $post['position_after_x_p'] : '',
-					'popup_width' => $popup_w,
-					'popup_height' => $popup_h,
-					'popup_bg_color' => isset($post['popup_bg_color']) ? $post['popup_bg_color'] : '',
-					'popup_overlay_color' => isset($post['popup_overlay_color']) ? $post['popup_overlay_color'] : '',
-					'popup_shadow_color' => isset($post['popup_shadow_color']) ? $post['popup_shadow_color'] : '',
-					'popup_cookie_value' => isset($post['popup_cookie_value']) ? $post['popup_cookie_value'] : '',
-					'popup_cookie_type' => isset($post['popup_cookie_type']) ? $post['popup_cookie_type'] : '',
-					'popup_custom_json' => isset($post['popup_custom_json']) ? $post['popup_custom_json'] : '',
-					'inject_where' => isset($post['inject_where']) ? $post['inject_where'] : '',
-					'inject_element' => isset($post['inject_element']) ? $post['inject_element'] : '',
-				);
-				
-				foreach($custom_pos_arr as $key => $pos_val)
+				// POSITIONING SETTINGS
+				$custom_positioning_arr = array();
+				$auto_pos = ADNI_Main::auto_positioning();
+				if( !empty($post['positioning']))
 				{
-					if( !empty( $pos_val ))
+					$popup_w = isset($post['popup_width']) ? $post['popup_width'] : '';
+					$popup_h = isset($post['popup_height']) ? $post['popup_height'] : '';
+					$popup_w = empty($popup_w) && $post['positioning'] === 'popup' ? $post['size_w'] : $popup_w;
+					$popup_h = empty($popup_h) && $post['positioning'] === 'popup' ? $post['size_h'] : $popup_h;
+					
+					$custom_pos_arr = array(
+						'position_after_x_p' => isset($post['position_after_x_p']) ? $post['position_after_x_p'] : '',
+						'popup_width' => $popup_w,
+						'popup_height' => $popup_h,
+						'popup_bg_color' => isset($post['popup_bg_color']) ? $post['popup_bg_color'] : '',
+						'popup_overlay_color' => isset($post['popup_overlay_color']) ? $post['popup_overlay_color'] : '',
+						'popup_shadow_color' => isset($post['popup_shadow_color']) ? $post['popup_shadow_color'] : '',
+						'popup_cookie_value' => isset($post['popup_cookie_value']) ? $post['popup_cookie_value'] : '',
+						'popup_cookie_type' => isset($post['popup_cookie_type']) ? $post['popup_cookie_type'] : '',
+						'popup_custom_json' => isset($post['popup_custom_json']) ? $post['popup_custom_json'] : '',
+						'inject_where' => isset($post['inject_where']) ? $post['inject_where'] : '',
+						'inject_element' => isset($post['inject_element']) ? $post['inject_element'] : '',
+					);
+					
+					foreach($custom_pos_arr as $key => $pos_val)
 					{
-						$custom_positioning_arr[$key] = $pos_val;
+						if( !empty( $pos_val ))
+						{
+							$custom_positioning_arr[$key] = $pos_val;
+						}
 					}
-				}
-				
-				// Add to auto positioning array
-				$auto_pos[$b_id] = array(
-					'pos' => $post['positioning'],
-					'custom' => $custom_positioning_arr
-				);
-				ADNI_Multi::update_option('_adning_auto_positioning', $auto_pos);
-				//update_option('_adning_auto_positioning', $auto_pos);
-			}
-			else
-			{
-				if( array_key_exists($b_id, $auto_pos)) {
-					unset($auto_pos[$b_id]);
+					
+					// Add to auto positioning array
+					$auto_pos[$b_id] = array(
+						'pos' => $post['positioning'],
+						'custom' => $custom_positioning_arr
+					);
 					ADNI_Multi::update_option('_adning_auto_positioning', $auto_pos);
 					//update_option('_adning_auto_positioning', $auto_pos);
 				}
+				else
+				{
+					if( array_key_exists($b_id, $auto_pos)) {
+						unset($auto_pos[$b_id]);
+						ADNI_Multi::update_option('_adning_auto_positioning', $auto_pos);
+						//update_option('_adning_auto_positioning', $auto_pos);
+					}
+				}
+				// remove post values we dont need anymore.
+				unset($post['position_after_x_p']); 
+				unset($post['popup_width']);
+				unset($post['popup_height']);
+				unset($post['popup_bg_color']);
+				unset($post['popup_overlay_color']);
+				unset($post['popup_shadow_color']);
+				unset($post['popup_cookie_value']);
+				unset($post['popup_cookie_type']);
+				unset($post['popup_custom_json']);
+				unset($post['inject_where']);
+				unset($post['inject_element']);
 			}
-			// remove post values we dont need anymore.
-			unset($post['position_after_x_p']); 
-			unset($post['popup_width']);
-			unset($post['popup_height']);
-			unset($post['popup_bg_color']);
-			unset($post['popup_overlay_color']);
-			unset($post['popup_shadow_color']);
-			unset($post['popup_cookie_value']);
-			unset($post['popup_cookie_type']);
-			unset($post['popup_custom_json']);
-			unset($post['inject_where']);
-			unset($post['inject_element']);
 			
 
 
-			// Adsense data
+			
 			if($type === 'banner')
 			{
+				// Adsense data
 				$adsense_settings = array(
 					'pub_id' => isset($post['adsense_pubid']) ? $post['adsense_pubid'] : '',
 					'slot_id' => isset($post['adsense_slotid']) ? $post['adsense_slotid'] : '',
@@ -1004,11 +1055,82 @@ class ADNI_CPT {
 				unset($post['adsense_pubid']);
 				unset($post['adsense_slotid']);
 				unset($post['adsense_type']);
+
+				if( current_user_can(ADNI_BANNERS_ROLE) )
+				{
+					// Add banner to adzones
+					// 1. remove from previous adzones
+					$admin_args = ADNI_Multi::get_post_meta($b_id, '_adning_args', array());
+					$admin_args['display_filter']['post_types'] = array();
+					$admin_args['campaigns'] = array();
+					$post = ADNI_Main::parse_args($post, $admin_args);
+					
+					if( !empty($admin_args['adzones']))
+					{
+						foreach($admin_args['adzones'] as $adzone_id)
+						{
+							self::remove_banner_from_adzone($adzone_id, $b_id);
+						}
+					}
+					if( isset($post['adzones']) && !empty($post['adzones']) )
+					{
+						// 2. Then add to current selected adzones
+						foreach($post['adzones'] as $adzone_id)
+						{
+							self::add_banner_to_adzone($adzone_id, $b_id);
+						}
+					}
+				}
+			}
+
+			if($type === 'adzone')
+			{
+				if( current_user_can(ADNI_ADZONES_ROLE) )
+				{
+					// Add banner to adzones
+					// 1. remove previous linked banners
+					$admin_args = ADNI_Multi::get_post_meta($b_id, '_adning_args', array());
+					if( !empty($admin_args['linked_banners']))
+					{
+						foreach($admin_args['linked_banners'] as $banner_id)
+						{
+							self::remove_adzone_from_banner($b_id, $banner_id);
+						}
+					}
+					if( isset($post['linked_banners']) && !empty($post['linked_banners']) )
+					{
+						// 2. Then add to current selected adzones
+						foreach($post['linked_banners'] as $banner_id)
+						{
+							self::add_adzone_to_banner($b_id, $banner_id);
+						}
+					}
+				}
 			}
 			
 			//echo '<pre>'.print_r($post,true).'</pre>';
 			if( strtolower($post_type) == strtolower(self::$banner_cpt))
 			{
+				// If banner gets saved by user without banner role previleges from the frontend
+				// Get default values saved by admins
+				if( !current_user_can(ADNI_BANNERS_ROLE) && $type === 'banner' )
+				{
+					$admin_args = ADNI_Multi::get_post_meta($b_id, '_adning_args', array());
+					$banner_content = $post['banner_content'];
+					//echo '<pre>'.print_r($admin_args,true).'</pre>';
+					
+					$default_display_filter = self::default_banner_args(array('empty_checkbox_values' => 1));
+					$display_filter = ADNI_Main::parse_args($admin_args['display_filter'], $default_display_filter['display_filter']);
+					$adsense_settings = $admin_args['adsense_settings'];
+					$post = ADNI_Main::parse_args($post, $admin_args);
+					$post['banner_content'] = $banner_content;
+					/*$post['responsive'] = $admin_args['responsive'];
+					$post['size'] = $admin_args['size'];
+					$post['size_w'] = $admin_args['size_w'];
+					$post['size_h'] = $admin_args['size_h'];
+					$post['sell'] = $admin_args['sell'];*/
+				}
+				
 				$b_args = ADNI_Main::parse_args($post, self::default_banner_args(array('empty_checkbox_values' => 1)));
 				$b_args = ADNI_Main::parse_args(array('display_filter' => $display_filter, 'adsense_settings' => $adsense_settings), $b_args);
 				$b_args['type'] = 'banner';
@@ -1043,7 +1165,6 @@ class ADNI_CPT {
 			$b_args['type'] = $type;
 		}
 		//echo '<pre>'.print_r($b_args,true).'</pre>';
-		
 		if( !$b_id )
 		{
 			// Insert new post
@@ -1055,7 +1176,7 @@ class ADNI_CPT {
 				'post_type'        		  => $post_type,
 				'post_date'               => date('Y-m-d H:i:s', current_time('timestamp')),
 				'post_date_gmt'           => date('Y-m-d H:i:s', current_time('timestamp', 1)),
-				'post_author'             => $current_user->ID,
+				'post_author'             => $advertiser,
 				//'ping_status'             => get_option('default_ping_status'), 
 				'ping_status'             => ADNI_Multi::get_option('default_ping_status'), 
 				'post_parent'             => 0,
@@ -1077,17 +1198,21 @@ class ADNI_CPT {
 		}
 		else
 		{
-			$banner_post = self::load_post($b_id);
-			//print_r($post);
-			// Merge banner data
-			$b_args = wp_parse_args( $b_args, $banner_post['args'] );
-			
-			$b_data = array(
-				'ID'          => $b_id,
-				'post_status' => $post_status,
-				'post_title'  => !empty($post['title']) ? $post['title'] : $banner_post['post']->post_title,
-			);
-			wp_update_post( $b_data );
+			$banner_post = self::load_post($b_id, array('filter' => 0));
+			if(!empty($banner_post))
+			{
+				//print_r($post);
+				// Merge banner data
+				$b_args = wp_parse_args( $b_args, $banner_post['args'] );
+				
+				$b_data = array(
+					'ID'          => $b_id,
+					'post_status' => $post_status,
+					'post_author' => $advertiser,
+					'post_title'  => !empty($post['title']) ? $post['title'] : $banner_post['post']->post_title,
+				);
+				wp_update_post( $b_data );
+			}
 		}
 		
 		update_post_meta($b_id, '_adning_args', $b_args);
@@ -1146,31 +1271,49 @@ class ADNI_CPT {
 			ADNI_Multi::wpmu_load_from_main_start();
 
 			$post = get_post($id);
-			$post_type = !empty($post) ? $post->post_type : $__args['post_type'];
-			//echo '<pre>'.print_r($post, true).'</pre>';
-			$args = get_post_meta($id, '_adning_args', array());
-			$args = !empty($post) ? $args[0] : $args;
-			
-			if( strtolower($post_type) == strtolower(self::$banner_cpt))
+
+			if(!empty($post))
 			{
-				$args = ADNI_Main::parse_args($args, self::default_banner_args());
+				$post_type = !empty($post) ? $post->post_type : $__args['post_type'];
+				//echo '<pre>'.print_r($post, true).'</pre>';
+				$args = get_post_meta($id, '_adning_args', array());
+				$args = !empty($post) ? $args[0] : $args;
 				//echo '<pre>'.print_r($args, true).'</pre>';
-			}
-			elseif( strtolower($post_type) == strtolower(self::$adzone_cpt))
-			{
-				$args = ADNI_Main::parse_args($args, self::default_adzone_args());
-			}
-			elseif( strtolower($post_type) == strtolower(self::$campaign_cpt))
-			{
-				$args = ADNI_Main::parse_args($args, self::default_campaign_args());
+				
+				if( strtolower($post_type) == strtolower(self::$banner_cpt))
+				{
+					$args = ADNI_Main::parse_args($args, self::default_banner_args());
+					//echo '<pre>'.print_r($args, true).'</pre>';
+				}
+				elseif( strtolower($post_type) == strtolower(self::$adzone_cpt))
+				{
+					$args = ADNI_Main::parse_args($args, self::default_adzone_args());
+					//echo '<pre>'.print_r($args, true).'</pre>';
+				}
+				elseif( strtolower($post_type) == strtolower(self::$campaign_cpt))
+				{
+					$args = ADNI_Main::parse_args($args, self::default_campaign_args());
+				}
 			}
 
 			/***
 			 * Multisite ___________________________________________________________________ */
 			ADNI_Multi::wpmu_load_from_main_stop();
 			
-			return $__args['filter'] ? ADNI_Filters::show_hide(array('post' => $post, 'args' => $args)) : array('post' => $post, 'args' => $args);
-			//return array('post' => $post, 'args' => $args);
+			if(!empty($post))
+			{
+				// Allow 3rd partys to do stuff when banner gets loaded.
+				$post_arr = apply_filters('ADNI_load_post', array('post' => $post, 'args' => $args), $__args['filter']);
+				//$post_arr = array('post' => $post, 'args' => $args);
+				if(empty($post_arr))
+					return array();
+
+				return $__args['filter'] ? ADNI_Filters::show_hide($post_arr) : $post_arr;
+			}
+			else
+			{
+				return array();
+			}
 		}
 		else
 		{
@@ -1230,6 +1373,114 @@ class ADNI_CPT {
 		
 		return 1;
 	}
+
+
+
+
+
+	/*
+	 * Remove banner from adzone linked_banners
+	 *
+	 * @access public
+	*/
+	public static function remove_banner_from_adzone($aid, $bid)
+	{
+		$adzone_args = ADNI_multi::get_post_meta($aid, '_adning_args', array());
+		if( !empty($adzone_args) && array_key_exists('linked_banners', $adzone_args))
+		{
+			if (($key = array_search($bid, $adzone_args['linked_banners'])) !== false) 
+			{
+				unset($adzone_args['linked_banners'][$key]);
+				ADNI_multi::update_post_meta($aid, '_adning_args', $adzone_args);
+			}	
+		}
+	}
+
+	/*
+	 * Remove adzone from banner
+	 *
+	 * @access public
+	*/
+	public static function remove_adzone_from_banner($aid, $bid)
+	{
+		$banner_args = ADNI_multi::get_post_meta($bid, '_adning_args', array());
+		if( !empty($banner_args) && array_key_exists('adzones', $banner_args))
+		{
+			if (($key = array_search($aid, $banner_args['adzones'])) !== false) 
+			{
+				unset($banner_args['adzones'][$key]);
+				ADNI_multi::update_post_meta($bid, '_adning_args', $banner_args);
+			}	
+		}
+	}
+
+
+
+	/**
+     * Add banner to adzone linked_banners
+     */
+    public static function add_banner_to_adzone($aid, $bid)
+    {
+        if( !empty($aid))
+        {
+			$adzone_args = ADNI_multi::get_post_meta($aid, '_adning_args', array());
+			if( !empty($adzone_args) && array_key_exists('linked_banners', $adzone_args))
+			{
+				if( !in_array($bid, $adzone_args['linked_banners']) )
+				{
+					$linked_banners = wp_parse_args(array($bid), $adzone_args['linked_banners']);
+					$adzone_args = wp_parse_args(array('linked_banners' => $linked_banners), $adzone_args);
+					ADNI_multi::update_post_meta($aid, '_adning_args', $adzone_args);
+					// Also add the adzone to banner.
+					self::add_adzone_to_banner($aid, $bid);
+				}
+			}   
+        }
+	}
+	
+	/**
+     * Add adzone to banner
+     */
+    public static function add_adzone_to_banner($aid, $bid)
+    {
+        if( !empty($aid))
+        {
+			$banner_args = ADNI_multi::get_post_meta($bid, '_adning_args', array());
+			if( !empty($banner_args) && array_key_exists('adzones', $banner_args))
+			{
+				if( !in_array($aid, $banner_args['adzones']) )
+				{
+					$adzones = wp_parse_args(array($aid), $banner_args['adzones']);
+					$banner_args = wp_parse_args(array('adzones' => $adzones), $banner_args);
+					ADNI_multi::update_post_meta($bid, '_adning_args', $banner_args);
+				}
+			}   
+        }
+	}
+	
+
+
+
+	/**
+	 * Post Status Array
+	 * 
+	 */
+	public static function status($args = array())
+	{
+		$defaults = array(
+			'key' => ''
+		);
+		$args = wp_parse_args( $args, $defaults );
+		
+		$array = array(
+			'review' => array('value' => 'draft', 'name' => __('Pending Review','adn')),
+			'draft' => array('value' => 'draft', 'name' => __('Draft','adn')),
+			'active' => array('value' => 'active', 'name' => __('Active','adn')),
+			'expired' => array('value' => 'expired', 'name' => __('Expired','adn'))
+		);
+		
+		return !empty($args['key']) ? $array[$args['key']] : $array;
+    }
 	
 }
 

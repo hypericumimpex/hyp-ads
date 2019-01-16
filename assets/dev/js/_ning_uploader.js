@@ -100,7 +100,7 @@
 			// automatically submit the form on file select
 			$input.on( 'change', function( e ){
 				showFiles( e.target.files );
-                console.log('file select');
+				console.log('file select');
                 droppedFiles = e.target.files;
 				$form.trigger( 'submit' );
 			});
@@ -136,15 +136,18 @@
                 if( $form.hasClass( 'is-uploading' ) ) return false;
 
 				$form.addClass( 'is-uploading' ).removeClass( 'is-error' );
-
+				
 				if( isAdvancedUpload ){ // ajax file upload for modern browsers
 					e.preventDefault();
-
+					console.log(droppedFiles);
 					// gathering the form data
-                    var ajaxData = new FormData( $form.get( 0 ) );
-                    console.log(droppedFiles);
+					//var ajaxData = new FormData($form.get(0));
+					var ajaxData = new FormData();
+                    
 					if( droppedFiles ){
+						//ajaxData.append( $input.attr( 'name' ), $input[0].files[0] );
 						$.each( droppedFiles, function( i, file ){
+							//console.log(file);
 							ajaxData.append( $input.attr( 'name' ), file );
 						});
 					}
@@ -155,8 +158,7 @@
 					ajaxData.append('max_upload_size', settings.max_upload_size);
 					ajaxData.append('allowed_file_types', settings.allowed_file_types);
 					ajaxData.append('upload', JSON.stringify(settings.upload));
-					console.log(settings.upload['folder']);
-
+					//console.log(settings.upload['folder']);
 					// ajax request
 					$.ajax({
 						url: 			$form.attr( 'action' ),

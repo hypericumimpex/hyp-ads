@@ -127,6 +127,23 @@ class ADNI_Multi {
 
 
 
+	
+	/*
+	 * get_post_type() - for multisite installations.
+	 *
+	 * @access public
+	 * @return string
+	*/
+	public static function get_post_type( $id )
+	{	
+		self::wpmu_load_from_main_start();
+			$post_type = get_post_type( $id );
+		self::wpmu_load_from_main_stop();
+		return $post_type;
+	}
+
+
+
     /*
 	 * Run shortcodes - do_shortcode() - for multisite installations.
 	 *
@@ -171,6 +188,27 @@ class ADNI_Multi {
 		{
 			restore_current_blog();	
 		}
+	}
+
+
+
+
+	/*
+	 * Check if specific admin data has to be loaded.
+	 *
+	 * @access public
+	 * @return bool
+	*/
+	public static function load_admin_data()
+	{
+		$visible = 0;
+		
+		if( is_multisite() && self::is_network_activated() && is_main_site() || is_multisite() && !self::is_network_activated() || !is_multisite() )
+		{
+			$visible = 1;
+		}
+		
+		return $visible;
 	}
 }
 endif;

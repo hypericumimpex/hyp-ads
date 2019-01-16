@@ -109,8 +109,7 @@ class ADNI_Filters {
                     return;
             }
         }
-
-
+        
         $display = array_key_exists('display_filter',$args) ? $args['display_filter'] : array();
 
         // AD display filter
@@ -118,7 +117,7 @@ class ADNI_Filters {
         {  
             if( $args['status'] !== 'active')
                 return; 
-
+            
             // HOME PAGE
             if( array_key_exists('homepage', $display) )
             {
@@ -126,11 +125,18 @@ class ADNI_Filters {
                     return;
             }
             
+            
             // NON-SINGULAR. GLOBAL settings (should be under self::disabled_ads() ) however, 
             // we need to make sure ad doesn't have to show on the home page so we need to check that first.
             // That's why we add this here instead of under self::disabled_ads()
-            if( !is_singular() && $settings['disable_non_singular_ads'] )
-                return;
+            if( !is_singular() )
+            {
+                $set_arr = ADNI_Main::settings();
+                $settings = $set_arr['settings'];
+                if( $settings['disable']['non_singular_ads'] )
+                    return;
+            }
+                
         
 
             // COUNTRY FILTER
@@ -139,9 +145,11 @@ class ADNI_Filters {
                 if( array_key_exists('ids', $display['countries']))
                 {
                     $show = array_key_exists('show_hide', $display['countries']) ? $display['countries']['show_hide'] : 0;
-                    $visitor_country = ADNI_Filters::get_country( ADNI_Main::get_visitor_ip() );
+                    $visitor_country = self::get_country( ADNI_Main::get_visitor_ip() );
                     //$visitor_country = 'xx';
                     //$display['countries']['ids'] = array('xx');
+                    //echo '<pre>'.print_r($display['countries']['ids'],true).'</pre>';
+                    //echo $show.' -- '.$visitor_country.' -- '.in_array($visitor_country, $display['countries']['ids']);
 
                     if( !in_array($visitor_country, $display['countries']['ids']) && $show || in_array($visitor_country, $display['countries']['ids']) && !$show ){
                         return;
@@ -166,28 +174,6 @@ class ADNI_Filters {
             if( !is_object($post) || !array_key_exists('ID',$post) )
                 return $ad;
 
-            //$show = !empty($display['show_hide']) ? $display['show_hide'] : 0;
-
-            /*if( !empty($display['categories']) )
-            {
-                $show = array_key_exists('show_hide', $display['categories']) ? $display['categories']['show_hide'] : 0;
-                $cats = wp_get_post_categories($post->ID);
-                $match = array_intersect($display['categories']['ids'],$cats);
-                //echo '<pre>'.print_r($display['categories']['ids'], true).'</pre>';
-                //echo '<pre>'.print_r($match,true).'</pre>';
-                if( empty($match) && $show || !empty($match) && !$show ){
-                    return;
-                }
-            }
-            if( !empty($display['tags']) )
-            {
-                $show = array_key_exists('show_hide', $display['tags']) ? $display['tags']['show_hide'] : 0;
-                $tags = wp_get_post_tags($post->ID, array( 'fields' => 'ids' ));
-                $match = array_intersect($display['tags']['ids'],$tags);
-                if( empty($match) && $show || !empty($match) && !$show ){
-                    return;
-                }
-            }*/
             if( array_key_exists('post_types', $display) && !empty($display['post_types']) )
             {
                 $post_type = get_post_type($post->ID);
@@ -232,37 +218,11 @@ class ADNI_Filters {
                 }
                 else
                 {
-                    return $ad;
+                    //if( !$show )
+                    return;
                 }
+            }
             
-                /*foreach( $display['post_types'] as $key => $post_arr)
-                {
-                    echo $key;
-                    print_r($post_arr['ids']);
-                    if( !empty($post_arr['ids']))
-                    {
-                        $show = array_key_exists('show_hide', $post_arr) ? $post_arr['show_hide'] : 0;
-                        if( !in_array($post->ID, $post_arr['ids']) && $show || in_array($post->ID, $post_arr['ids']) && !$show ){
-                            return;
-                            echo 'kak show:'.$show.', postID:'.$post->ID;
-                            print_r($post_arr['ids']);
-                            
-                        }
-                    }
-                }*/
-            }
-            /*if( !empty($display['posts']) )
-            {
-                if( !in_array($post->ID,$display['posts']) && $show || in_array($post->ID,$display['posts']) && !$show ){
-                    return;
-                }
-            }
-            if( !empty($display['pages']) )
-            {
-                if( !in_array($post->ID,$display['pages']) && $show || in_array($post->ID,$display['pages']) && !$show ){
-                    return;
-                }
-            }*/
         }
 
         return $ad;
@@ -450,7 +410,7 @@ class ADNI_Filters {
         if( empty($auto_pos) )
             return $content;
         
-        if( !is_singular() && $settings['disable_non_singular_ads'] )
+        if( !is_singular() && $settings['disable']['non_singular_ads'] )
             return $content;
         
         $above_content = '';
@@ -460,7 +420,8 @@ class ADNI_Filters {
         {
             if($arr['pos'] === 'above_content')
             {
-                $above_content.= '[adning id="'.$key.'" no_iframe="1"]';
+                //$above_content.= '[adning id="'.$key.'" no_iframe="1"]';
+                $above_content.= ADNI_Shortcodes::sc_adning(array('id' => $key));
             }
             if( $arr['pos'] === 'inside_content')
             {
@@ -652,7 +613,7 @@ class ADNI_Filters {
 			fclose($handle);
 		}
 		
-		return $country_cd;
+		return strtoupper($country_cd);
     }
 
     public static function dtr_pton( $ip )

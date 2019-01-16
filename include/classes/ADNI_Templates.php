@@ -65,7 +65,7 @@ class ADNI_Templates {
 		$args = wp_parse_args($args, $defaults);
 
 		//$activation = get_option('adning_activation', array());
-		$activation = ADNI_Multi::get_option('adning_activation', array());
+		$activation = true;
 
 		$html = '';
 		$html.= '<div class="imc-heading-section adning-header">';
@@ -82,20 +82,28 @@ class ADNI_Templates {
 		// Menu options
 		if( $args['tabs'])
 		{
-			$m_about = $args['page'] == 'dashboard' ? ' nav-tab-active' : '';
-			$m_settings = $args['page'] == 'settings' ? ' nav-tab-active' : '';
-			$m_roles = $args['page'] == 'role-manager' ? ' nav-tab-active' : '';
-			$m_updates = $args['page'] == 'updates' ? ' nav-tab-active' : '';
-
-			$activated = !empty($activation) ? '' : ' style="background-color:#d4ff00;"';
-			$activation_title = !empty($activation) ? '' : ' title="'.__('Your license has not yet been activated.','adn').'"';
+			$settings_tabs = apply_filters('ADNI_settings_tabs', array(
+				'dashboard' => array('text' => __('About','adn'), 'page' => 'adning', 'data-tab' => 'about-adning'),
+				'settings' => array('text' => __('General Settings','adn'), 'page' => 'adning-settings', 'data-tab' => 'adning-settings'),
+				'role-manager' => array('text' => __('Role Manager','adn'), 'page' => 'adning-role-manager', 'data-tab' => 'adning-role-manager'),
+				'updates' => array('text' => __('Product License','adn'), 'page' => 'adning-updates', 'data-tab' => 'adning-updates'),
+			));
 
 			$html.= '<div class="adning-settings-wrapper">';
 				$html.= '<h2 class="nav-tab-wrapper">';
-					$html.= '<a href="?page=adning" data-tab="about-adning" class="nav-tab'.$m_about.'"> '.__('About','adn').' </a>';
-					$html.= '<a href="?page=adning-settings" data-tab="adning-settings" class="nav-tab'.$m_settings.'"> '.__('General Settings','adn').' </a>';
-					$html.= '<a href="?page=adning-role-manager" data-tab="adning-role-manager" class="nav-tab'.$m_roles.'"> '.__('Role Manager','adn').' </a>';
-					$html.= '<a href="?page=adning-updates" data-tab="adning-updates" class="nav-tab ttip'.$m_updates.'"'.$activated.$activation_title.'> '.__('Product License','adn').' </a>';
+					if(!empty($settings_tabs))
+					{
+						foreach($settings_tabs as $key => $tab)
+						{
+							$active = $args['page'] === $key ? ' nav-tab-active' : '';
+							if( $key === 'updates' )
+							{
+								$activated = !empty($activation) ? '' : ' style="background-color:#d4ff00;"';
+								$activation_title = !empty($activation) ? '' : ' title="'.__('Your license has not yet been activated.','adn').'"';
+							}
+							$html.= '<a href="?page='.$tab['page'].'" data-tab="'.$tab['data-tab'].'" class="nav-tab'.$active.'"> '.$tab['text'].' </a>';
+						}
+					}
 				$html.= '</h2>';
 			$html.= '</div>';
 		}
@@ -115,7 +123,7 @@ class ADNI_Templates {
 		$h = '';
 		$tab = $args['tab'];
 		//$activation = get_option('adning_activation', array());
-		$activation = ADNI_Multi::get_option('adning_activation', array());
+		$activation = true;
 
 		// Menu options
 		$m_new = $tab == 'new' ? ' nav-tab-active' : '';
@@ -160,22 +168,23 @@ class ADNI_Templates {
 		if( empty($banner) )
 			return '';
 		
+		// if args stats is empty it has to overwrite the single banner stats.
+		$save_stats = empty($args['stats']) ? 0 : $banner['args']['enable_stats'];
 
 		// Filter -------------------------------------------------------
-		if( $args['stats'] )
+		if( $save_stats )
 		{
 			if(!is_admin())
 			{
 				apply_filters('adning_save_stats', array(
 					'type' => 'impression',
-					'banner_id' => $id
+					'banner_id' => $id,
+					'adzone_id' => $args['in_adzone']
 				));
 			}
 		}
 
 		$b = $banner['args'];
-		
-		
 		
 		$url = !empty($b['banner_url']) ? $b['banner_url'] : '';
 		//$url = preg_replace( "/\r|\n/", "", $url );
@@ -184,8 +193,10 @@ class ADNI_Templates {
 		
 		// Sizes
 		$banner_w = is_numeric($b['size_w']) ? $b['size_w'].'px' : '100%';
+		$banner_h = is_numeric($b['size_h']) ? $b['size_h'].'px' : 'inherit';
+		$banner_h = !$b['responsive'] ? $banner_h : 'inherit';
 		
-		$url = $b['banner_link_masking'] && !empty($url) ? ADNI_Main::link_masking($id) : $url;
+		$url = $b['banner_link_masking'] && !empty($url) ? ADNI_Main::link_masking($id,$args['in_adzone']) : $url;
 		$nofollow = $b['banner_no_follow'] ? ' rel="nofollow"' : '';
 		$responsive_class = $b['responsive'] ? ' responsive' : '';
 		$scale_class = $b['banner_scale'] ? ' scale' : '';
@@ -204,13 +215,14 @@ class ADNI_Templates {
 		
 		// Banner content
 		//$html.= '<div class="_ning_outer _ning_cont _ning_hidden'.$responsive_class.$scale_class.'" data-size="'.$b['size'].'"'.$animation.' style="max-width:'.$banner_w.'; width:100%; max-height:'.$b['size_h'].'px; height: '.$b['size_h'].'px;">';
-		$html.= '<div class="_ning_cont _ning_hidden'.$ning_outer_class.$align_class.$responsive_class.$scale_class.$has_label.$has_border.'" data-size="'.$b['size'].'"'.$animation.' style="max-width:'.$banner_w.'; width:100%; height: inherit;'.$border_color.'">';
+		$html.= '<div class="_ning_cont strack_bnr _ning_hidden'.$ning_outer_class.$align_class.$responsive_class.$scale_class.$has_label.$has_border.'" data-size="'.$b['size'].'"'.$animation.' data-bid="'.$id.'" data-aid="'.$args['in_adzone'].'" style="max-width:'.$banner_w.'; width:100%;height:'.$banner_h.';'.$border_color.'">'; // height:inherit
 			$html.= !$args['in_adzone'] ? '<div class="_ning_label'.$label_pos.'" style="'.$label_color.'">'.$label.'</div>' : '';
 			$html.= '<div class="_ning_inner" style="'.$inner_size.'">';
 				// Banner_url
-				$html.= !empty($url) && $args['add_url'] ? '<a href="'.$url.'" target="'.$b['banner_target'].'"'.$nofollow.'>' : '';
+				$html.= !empty($url) && $args['add_url'] ? '<a href="'.$url.'" class="strack_cli _ning_link" target="'.$b['banner_target'].'"'.$nofollow.'></a>' : '';
+				//$html.= !empty($url) && $args['add_url'] ? '<a href="'.$url.'" class="strack_cli" target="'.$b['banner_target'].'"'.$nofollow.'>' : '';
 					$html.= ADNI_Multi::do_shortcode($content);
-				$html.= !empty($url) && $args['add_url'] ? '</a>' : '';
+				//$html.= !empty($url) && $args['add_url'] ? '</a>' : '';
 			$html.= '</div>';
 		$html.= '</div>';
 		$html.= $clearfix_div;
@@ -229,6 +241,36 @@ class ADNI_Templates {
 		return $html;
 	}
 	
+
+	/**
+	 * Load Random Single Banner - for ADzones
+	 * 
+	 * Loads a random banner from the adzone linked_banners array.
+	 * And checks to make sure no empty banner (due to filters) gets returned.
+	 * Unless all banners get filtered out this will always return content.
+	 */
+	public static function load_random_single_banner($adzone = array())
+	{
+		$a = $adzone['args'];
+		$linked_banners = $a['linked_banners'];
+		if( !empty($linked_banners))
+		{
+			$k = array_rand($linked_banners);
+			$banner_filter = $a['no_banner_filter'] ? ' filter=0' : '';
+			$cont = ADNI_Multi::do_shortcode('[ADNI_banner id="'.$linked_banners[$k].'" in_adzone='.$adzone['post']->ID.' load_script=0'.$banner_filter.']');
+			
+			if( empty($cont))
+			{
+				unset($linked_banners[$k]);
+				$adzone['args']['linked_banners'] = $linked_banners;
+				return self::load_random_single_banner($adzone);
+			}
+			else
+			{
+				return $cont;
+			}
+		}
+	}
 	
 	
 	public static function adzone_tpl($id = 0, $args = array())
@@ -246,9 +288,20 @@ class ADNI_Templates {
 			$adzone = ADNI_CPT::load_post( $id, array('filter' => $args['filter']) );
 			if( empty($adzone) )
 				return '';
+			
+			$a = $adzone['args'];
+			$transition_time = !empty($a['adzone_transition_time']) ? $a['adzone_transition_time'] : 5;
+			
+			$adzone_content = self::adzone_content($adzone, $args, $transition_time);
+			
+			if( empty($adzone_content))
+				return '';
+
+			// if args stats is empty it has to overwrite the single adonze stats.
+			//$save_stats = empty($args['stats']) ? 0 : $adzone['args']['enable_stats'];
 
 			// Filter -------------------------------------------------------
-			if( $args['stats'] )
+			/*if( $save_stats )
 			{
 				if(!is_admin())
 				{
@@ -257,11 +310,11 @@ class ADNI_Templates {
 						'adzone_id' => $id
 					));
 				}
-			}
+			}*/
 
-			$a = $adzone['args'];
+			
+			//echo '<pre>'.print_r($a, true).'</pre>';
 			$rand_id = $id.'_'.rand(); // To fix conflicts with same adzones on one page.
-			$transition_time = !empty($a['adzone_transition_time']) ? $a['adzone_transition_time'] : 5;
 			$label = $a['cont_label'];
 			$label_color = !empty($a['cont_label_color']) ? 'color:'.$a['cont_label_color'].';' : '';
 			$label_pos = ' _'.$a['cont_label_pos'];
@@ -271,41 +324,21 @@ class ADNI_Templates {
 
 			$align_class = ' _align_'.$a['align'];
 			$clearfix_div = !$a['wrap_text'] ? '<div class="clear"></div>' : '';
-			
-			//$html.= '<div class="_ning_outer _ning_jss_zone" style="max-width:'.$a['size_w'].'px; max-height:'.$a['size_h'].'px;">';
-			$html.= '<div class="_ning_outer _ning_jss_zone'.$has_label.$has_border.$align_class.'" style="max-width:'.$a['size_w'].'px; height:inherit;'.$border_color.'">';
-				$html.= '<div class="_ning_label'.$label_pos.'" style="'.$label_color.'">'.$label.'</div>';
-				$html.= '<div id="_ning_zone_'.$rand_id.'" class="_ning_zone_inner" style="width:'.$a['size_w'].'px; height:'.$a['size_h'].'px; position:relative;">';
-					$html.= '<div u="slides" style="position:absolute; overflow:hidden; left:0px; top:0px; width:'.$a['size_w'].'px; height:'.$a['size_h'].'px;">';
-						// Load banners		
-						if(!empty($a['linked_banners']))
-						{
-							// Check if random order is selected. If so, shuffle array.
-							if( $a['random_order'] )
-							{
-								shuffle($a['linked_banners']);
-							}
-							// Check if only a single banner has to be loaded.
-							if( $a['load_single'] )
-							{
-								$k = array_rand($a['linked_banners']);
-								$html.= '<div class="slide_0 slide">';
-									$html.= ADNI_Multi::do_shortcode('[ADNI_banner id="'.$a['linked_banners'][$k].'" in_adzone=1 load_script=0]');
-								$html.= '</div>';
-								$a['linked_banners'] = array();
-								//echo '<pre>'.print_r($a['linked_banners'],true).'</pre>';
-							}
+			$is_grid_class = $a['load_grid'] ? ' _ning_grid' : '';
 
-							if( !empty( $a['linked_banners'] ))
-							{
-								foreach($a['linked_banners'] as $i => $banner_id)
-								{
-									$html.= '<div class="slide_'.$i.' slide" idle="'.($transition_time*1000).'">';
-										$html.= ADNI_Multi::do_shortcode('[ADNI_banner id="'.$banner_id.'" in_adzone=1 load_script=0]');
-									$html.= '</div>';
-								}
-							}
-						}
+			$grid_align = array('left' => 'justify-content-start', 'center' => 'justify-content-center', 'right' => 'justify-content-end');
+
+			$_ning_outer_style = !$a['load_grid'] ? 'max-width:'.$a['size_w'].'px;' : 'width:inherit;display: table;';
+			$_ning_zone_inner_style = !$a['load_grid'] ? 'width:'.$a['size_w'].'px; height:'.$a['size_h'].'px;' : '';
+			$u_slides_style = !$a['load_grid'] ? 'position:absolute; overflow:hidden; left:0px; top:0px;width:'.$a['size_w'].'px; height:'.$a['size_h'].'px;' : '';
+
+			$html.= '<div class="_ning_outer _ning_jss_zone'.$has_label.$has_border.$align_class.$is_grid_class.'" style="'.$_ning_outer_style.'height:inherit;'.$border_color.'">';
+				$html.= '<div class="_ning_label'.$label_pos.'" style="'.$label_color.'">'.$label.'</div>';
+				$html.= '<div id="_ning_zone_'.$rand_id.'" class="_ning_zone_inner" style="'.$_ning_zone_inner_style.'position:relative;">';
+					$html.= '<div u="slides" style="'.$u_slides_style.'">';
+						
+						$html.= $adzone_content;
+
 					$html.= '</div>';
 				$html.= '</div>';
 			$html.= '</div>';
@@ -314,38 +347,41 @@ class ADNI_Templates {
 			$html.= '<script>';
 				$html.= 'jQuery(document).ready(function($){';
 
-					// Remove empty slides. (in case banners got filtered out using ADNI_Filters::show_hide)
-					$html.= '$("#_ning_zone_'.$rand_id.'").find(".slide:empty").remove();';
+					// Hide empty adzones.
+					//$html.= 'if( !$("#_ning_zone_'.$rand_id.'").find(".slide").length ){ $("#_ning_zone_'.$rand_id.'").closest("._ning_outer").hide(); }';
 					
-					$html.= 'var _SlideshowTransitions_'.$rand_id.' = ['.$a['adzone_transition'].'];';
-					$html.= 'var options_'.$rand_id.' = {';
-						$html.= '$AutoPlay:1,';
-						$html.= '$ArrowKeyNavigation:false,';
-						$html.= '$DragOrientation:0,';
-						$html.= '$SlideshowOptions:{';
-							$html.= '$Class:$JssorSlideshowRunner$,';
-							$html.= '$Transitions:_SlideshowTransitions_'.$rand_id.',';
-							$html.= '$TransitionsOrder:1,';
-							$html.= '$ShowLink:true';
-						$html.= '}';
-					$html.= '};';
-					$html.= 'var _ning_slider_'.$rand_id.' = new $JssorSlider$(\'_ning_zone_'.$rand_id.'\', options_'.$rand_id.');';
-							
-					/*$html.= 'function SliderPositionChangeEventHandler(position, fromPosition, virtualPosition, virtualFromPosition)
+					if( !empty( $a['linked_banners'] ) && !$a['load_single'] && !$a['load_grid'] )
 					{
-						console.log("changing position "+position);
-						var imc_id = $(".slide_"+position).find("._dn_cont").data("id");
-						console.log(imc_id);
-						//window["bnr_"+imc_id+"_in_animation"]();
-						
-						//continuously fires while carousel sliding
-						//position: current position of the carousel
-						//fromPosition: previous position of the carousel
-						//virtualPosition: current virtual position of the carousel
-						//virtualFromPosition: previous virtual position of the carousel
+						$html.= 'var _SlideshowTransitions_'.$rand_id.' = ['.$a['adzone_transition'].'];';
+						$html.= 'var options_'.$rand_id.' = {';
+							$html.= '$AutoPlay:1,';
+							$html.= '$ArrowKeyNavigation:false,';
+							$html.= '$DragOrientation:0,';
+							$html.= '$SlideshowOptions:{';
+								$html.= '$Class:$JssorSlideshowRunner$,';
+								$html.= '$Transitions:_SlideshowTransitions_'.$rand_id.',';
+								$html.= '$TransitionsOrder:1,';
+								$html.= '$ShowLink:true';
+							$html.= '}';
+						$html.= '};';
+						$html.= 'var _ning_slider_'.$rand_id.' = new $JssorSlider$(\'_ning_zone_'.$rand_id.'\', options_'.$rand_id.');';
+								
+						/*$html.= 'function SliderPositionChangeEventHandler(position, fromPosition, virtualPosition, virtualFromPosition)
+						{
+							console.log("changing position "+position);
+							var imc_id = $(".slide_"+position).find("._dn_cont").data("id");
+							console.log(imc_id);
+							//window["bnr_"+imc_id+"_in_animation"]();
+							
+							//continuously fires while carousel sliding
+							//position: current position of the carousel
+							//fromPosition: previous position of the carousel
+							//virtualPosition: current virtual position of the carousel
+							//virtualFromPosition: previous virtual position of the carousel
+						}
+						_ning_slider.$On($JssorSlider$.$EVT_POSITION_CHANGE, SliderPositionChangeEventHandler);';
+						*/
 					}
-					_ning_slider.$On($JssorSlider$.$EVT_POSITION_CHANGE, SliderPositionChangeEventHandler);';
-					*/
 
 
 					//Scale slider after document ready
@@ -353,7 +389,9 @@ class ADNI_Templates {
 					$html.= 'function ScaleSlider() {';
 						$html.= 'var parentWidth = $(\'#_ning_zone_'.$rand_id.'\').parent().width();';
 						$html.= 'if(parentWidth){';
-							$html.= '_ning_slider_'.$rand_id.'.$ScaleWidth(parentWidth);';
+							$html.= 'if( typeof _ning_slider_'.$rand_id.' !== "undefined" ){';
+								$html.= '_ning_slider_'.$rand_id.'.$ScaleWidth(parentWidth);';
+							$html.= '}';
 						$html.= '}else{';
 							$html.= 'window.setTimeout(ScaleSlider, 30);';
 						$html.= '}';
@@ -373,6 +411,79 @@ class ADNI_Templates {
 		return $html;
 	}
 	
+
+
+	/**
+	 * Load adzone content
+	 */
+	public static function adzone_content($adzone, $args = array(), $transition_time = 0)
+	{
+		$a = $adzone['args'];
+		$html = '';
+		$h = '';
+		$grid_align = array('left' => 'justify-content-start', 'center' => 'justify-content-center', 'right' => 'justify-content-end');
+
+		// Load banners		
+		if(!empty($a['linked_banners']))
+		{
+			// Check if random order is selected. If so, shuffle array.
+			if( $a['random_order'] )
+			{
+				shuffle($a['linked_banners']);
+			}
+			// Check if only a single banner has to be loaded.
+			if( $a['load_single'] )
+			{
+				return self::load_random_single_banner($adzone);
+				//$a['linked_banners'] = array();
+				//echo '<pre>'.print_r($a['linked_banners'],true).'</pre>';
+			}
+
+			if( !empty( $a['linked_banners'] ))
+			{
+				$html.= $a['load_grid'] ? '<div class="mjs_row '.$grid_align[$a['align']].'">' : '';
+				$c = 1;
+				$banner_count = 1;
+				foreach($a['linked_banners'] as $i => $banner_id)
+				{
+					$banner_filter = $a['no_banner_filter'] ? ' filter=0' : '';
+					$banner_filter = empty($args['filter']) ? ' filter=0' : $a['no_banner_filter']; // overwrite this when adzone filter is 0
+					$bnr_cont = ADNI_Multi::do_shortcode('[ADNI_banner id="'.$banner_id.'" in_adzone='.$adzone['post']->ID.' load_script=0'.$banner_filter.']');  
+					
+					if( !empty($bnr_cont))
+					{
+						//$grid_resp = !$a['responsive'] ? 'max-width:'.$a['size_w'].'px;' : '';
+						$h.= $a['load_grid'] ? '<div class="_ningzone_grid mjs_column mjs_col" style="max-width:'.$a['size_w'].'px;">' : '';
+
+							$h.= '<div class="slide_'.$banner_count.' slide" idle="'.($transition_time*1000).'">';
+								$h.= $bnr_cont;
+							$h.= '</div>';
+
+						$h.= $a['load_grid'] ? '</div>' : '';
+
+						// Handle grid items
+						if( $a['load_grid'] )
+						{
+							if( $banner_count == ($a['grid_columns'] * $a['grid_rows']) )
+								break;
+							if( $c == $a['grid_columns'] ) // rows are horizontal
+							{
+								$h.= '<div class="w-100"></div>';
+								$c = 0;
+							}
+							$c++;
+						}
+
+						$banner_count++;
+					}
+				}
+				$html.= $h;
+				$html.= $a['load_grid'] ? '</div>' : '';
+			}
+		}
+
+		return !empty($h) ? $html : '';
+	}
 	
 	
 	
@@ -417,9 +528,10 @@ class ADNI_Templates {
 		$args = wp_parse_args($args, $defaults);
 
 		$col = !empty($args['col']) ? ' '.$args['col'] : '';
+		$class = !empty($args['class']) ? ' '.$args['class'] : '';
 
 		$h = '';
-		$h.= '<div class="spr_column'.$col.'">';
+		$h.= '<div class="spr_column'.$col.$class.'">';
 			$h.= '<div class="input_container">';
 				$h.= '<h3 class="title">'.$args['title'].'</h3>';
 				$h.= '<div class="input_container_inner">';
@@ -502,6 +614,7 @@ class ADNI_Templates {
 	public static function checkbox($args = array())
 	{
 		$defaults = array(
+			'id' => '',
 			'title' => '',
 			'tooltip' => '',
 			'class' => '',
@@ -514,6 +627,7 @@ class ADNI_Templates {
 		);
 		$args = wp_parse_args($args, $defaults);
 
+		$id = !empty($args['id']) ? ' id="'.$args['id'].'"' : '';
 		$check = !empty($args['checked']) ? ' checked="checked"' : '';
 		$disabled = !empty($args['disabled']) ? ' disabled="disabled"' : '';
 		$disabled_class = !empty($args['disabled']) ? ' disabled' : '';
@@ -526,7 +640,7 @@ class ADNI_Templates {
 			$h.= $args['title'];
 			$h.= !empty($args['tooltip']) ? self::tooltip(array('class' => '_dn_quest_tooltip', 'title' => $args['tooltip'])) : '';
 			$h.= $args['hidden_input'] ? '<input type="hidden" value="0"'.$name.' />' : '';  
-			$h.= '<input class="'.$args['class'].'"'.$data_string.$name.$value.' type="checkbox"'.$check.$disabled.'>';
+			$h.= '<input'.$id.' class="'.$args['class'].'"'.$data_string.$name.$value.' type="checkbox"'.$check.$disabled.'>';
 	  		$h.= '<span class="checkmark"></span>';
 		$h.= '</label>';
 
@@ -570,9 +684,10 @@ class ADNI_Templates {
 		$name = !empty($args['name']) ? ' name="'.$args['name'].'"' : '';
 		$value = $args['value'] !== '' ? ' value="'.$args['value'].'"' : '';
 		$class = !empty($args['class']) ? ' '.$args['class'] : '';
+		$ttip = !empty($args['tooltip']) ? ' ttip' : '';
 
 		$h = '';
-		$h.= '<label class="switch switch-slide small'.$high.' ttip" title="'.$args['title'].'">';
+		$h.= '<label class="switch switch-slide small'.$high.$ttip.'" title="'.$args['tooltip'].'">';
 			$h.= $args['hidden_input'] ? '<input type="hidden" value="0"'.$name.' />' : '';  
 			$h.= '<input class="switch-input'.$class.'" type="checkbox" '.$id.$name.$value.$check.$disabled.' />
 			<span class="switch-label" data-on="'.$args['chk-on'].'" data-off="'.$args['chk-off'].'"></span> 
@@ -656,6 +771,54 @@ class ADNI_Templates {
 		return $html;
 	} 
 
+
+
+	/** 
+	 * SELECT CONTAINER
+	 *
+	 */
+	public static function select_cont($args = array())
+	{
+		$defaults = self::itm_defaults();
+		$args = wp_parse_args( $args, $defaults );
+		
+		// Example aerray
+		/*$args['select_opts'] = array(
+			'left' => array(
+				'value' => 'left',
+				'text'  => 'Left'
+			),
+			'right' => array(
+				'value' => 'left',
+				'text'  => 'Left'
+			),
+		);*/
+		
+		$html = '';
+		$html.= '<span class="input_container_box '.$args['size'].'">';
+			$html.= !empty($args['title']) ? '<h3 class="title">'.$args['title'].'</h3>' : '';
+			$html.= $args['desc_pos'] == 'top' && !empty($args['desc']) ? '<span class="description top">'.$args['desc'].'</span>' : '';
+			$html.= '<select id="'.$args['id'].'" name="'.$args['name'].'" class="'.$args['class'].'">';
+				if( !empty($args['select_opts']))
+				{
+					foreach($args['select_opts'] as $key => $opt)
+					{
+						$val = array_key_exists('value', $opt) && $key != $opt['value'] ? $opt['value'] : $key;
+						$txt = array_key_exists('text', $opt) ? $opt['text'] : $val;
+						
+						$html.= '<option value="'.$val.'" '.selected($args['value'], $val, false).'>'.$txt.'</option>';
+					}
+				}
+				else
+				{
+					$html.= '<option value="">'.__('No options available','adn').'</option>';
+				}
+			$html.= '</select>';
+			$html.= $args['desc_pos'] == 'bottom' && !empty($args['desc']) ? '<span class="description bottom">'.$args['desc'].'</span>' : '';
+		$html.= '</span>';
+		
+		return $html;
+	}
 
 
 
@@ -1283,6 +1446,7 @@ class ADNI_Templates {
 		$type = $adzone['args']['type'];
 		$save_name = 'save_'.$type;
 		$h = '';
+
 		$h.= '<div class="spr_column">
 			<div class="spr_column-inner left_column">
 				<div class="spr_wrapper">
@@ -1306,14 +1470,32 @@ class ADNI_Templates {
 							</div>
 						</div>
 						<!-- end .spr_column -->';
-						
+
+						$h.= '<div class="clearFix"></div>';
+						if( $type === 'adzone' )
+						{
+							$h.= ADNI_Templates::spr_column(array(
+								'col' => 'spr_col',
+								'title' => __('Disable Banner Filters','adn'),
+								'desc' => __('By default banners loaded into adzones will still use their own "display filters" This option allows you to turn off the banner display filters and make them use the once for this adzone.','adn'),
+								'content' => ADNI_Templates::switch_btn(array(
+									'name' => 'no_banner_filter',
+									'checked' => $adzone['args']['no_banner_filter'],
+									'value' => 1,
+									'chk-on' => __('Yes','adn'),
+									'chk-off' => __('No','adn'),
+									'chk-high' => 1
+								))
+							));
+						}
+							
 						$h.= '<div class="clear">
 							<div class="input_container">
 								<h3 class="title">'.__('Home Page','adn').'</h3>
 							</div>
 							<div class="spr_column spr_col-6">
 								<div class="input_container">';
-									
+
 									$show_hide = array_key_exists('homepage', $adzone['args']['display_filter']) ? $adzone['args']['display_filter']['homepage'] : 0;
 									$h.= '<label class="switch switch-slide small input_h ttip" title="'.__('Show/Hide.','adn').'">
 										<input class="switch-input" type="checkbox" name="display_filter[homepage]" value="1" '.checked($show_hide,1,false).' />
@@ -1335,123 +1517,6 @@ class ADNI_Templates {
 									'.__('Content filters only apply on ads where a post ID is available (like inside post/page content).','adn').'
 								</p>
 							</div>';
-
-							// Show / Hide for Categories
-							/*$h.= '<div class="clear">
-								<div class="input_container">
-									<h3 class="title">'.__('For Categories','adn').'</h3>
-								</div>
-								<div class="spr_column spr_col-6">
-									<div class="input_container">';
-										
-										//$show_hide = array_key_exists('show_hide', $adzone['args']['display_filter']) ? $adzone['args']['display_filter']['show_hide'] : 0;
-										//$h.= print_r($adzone['args']['display_filter'],true);
-										$show_hide = array_key_exists('show_hide', $adzone['args']['display_filter']['categories']) ? $adzone['args']['display_filter']['categories']['show_hide'] : 0;
-										$h.= '<label class="switch switch-slide small input_h ttip" title="'.__('Show/Hide.','adn').'">
-											<input class="switch-input" type="checkbox" name="display_filter[categories][show_hide]" value="1" '.checked($show_hide,1,false).' />
-											<span class="switch-label" data-on="'.__('Show','adn').'" data-off="'.__('Hide','adn').'"></span> 
-											<span class="switch-handle"></span>
-										</label>';
-
-										$h.= '<span class="description bottom">'.__('Show or Hide the banner for the selected categories.','adn').'</span>
-									</div>
-								</div>
-								<!-- end .spr_column -->
-
-
-								<div class="spr_column spr_col-6">
-									<div class="input_container">
-										<div class="custom_box option_inside_content">
-											<h3 class="title"></h3>
-											<div class="input_container_inner">';
-
-												$h.= '<select id="wppas_adzone_hide_categories" name="display_filter[categories][ids][]" data-placeholder="'.__('Select Categories', 'adn').'" style="width:100%;" class="chosen-select" multiple>';
-													$h.= '<option value=""></option>';
-
-													$categories = array_key_exists('ids', $adzone['args']['display_filter']['categories']) ? $adzone['args']['display_filter']['categories']['ids'] : '';
-													$taxonomies = get_taxonomies();
-													$allowed_taxonomies = apply_filters( 'adning_limit_categories', array('category'));
-													$allowed_taxonomies = apply_filters( 'adning_hide_categories', $allowed_taxonomies);
-													
-													foreach($taxonomies as $i => $taxonomy)
-													{
-														$terms = get_terms($taxonomy);
-														foreach($terms as $cat)
-														{
-															if(in_array($cat->taxonomy, $allowed_taxonomies))
-															{
-																$selected = !empty($categories) && is_array($categories) ? in_array($cat->term_id, $categories) ? 'selected' : '' : '';
-																$h.= '<option value="'.$cat->term_id.'" '.$selected.'>'.$cat->name.' - (ID:'.$cat->term_id.')</option>';
-															}
-														}
-													}
-												$h.= '</select>';
-											
-											$h.= '</div>
-										</div>
-									</div>
-								</div>
-								<!-- end .spr_column -->
-							</div>';
-
-							
-							// Show / Hide for Tags
-							$h.= '<div class="clear">
-								<div class="input_container">
-									<h3 class="title">'.__('For Tags','adn').'</h3>
-								</div>
-								<div class="spr_column spr_col-6">
-									<div class="input_container">';
-										
-										$show_hide = array_key_exists('show_hide', $adzone['args']['display_filter']['tags']) ? $adzone['args']['display_filter']['tags']['show_hide'] : 0;
-										//$show_hide = array_key_exists('tags', $adzone['args']['display_filter']) ? $adzone['args']['display_filter']['tags']['show_hide'] : 0;
-										$h.= '<label class="switch switch-slide small input_h ttip" title="'.__('Show/Hide.','adn').'">
-											<input class="switch-input" type="checkbox" name="display_filter[tags][show_hide]" value="1" '.checked($show_hide,1,false).' />
-											<span class="switch-label" data-on="'.__('Show','adn').'" data-off="'.__('Hide','adn').'"></span> 
-											<span class="switch-handle"></span>
-										</label>';
-
-										$h.= '<span class="description bottom">'.__('Show or Hide the banner for the selected tags.','adn').'</span>
-									</div>
-								</div>
-								<!-- end .spr_column -->
-
-								<div class="spr_column spr_col-6">
-									<div class="input_container">
-										<div class="custom_box option_inside_content">
-											<h3 class="title"></h3>
-											<div class="input_container_inner">';
-												
-												$h.= '<select id="wppas_adzone_hide_tags" name="display_filter[tags][ids][]" data-placeholder="'.__('Select Tags', 'adn').'" style="width:100%;" class="chosen-select" multiple>';
-													$h.= '<option value=""></option>';
-													
-													//$tags = $adzone['args']['display_filter']['tags'];
-													$tags = array_key_exists('ids', $adzone['args']['display_filter']['tags']) ? $adzone['args']['display_filter']['tags']['ids'] : '';
-													$taxonomies = get_taxonomies();
-													$allowed_taxonomies = apply_filters( 'adning_hide_tags', array('post_tag'));
-													
-													foreach($taxonomies as $i => $taxonomy)
-													{
-														$terms = get_terms($taxonomy);
-														foreach($terms as $tag)
-														{
-															if(in_array($tag->taxonomy, $allowed_taxonomies))
-															{
-																$selected = !empty($tags) && is_array($tags) ? in_array($tag->term_id, $tags) ? 'selected' : '' : '';
-																$h.= '<option value="'.$tag->term_id.'" '.$selected.'>'.$tag->name.' - (ID:'.$tag->term_id.')</option>';
-															}
-														}
-													}
-												$h.= '</select>';
-												
-											$h.= '</div>
-										</div>
-									</div>
-								</div>
-								<!-- end .spr_column -->
-							</div>';
-							*/
-
 
 							// Loop true all available post types
 							foreach( $settings['positioning']['post_types'] as $post_type )
@@ -1480,9 +1545,9 @@ class ADNI_Templates {
 										<div class="input_container">
 											<div class="custom_box option_inside_content">
 												<h3 class="title"></h3>
-												<div class="input_container_inner">';
+												<div class="input_container_inner ning_chosen_select">';
 													
-													$h.= '<select name="display_filter[post_types]['.$post_type.'][ids][]" data-placeholder="'.sprintf(__('Select %s', 'adn'), $post_type).'" style="width:100%;" class="chosen-select" multiple>';
+													$h.= '<select name="display_filter[post_types]['.$post_type.'][ids][]" data-placeholder="'.sprintf(__('Start typing to select a %s', 'adn'), $post_type).'" data-ptype="'.$post_type.'" style="width:100%;" class="chosen-select ning_chosen_posttype_select" multiple>';
 														$h.= '<option value=""></option>';
 														
 														//$posts = $adzone['args']['display_filter']['posts'];
@@ -1491,17 +1556,26 @@ class ADNI_Templates {
 														{
 															$posts = array_key_exists($post_type, $adzone['args']['display_filter']['post_types']) ? $adzone['args']['display_filter']['post_types'][$post_type]['ids'] : '';
 														}
-														$all_posts = get_posts(array(
+														// Load selected posts
+														if(!empty($posts))
+														{
+															foreach($posts as $post_id)
+															{
+																$h.= '<option class="opt_'.$post_id.'" value="'.$post_id.'" selected>'.get_the_title($post_id).' - (ID:'.$post_id.')</option>';
+															}
+														}
+														/*$all_posts = get_posts(array(
 															'posts_per_page'   => -1,
 															'post_status'      => 'publish',
 															'post_type'        => $post_type
-														));
+														));*/
+														/*$all_posts = $GLOBALS[ 'wpdb' ]->get_results( "SELECT ID, post_title FROM ".$GLOBALS[ 'wpdb' ]->prefix."posts WHERE post_status = 'publish' AND post_type='".$post_type."'" );
 										
 														foreach($all_posts as $i => $post)
 														{
 															$selected = !empty($posts) && is_array($posts) ? in_array($post->ID, $posts) ? 'selected' : '' : '';
-															$h.= '<option value="'.$post->ID.'" '.$selected.'>'.$post->post_name.' - (ID:'.$post->ID.')</option>';
-														}
+															$h.= '<option value="'.$post->ID.'" '.$selected.'>'.$post->post_title.' - (ID:'.$post->ID.')</option>';
+														}*/
 													$h.= '</select>';
 
 												$h.= '</div>
@@ -1623,12 +1697,28 @@ class ADNI_Templates {
 		$h = '';
 		$h.= '<div class="option_box">
 			<div class="info_header">
-				<span class="nr">5</span>
+				<span class="nr">6</span>
 				<span class="text">'.__('Border Settings','adn').'</span>
 			</div>
 
-			<div class="spr_row">  
-				<div class="spr_column spr_col-6">
+			<div class="spr_row">';
+				$h.= ADNI_Templates::spr_column(array(
+					'col' => 'spr_col-6',
+					'title' => __('Add Border','adn'),
+					'desc' => '',
+					'content' => ADNI_Templates::switch_btn(array(
+						'name' => 'cont_border',
+						'tooltip' => __('Add a border arround the banner','adn'),
+						'id' => 'ADNI_has_border',
+						'checked' => $b['cont_border'],
+						'value' => 1,
+						'hidden_input' => 1,
+						'chk-on' => __('On','adn'),
+						'chk-off' => __('Off','adn'),
+						'chk-high' => 0
+					))
+				));
+				/*<div class="spr_column spr_col-6">
 					<div class="spr_column-inner left_column">
 						<div class="spr_wrapper">
 							<div class="input_container">
@@ -1647,9 +1737,9 @@ class ADNI_Templates {
 						</div>
 					</div>
 				</div>
-				<!-- end .spr_column -->
+				<!-- end .spr_column -->*/
 				
-				<div class="spr_column spr_col-6">
+				$h.= '<div class="spr_column spr_col-6">
 					<div class="spr_column-inner">
 						<div class="spr_wrapper">
 							<div class="input_container">
@@ -1751,6 +1841,111 @@ class ADNI_Templates {
 
 
 
+	public static function stats_settings_tpl($args = array(), $b = array())
+	{
+		$defaults = array(
+			'id' => 0,
+			'unique' => 0,
+			'frontend' => 0, 
+			'time_range' => '' //custom_TIMESTAMP::TIMESTAMP
+		);
+		$args = wp_parse_args($args, $defaults);
+
+		$h = '';
+		$id = $args['id'];
+		$type = $b['type'];
+		$group = $type === 'banner' ? 'id_1' : 'id_2';
+		$args['time_range'] = 'custom_'.get_the_time('U', $id).'::'.current_time('timestamp');
+
+		if( ADNI_Main::has_stats() )
+		{
+			// show stats for adzones alaways as they are based on banner stats anyway.
+			$b['enable_stats'] = $type === 'banner' ? $b['enable_stats'] : 1; 
+			
+			$h.= '<div class="option_box">
+				<div class="info_header">
+					<span class="icon"><i class="fa fa-signal" aria-hidden="true"></i></span>
+					<span class="text">'.sprintf(__('%s Stats','adn'), ucfirst($type)).'</span>
+				</div>';
+	
+				if( $b['enable_stats'] )
+				{
+					$impressions = !empty($id) ? ADNI_Main::count_stats(array('type' => 'impression', 'group' => $group, 'id' => $id, 'time_range' => $args['time_range'])) : 0;
+					$clicks = !empty($id) ? ADNI_Main::count_stats(array('type' => 'click', 'group' => $group, 'id' => $id, 'time_range' => $args['time_range'])) : 0;
+					$h.= self::spr_column(array(
+						'col' => 'spr_col-6',
+						'class' => 'stats_box',
+						'title' => __('Impressions','adn'),
+						'desc' => __('All adzone impressions.','adn'),
+						'content' => '<center>'.$impressions.'</center>'
+					));
+					$h.= self::spr_column(array(
+						'col' => 'spr_col-6',
+						'class' => 'stats_box',
+						'title' => __('Clicks','adn'),
+						'desc' => __('All adzone clicks.','adn'),
+						'content' => '<center>'.$clicks.'</center>'
+					));
+
+					if($type === 'adzone')
+					{
+						$h.= '<div class="clearFix"></div>';
+						$h.= self::spr_column(array(
+							'col' => 'spr_col',
+							'class' => 'stats_info',
+							'content' => __('Adzone stats are based on the banners showing inside the adzone. Empty adzones will not collect stats.','adn')
+						));
+					}
+				}
+				
+
+				if( !$args['frontend'] )
+				{
+					$h.= '<div class="clearFix sep_line" style="margin:0 0 15px 0;"><span></span></div>';
+					$h.= $type === 'banner' ? self::spr_column(array(
+						'col' => 'spr_col-4',
+						'title' => __('Enable stats','adn'),
+						//'desc' => __('All adzone clicks.','adn'),
+						'content' => self::switch_btn(array(
+							'title' => __('Desktop','adn'),
+							'name' => 'enable_stats',
+							'checked' => $b['enable_stats'],
+							'value' => 1,
+							'hidden_input' => 1,
+							'chk-on' => __('Yes','adn'),
+							'chk-off' => __('No','adn')
+						))
+					)) : '';
+
+					if( $b['enable_stats'] )
+					{
+						$stats_url = 'admin.php?page=strack-statistics&group='.$group.'&group_id='.$id; // .'&range='.$args['time_range']
+						$remove_stats_url = 'admin.php?page=adning&view='.$type.'&id='.$id.'&reset_stats=1';
+						$h.= self::spr_column(array(
+							'col' => 'spr_col-4',
+							'title' => __('View all stats','adn'),
+							//'desc' => __('All adzone clicks.','adn'),
+							'content' => '<a class="button-secondary" href="'.$stats_url.'">'.__('All Stats','adn').'</a>'
+						));
+						$h.= self::spr_column(array(
+							'col' => 'spr_col-4',
+							'title' => __('Reset stats','adn'),
+							//'desc' => __('All adzone clicks.','adn'),
+							'content' => '<a class="button-secondary" id="reset_stats" style="background:#ffe8f0;" data-href="'.$remove_stats_url.'" data-msg="'.sprintf(__("Are you sure you want to reset all statistics for this %s? This will remove all available %s stats and cannot be undone.","adn"), $type, $type).'">'.__('Reset Stats','adn').'</a>'
+						));
+					}
+				}
+				
+			$h.= '</div>';
+			// end .option_box
+		}
+
+		return $h;
+	}
+
+
+
+
 
 	public static function link_campaign_tpl($b = array())
 	{
@@ -1786,7 +1981,61 @@ class ADNI_Templates {
 										foreach($all_posts as $i => $post)
 										{
 											$selected = !empty($posts) && is_array($posts) ? in_array($post->ID, $posts) ? 'selected' : '' : '';
-											$h.= '<option value="'.$post->ID.'" '.$selected.'>'.$post->post_name.' - (ID:'.$post->ID.')</option>';
+											$h.= '<option value="'.$post->ID.'" '.$selected.'>'.$post->post_title.' - (ID:'.$post->ID.')</option>';
+										}
+									$h.= '</select>';
+									
+								$h.= '</div>
+								<span class="description bottom">'.__('','adn').'</span>
+							</div>
+							<!-- end .input_container -->
+						</div>
+					</div>
+				</div>
+				<!-- end .spr_column -->
+			</div>
+		</div>';
+
+		return $h;
+	}
+
+
+
+	public static function link_adzone_tpl($b = array())
+	{
+		$h = '';
+		$h.= '<div class="option_box">
+			<div class="info_header">
+				<span class="nr">4</span>
+				<span class="text">'.__('Adzones','adn').'</span>
+			</div>
+
+			<div class="spr_row">  
+				<div class="spr_column">
+					<div class="spr_column-inner left_column">
+						<div class="spr_wrapper">
+							<div class="input_container">
+								<h3 class="title">'.__('','adn').'</h3>
+								<p>
+									'.__('Select the adzones you want to link this banner to.','adn').'
+								</p>
+								
+								<div class="input_container_inner">';
+									$h.= '<select name="adzones[]" data-placeholder="'.__('Select adzones', 'adn').'" style="width:100%;" class="chosen-select" multiple>';
+										$h.= '<option value=""></option>';
+										
+										$posts = $b['adzones'];
+										
+										$all_posts = get_posts(array(
+											'posts_per_page'   => -1,
+											'post_status'      => 'publish',
+											'post_type'        => ADNI_CPT::$adzone_cpt
+										));
+						
+										foreach($all_posts as $i => $post)
+										{
+											$selected = !empty($posts) && is_array($posts) ? in_array($post->ID, $posts) ? 'selected' : '' : '';
+											$h.= '<option value="'.$post->ID.'" '.$selected.'>'.$post->post_title.' - (ID:'.$post->ID.')</option>';
 										}
 									$h.= '</select>';
 									
@@ -1812,7 +2061,7 @@ class ADNI_Templates {
 		$h = '';
 		$h.= '<div class="option_box">
 			<div class="info_header">
-				<span class="nr">4</span>
+				<span class="nr">5</span>
 				<span class="text">'.__('Alignment Settings','adn').'</span>
 			</div>
 
@@ -1835,10 +2084,27 @@ class ADNI_Templates {
 							<!-- end .input_container -->
 						</div>
 					</div>
-				</div>
-				<!-- end .spr_column -->
+				</div>';
+				// <!-- end .spr_column -->
+
+				$h.= ADNI_Templates::spr_column(array(
+					'col' => 'spr_col-6',
+					'title' => __('Wrap Text','adn'),
+					'desc' => '',
+					'content' => ADNI_Templates::switch_btn(array(
+						'name' => 'wrap_text',
+						'tooltip' => __('Wrap text around the banner.','adn'),
+						'id' => 'ADNI_wrap_text',
+						'checked' => $b['wrap_text'],
+						'value' => 1,
+						'hidden_input' => 1,
+						'chk-on' => __('Yes','adn'),
+						'chk-off' => __('No','adn'),
+						'chk-high' => 1
+					))
+				));
 				
-				<div class="spr_column spr_col-6">
+				/*<div class="spr_column spr_col-6">
 					<div class="spr_column-inner left_column">
 						<div class="spr_wrapper">
 							<div class="input_container">
@@ -1857,12 +2123,12 @@ class ADNI_Templates {
 						</div>
 					</div>
 				</div>
-				<!-- end .spr_column -->
-			</div>
-			<!-- end .spr_row -->';
+				<!-- end .spr_column -->*/
+			$h.= '</div>';
+			// <!-- end .spr_row -->
 
-		$h.= '</div>
-		<!-- end .option_box -->';
+		$h.= '</div>';
+		// <!-- end .option_box -->
 
 		return $h;
 	}

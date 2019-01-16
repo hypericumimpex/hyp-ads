@@ -44,14 +44,20 @@ jQuery(document).ready(function($) {
 		if( code_editors[i].getAttribute('id') === 'banner_content' ){
 			editor.on("change", function() {
 				console.log('Codemirror change');
-				$("._ning_cont").find('._ning_inner').html( editor.getValue() );
+				var render_preview = $('#dont_render_preview_code').prop("checked");
+				if( render_preview ){
+					$("._ning_cont").find('._ning_inner').html( editor.getValue() );
+				}
 			});
 		}
 	}
 	
 	$('#banner_content').on('change', function(){
 		//console.log( $(this).val() );
-		$("._ning_cont").find('._ning_inner').html( $(this).val() );
+		var render_preview = $('#dont_render_preview_code').prop("checked");
+		if( render_preview ){
+			$("._ning_cont").find('._ning_inner').html( $(this).val() );
+		}
 		
 		// CodeMirror
 		$(this).parent().find('.CodeMirror').remove();
@@ -66,7 +72,10 @@ jQuery(document).ready(function($) {
 		editor.setSize("100%",height);
 		editor.on("change", function() {
 			//console.log('Codemirror change');
-			$("._ning_cont").find('._ning_inner').html( editor.getValue() );
+			
+			if( render_preview ){
+				$("._ning_cont").find('._ning_inner').html( editor.getValue() );
+			}
 			console.log('banner content changed');
 		});
 	});

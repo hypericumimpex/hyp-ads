@@ -1,0 +1,92 @@
+ADNING V1.1.5
+——————————————————————————————————
+* Improved load times for banner and adzone settings pages.
+* Added Sell page shortcodes.
+* Fixed some random saving issues.
+* Fixed columns vs rows
+
+
+ADNING V1.1.4
+——————————————————————————————————
+* Added mp4 video support for banners.
+* Included smarTrack v1.0.8
+* Improved statistics.
+* Fixed issue with paypal sandbox url.
+
+
+ADNING V1.1.3
+——————————————————————————————————
+* Included new smarTrack version with some bug fixes and automatic plugin updates.
+
+
+ADNING V1.1.2
+——————————————————————————————————
+* Added option to disable banner filters for adzones.
+* Added option to assign banners to specific advertiser (user).
+* Added Adning widget option.
+* Fixed issues with embed code.
+
+
+ADNING V1.1.1
+——————————————————————————————————
+* Added option to sell ad spots directly from your website.
+* Added frontend banner manager.
+* Added option to show multiple banners the same time for adzones. (Ad grid)
+* Added option to link banners to adzones directly from the banner settings page.
+* Improved display filter.
+* Improved code for empty adzones.
+* smarTrack improvements.
+* Fixed issues with WP multimedia images not showing.
+* Fixed issue with uploader in Firefox and Safari.
+* Fixed issue with country filter.
+
+
+ADNING V1.1.0
+——————————————————————————————————
+* Added option to turn Adblock detection on/off.
+* Added option to inject banners after specific class/ID.
+
+
+ADNING V1.0.9
+——————————————————————————————————
+* Added option to load banners in adzone in random order.
+* Added option to load only one banner in adzone.
+* Fixed issue with show_tablet setting not saving. 
+* Fixed issue with auto positioning.
+
+
+ADNING V1.0.8
+——————————————————————————————————
+* Added Campaigns option for banners and adzones.
+* Improved admin roles.
+* Fixed issue with custom roles for creating banners and adzones. 
+
+
+ADNING V1.0.7
+——————————————————————————————————
+* Added country filters.
+* Improved auto positioning for custom post types.
+* Fixed settings issue.
+* Fixed issue with activation.
+
+
+ADNING V1.0.6
+——————————————————————————————————
+* Added disable ad options.
+* Added GDPR functions.
+* Fixed User Role issues.
+* Updated .PO files for translation.
+
+
+ADNING V1.0.5
+——————————————————————————————————
+* Added corner peel option.
+* Added background Ad option.
+* Improved code for use on Wordpress multisites.
+* Improved display filters.
+
+
+ADNING V1.0.4
+——————————————————————————————————
+* First BETA release
+* started using webpack for JS/CSS

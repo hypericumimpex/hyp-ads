@@ -35,7 +35,7 @@ class ADNI_Shortcodes {
 		//if( !empty($post))
 		if( !empty($args['id']))
 		{
-			$post_type = get_post_type( $args['id'] );
+			$post_type = ADNI_Multi::get_post_type( $args['id'] );
 			//$post_type = $post['post']->post_type;
 			
 			ADNI_Init::enqueue(
@@ -68,7 +68,7 @@ class ADNI_Shortcodes {
 				}
 				else
 				{
-					/*$html.= '<pre>'.print_r($post, true).'</pre>';*/
+					//$html.= '<pre>'.print_r($args, true).'</pre>';
 					$html.= self::sc_ADNI_adzone($args);
 				}
 			}
@@ -102,7 +102,8 @@ class ADNI_Shortcodes {
 		);
 		$args = wp_parse_args( $args, $defaults );
 		
-		return ADNI_Templates::adzone_tpl($args['id']);
+		//return '<pre>'.print_r($args, true).'</pre>';
+		return ADNI_Templates::adzone_tpl($args['id'], $args);
 	}
 }
 
