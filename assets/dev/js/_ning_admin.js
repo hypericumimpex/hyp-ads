@@ -186,6 +186,8 @@ module.exports = {
 	
 	$(document).ready(function(){
 
+		Adning_global.activate_tooltips($('.adning_dashboard'));
+
 		// POSITIONING
 		$('#ADNI_align').on('change', function(){
 			var pos = $(this).val();
@@ -302,6 +304,18 @@ module.exports = {
 		
 			media_uploader.open();
 		});
+
+
+
+		$('.ttip').tooltipster({
+			theme: 'tooltipster-light',
+			multiple:true,
+			maxWidth: 200,
+			speed:50,
+			delay:0,
+			contentAsHTML: true,
+			interactive: true
+		});	
 		
 
 		
@@ -311,7 +325,7 @@ module.exports = {
 			'.chosen-select-deselect'  : { allow_single_deselect: true },
 			'.chosen-select-no-single' : { disable_search_threshold: 10 },
 			'.chosen-select-no-results': { no_results_text: 'Oops, nothing found!' },
-			'.chosen-select-rtl'       : { rtl: true },
+			'.chosen-select-rtl'       : { rtl: true }
 			//'.chosen-select-width'     : { width: '100%' }
 		}
 		for (var selector in config) {
@@ -320,26 +334,98 @@ module.exports = {
 
 		$('.chosen-search-input').autocomplete({
 			source: function( request, response ) {
-				console.log('search: '+request.term);
-				var select_obj = this.element.closest('.ning_chosen_select').find('.chosen-select');
-				if( select_obj.hasClass('ning_chosen_posttype_select') ){ 
-					var post_type = select_obj.data('ptype');
+				
+				var input_obj = this.element;
+				input_obj.css({'width': '100%'});
+				var select_obj = input_obj.closest('.ning_chosen_select').find('.chosen-select');
+
+				// Start search when string contains at least 3 characters
+				if( request.term.length > 2 ){
+					console.log('search: '+request.term);
 					
-					$.ajax({
-					type: "POST",
-					url: _adn_.ajaxurl,
-					dataType: "json",
-					data: "action=display_filter_load_posts&search="+request.term+"&post_type="+post_type
-					}).done(function( obj ) {
-						//console.log(obj);
-						$.map( obj, function( item ) {
-							if( !select_obj.find('.opt_'+item.id).length ){
-								select_obj.append('<option class="opt_'+item.id+'" value="'+item.id+'">' + item.name + ' - (#'+item.id+')</option>');
+					if( select_obj.hasClass('ning_chosen_posttype_select') ){ 
+						var post_type = select_obj.data('ptype');
+						
+						$.ajax({
+							type: "POST",
+							url: _adn_.ajaxurl,
+							dataType: "json",
+							data: "action=display_filter_load_posts&key=post_type&search="+request.term+"&type="+post_type
+						}).done(function( obj ) {
+							
+							if( !$.isEmptyObject(obj) )
+							{
+								var inpt = input_obj.val();
+								
+								$.map( obj, function( item ) {
+									if( !select_obj.find('.opt_'+item.id).length ){
+										select_obj.append('<option class="opt_'+item.id+'" value="'+item.id+'">' + item.name + ' - (#'+item.id+')</option>');
+										select_obj.trigger("chosen:updated");
+										input_obj.val(inpt);
+									}
+								});
 							}
 						});
-						select_obj.trigger("chosen:updated");
-					});
+					}
+					// end posttype search
+
+					if( select_obj.hasClass('ning_chosen_taxonomy_select') ){
+						var taxonomy = select_obj.data('ttype');
+						console.log(taxonomy);
+						$.ajax({
+							type: "POST",
+							url: _adn_.ajaxurl,
+							dataType: "json",
+							data: "action=display_filter_load_posts&key=taxonomy&search="+request.term+"&type="+taxonomy
+						}).done(function( obj ) {
+							console.log('kak');
+							console.log(obj);
+							if( !$.isEmptyObject(obj) )
+							{
+								var inpt = input_obj.val();
+								
+								$.map( obj, function( item ) {
+									if( !select_obj.find('.opt_'+item.id).length ){
+										select_obj.append('<option class="opt_'+item.id+'" value="'+item.id+'">' + item.name + ' - (#'+item.id+')</option>');
+										select_obj.trigger("chosen:updated");
+										input_obj.val(inpt);
+									}
+								});
+							}
+						});
+					}
+					// end taxonomy search
+
 				}
+			}
+		});
+
+
+
+		// EXPORT OPTIONS iframe - embedcode
+		$('.export_switcher').on('change', function(){
+			console.log($(this).prop("checked"));
+			console.log($(this).attr('id'));
+			console.log($(this).data('opos'));
+			var opos = $(this).prop("checked") ? false : true;
+
+
+			$('#'+$(this).data('opos')).prop( "checked", opos );
+			$('.export_switch_box').toggleClass('visible');
+		});
+		// Select all text
+		$(".export_embed_code").on("focus keyup", function(e){
+			var keycode = e.keyCode ? e.keyCode : e.which ? e.which : e.charCode;
+			if(keycode === 9 || !keycode){
+				var $this = $(this);
+				$this.select();
+	
+				// Chrome Fix
+				$this.on("mouseup", function() {
+					// Unbindeamos el mouseup
+					$this.off("mouseup");
+					return false;
+				});
 			}
 		});
 	

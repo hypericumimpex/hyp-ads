@@ -74,7 +74,7 @@ class ADNI_Init {
 	public static function deactivate()
 	{
 		// Deregister Adning License
-		$activation = true;
+		$activation = ADNI_Multi::get_option('adning_activation', array());
 		if( !empty($activation))
 		{
 			$resp = ADNI_Activate::deregister(array('license-key' => $activation['license-key']));
@@ -343,11 +343,12 @@ class ADNI_Init {
 			// Check if plugin needs update
 			ADNI_Updates::needs_update();
 			
+			$pending_order_count = ADNI_Sell::pending_order_count();
 			
 			// Create menu
 			add_menu_page(
 				__('ADning', 'adn'), 
-				__('ADning', 'adn'), 
+				__('ADning', 'adn').' <span class="update-plugins count-'.$pending_order_count.'"><span class="update-count">' . number_format_i18n($pending_order_count) . '</span></span>', 
 				ADNI_ACCESS_ROLE,  
 				'adning', 
 				array( __CLASS__, 'dashboard_template'),
@@ -461,7 +462,7 @@ class ADNI_Init {
 	{
 		//set_site_transient('update_plugins', null); // Just for testing to see if the available plugin update gets shown. IF THIS IS ON ACTUALL PLUGIN UPDATES MAY NOT WORK: WP error: Plugin update failed.
 		//$activation = get_option('adning_activation', array());
-		$activation = true;
+		$activation = ADNI_Multi::get_option('adning_activation', array());
 		$license_key = !empty($activation) ? $activation['license-key'] : '';
 
 		require( ADNI_CLASSES_DIR.'/ADNING_PLU_Auto_Plugin_Updater.php');

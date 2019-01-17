@@ -47,25 +47,41 @@ class ADNI_Ajax {
 	{
 		global $wpdb;
 
+		$key = $_POST['key'];
 		$search = $_POST['search'];
-		$post_type = $_POST['post_type'];
+		$type = $_POST['type'];
 		$h = '';
 		$response = array();
-		$all_posts = $wpdb->get_results( "SELECT ID, post_title FROM ".$wpdb->prefix."posts WHERE post_type = '".$post_type."' AND post_status = 'publish' AND post_title LIKE '%".$search."%'" );
-		
-		//$h.= '<li class="active-result" data-option-array-index="0"></li>';
-		foreach($all_posts as $i => $post)
-		{
-			$response[] = array("id" => $post->ID, "name" => $post->post_title);
-			//$selected = !empty($posts) && is_array($posts) ? in_array($post->ID, $posts) ? 'selected' : '' : '';
-			//$h.= '<option value="'.$post->ID.'" '.$selected.'>'.$post->post_title.' - (ID:'.$post->ID.')</option>';
-			//$h1.= '<option value="'.$post->ID.'" '.$selected.'>'.$post->post_title.' - (ID:'.$post->ID.')</option>';
-			//$h.= '<li class="active-result" data-option-array-index="'.$post->ID.'">'.$post->post_title.' - (ID:'.$post->ID.')</li>';
-		}
 
-		//echo $h.$post_type;
+		if( $key === 'post_type' )
+		{
+			$all_posts = $wpdb->get_results( "SELECT ID, post_title FROM ".$wpdb->prefix."posts WHERE post_type = '".$type."' AND post_status = 'publish' AND post_title LIKE '%".$search."%' LIMIT 20" );
+			
+			//$h.= '<li class="active-result" data-option-array-index="0"></li>';
+			foreach($all_posts as $i => $post)
+			{
+				$response[] = array("id" => $post->ID, "name" => $post->post_title);
+				//$selected = !empty($posts) && is_array($posts) ? in_array($post->ID, $posts) ? 'selected' : '' : '';
+				//$h.= '<option value="'.$post->ID.'" '.$selected.'>'.$post->post_title.' - (ID:'.$post->ID.')</option>';
+				//$h1.= '<option value="'.$post->ID.'" '.$selected.'>'.$post->post_title.' - (ID:'.$post->ID.')</option>';
+				//$h.= '<li class="active-result" data-option-array-index="'.$post->ID.'">'.$post->post_title.' - (ID:'.$post->ID.')</li>';
+			}
+			//echo $h.$post_type;
+		}
+		else
+		{
+			$all_terms = get_terms( array(
+				'taxonomy' => $type,
+				'name__like' => $search,
+				'number' => 20
+			));
+			foreach($all_terms as $i => $term)
+			{
+				$response[] = array("id" => $term->term_id, "name" => $term->name);
+			}
+		}
+		
 		echo json_encode($response);
-		//echo json_encode(array('h1' => $h1, 'h' => $h));
 		exit;
 	}
 

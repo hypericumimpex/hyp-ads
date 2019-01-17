@@ -34,6 +34,39 @@ class ADNI_Updates {
         }
 
 
+        if( ADNI_VERSION === '1.1.6.2')
+        {
+            $auto_pos = ADNI_Main::auto_positioning();
+            if(!empty($auto_pos))
+            {
+                $is_old = 0;
+                $new_pos = array();
+                foreach($auto_pos as $key => $pos)
+                {
+                    // Only run if _adning_auto_positioning is still the old one.
+                    if( array_key_exists('pos', $pos))
+                    {
+                        $is_old = 1;
+                        $new_pos[$key][$pos['pos']] = array();
+                        if( array_key_exists('custom', $pos))
+                        {
+                            foreach($pos['custom'] as $c => $val)
+                            {
+                                $split = explode('_', $c,2);
+                                $new_pos[$key][$pos['pos']][$split[1]] = $val;
+                            }
+                        }
+                    }
+                }
+
+                if($is_old)
+                {
+                    ADNI_Multi::update_option('_adning_auto_positioning', $new_pos);
+                }
+            }
+        }
+
+
         // Updates for v1.0.8
         if( ADNI_VERSION === '1.0.8')
         {

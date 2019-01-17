@@ -1,7 +1,17 @@
 <?php
 $set_arr = ADNI_Main::settings();
 $settings = $set_arr['settings'];
-//echo '<pre>'.print_r($settings,true).'</pre>';
+
+if(isset($_GET['remove_order']) && !empty($_GET['remove_order']))
+{
+    ADNI_Sell::remove_order($_GET['remove_order']);
+}
+if(isset($_GET['activate_order']) && !empty($_GET['activate_order']))
+{
+    ADNI_Sell::activate_order($_GET['activate_order']);
+}
+
+
 
 /**
  * IF POST DATA
@@ -61,67 +71,93 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                                             {
                                                 foreach( $settings['sell']['payment'] as $key => $payment)
                                                 {
+                                                    $h.= '<input type="hidden" name="payment['.$key.'][title]" value="'.$payment['title'].'">';
                                                     $h.= '<div class="adn_settings_cont">';
-                                                        $h.= '<h4>'.sprintf(__('%s Settings','adn'), ucfirst($key)).'</h4>';
+                                                        $h.= '<h4>'.sprintf(__('%s Settings','adn'), $payment['title']).'</h4>';
                                                         $h.= '<div class="adn_settings_cont_inner clear">';
                                                             $h.= '<p>'.__('','adn').'</p>';
 
                                                             $h.= ADNI_Templates::spr_column(array(
                                                                 'col' => 'spr_col-2',
                                                                 'title' => __('Activate','adn'),
-                                                                'desc' => __('Allow Paypal payments.'),
+                                                                'desc' => sprintf(__('Allow %s payments.'), $payment['title']),
                                                                 'content' => ADNI_Templates::switch_btn(array(
-                                                                    'name' => 'payment[paypal][active]',
-                                                                    'checked' => $settings['sell']['payment']['paypal']['active'],
+                                                                    'name' => 'payment['.$key.'][active]',
+                                                                    'checked' => $payment['active'],
                                                                     'value' => 1,
                                                                     'hidden_input' => 1,
                                                                     'chk-on' => __('Yes','adn'),
                                                                     'chk-off' => __('No','adn')
                                                                 ))
                                                             ));
+                                                            
+                                                            if( array_key_exists('desc',$payment))
+                                                            {
+                                                                $h.= ADNI_Templates::spr_column(array(
+                                                                    'col' => 'spr_col-8',
+                                                                    'title' => __('Description','adn'),
+                                                                    'desc' => sprintf(__('%s information.','adn'), $payment['title']),
+                                                                    'content' => ADNI_Templates::textarea_cont(array(
+                                                                            'type' => 'text',
+                                                                            'width' => '100%',
+                                                                            'name' => 'payment['.$key.'][desc]',
+                                                                            'value' => $payment['desc'],
+                                                                            'placeholder' => '',
+                                                                        ))
+                                                                ));
+                                                            }
 
-                                                            $h.= ADNI_Templates::spr_column(array(
-                                                                'col' => 'spr_col-6',
-                                                                'title' => __('Email adress','adn'),
-                                                                'desc' => __('Paypal email adress to receive payments.','adn'),
-                                                                'content' => ADNI_Templates::inpt_cont(array(
-                                                                        'type' => 'text',
-                                                                        'width' => '100%',
-                                                                        'name' => 'payment[paypal][email]',
-                                                                        'value' => $settings['sell']['payment']['paypal']['email'],
-                                                                        'placeholder' => '',
-                                                                        'icon' => 'at',
-                                                                        'show_icon' => 1
+                                                            if( array_key_exists('email',$payment))
+                                                            {
+                                                                $h.= ADNI_Templates::spr_column(array(
+                                                                    'col' => 'spr_col-6',
+                                                                    'title' => __('Email adress','adn'),
+                                                                    'desc' => sprintf(__('%s email adress to receive payments.','adn'), $payment['title']),
+                                                                    'content' => ADNI_Templates::inpt_cont(array(
+                                                                            'type' => 'text',
+                                                                            'width' => '100%',
+                                                                            'name' => 'payment['.$key.'][email]',
+                                                                            'value' => $payment['email'],
+                                                                            'placeholder' => '',
+                                                                            'icon' => 'at',
+                                                                            'show_icon' => 1
+                                                                        ))
+                                                                ));
+                                                            }
+
+                                                            if( array_key_exists('sandbox',$payment))
+                                                            {
+                                                                $h.= ADNI_Templates::spr_column(array(
+                                                                    'col' => 'spr_col-2',
+                                                                    'title' => __('Sandbox','adn'),
+                                                                    'desc' => sprintf(__('Run %s in sandbox mode (for testing).'), $payment['title']),
+                                                                    'content' => ADNI_Templates::switch_btn(array(
+                                                                        'name' => 'payment['.$key.'][sandbox]',
+                                                                        'checked' => $payment['sandbox'],
+                                                                        'value' => 1,
+                                                                        'hidden_input' => 1,
+                                                                        'chk-on' => __('Yes','adn'),
+                                                                        'chk-off' => __('No','adn')
                                                                     ))
-                                                            ));
+                                                                ));
+                                                            }
 
-                                                            $h.= ADNI_Templates::spr_column(array(
-                                                                'col' => 'spr_col-2',
-                                                                'title' => __('Sandbox','adn'),
-                                                                'desc' => __('Run paypal in sandbox mode (for testing).'),
-                                                                'content' => ADNI_Templates::switch_btn(array(
-                                                                    'name' => 'payment[paypal][sandbox]',
-                                                                    'checked' => $settings['sell']['payment']['paypal']['sandbox'],
-                                                                    'value' => 1,
-                                                                    'hidden_input' => 1,
-                                                                    'chk-on' => __('Yes','adn'),
-                                                                    'chk-off' => __('No','adn')
-                                                                ))
-                                                            ));
-
-                                                            $h.= ADNI_Templates::spr_column(array(
-                                                                'col' => 'spr_col-2',
-                                                                'title' => __('Debug','adn'),
-                                                                'desc' => __('Enable paypal debug mode (for testing).'),
-                                                                'content' => ADNI_Templates::switch_btn(array(
-                                                                    'name' => 'payment[paypal][debug]',
-                                                                    'checked' => $settings['sell']['payment']['paypal']['debug'],
-                                                                    'value' => 1,
-                                                                    'hidden_input' => 1,
-                                                                    'chk-on' => __('Yes','adn'),
-                                                                    'chk-off' => __('No','adn')
-                                                                ))
-                                                            ));
+                                                            if( array_key_exists('debug',$payment))
+                                                            {
+                                                                $h.= ADNI_Templates::spr_column(array(
+                                                                    'col' => 'spr_col-2',
+                                                                    'title' => __('Debug','adn'),
+                                                                    'desc' => sprintf(__('Enable %s debug mode (for testing).'), $payment['title']),
+                                                                    'content' => ADNI_Templates::switch_btn(array(
+                                                                        'name' => 'payment['.$key.'][debug]',
+                                                                        'checked' => $payment['debug'],
+                                                                        'value' => 1,
+                                                                        'hidden_input' => 1,
+                                                                        'chk-on' => __('Yes','adn'),
+                                                                        'chk-off' => __('No','adn')
+                                                                    ))
+                                                                ));
+                                                            }
 
                                                         $h.= '</div>';
                                                     $h.= '</div>';
@@ -153,7 +189,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                                                     $h.= '<p>'.__('','adn').'</p>';
 
                                                     $h.= ADNI_Templates::spr_column(array(
-                                                        'col' => 'spr_col-6',
+                                                        'col' => 'spr_col',
                                                         'title' => __('Order Form / Available Adzones','adn'),
                                                         'desc' => __('Link to the page with the available adzones/ order form. Shortcode: <strong>[adning_available_adzones]</strong>','adn'),
                                                         'content' => ADNI_Templates::inpt_cont(array(
@@ -167,7 +203,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                                                         ))
                                                     ));
                                                     $h.= ADNI_Templates::spr_column(array(
-                                                        'col' => 'spr_col-6',
+                                                        'col' => 'spr_col',
                                                         'title' => __('User Dashboard','adn'),
                                                         'desc' => __('Link to the user dashboard page. Shortcode: <strong>[adning_user_dashboard]</strong>','adn'),
                                                         'content' => ADNI_Templates::inpt_cont(array(
@@ -175,6 +211,20 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                                                             'width' => '100%',
                                                             'name' => 'urls[user_dashboard]',
                                                             'value' => $settings['sell']['urls']['user_dashboard'],
+                                                            'placeholder' => '',
+                                                            'icon' => 'link',
+                                                            'show_icon' => 1
+                                                        ))
+                                                    ));
+                                                    $h.= ADNI_Templates::spr_column(array(
+                                                        'col' => 'spr_col',
+                                                        'title' => __('Edit Banner','adn'),
+                                                        'desc' => __('Link to the edit banner page. Shortcode: <strong>[adning_edit_banner]</strong>','adn'),
+                                                        'content' => ADNI_Templates::inpt_cont(array(
+                                                            'type' => 'text',
+                                                            'width' => '100%',
+                                                            'name' => 'urls[edit_banner]',
+                                                            'value' => $settings['sell']['urls']['edit_banner'],
                                                             'placeholder' => '',
                                                             'icon' => 'link',
                                                             'show_icon' => 1
@@ -322,6 +372,36 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                 </div>
                 <!-- end .spr_row -->
             </form>
+
+            
+
+            
+            <div class="spr_row">  
+                <div class="spr_column spr_col">
+                    <div class="spr_column-inner left_column">
+                        <div class="spr_wrapper">
+                            
+                            <div id="orders" class="option_box">
+                                <div class="info_header">
+                                    <span class="nr">4</span>
+                                    <span class="text"><?php _e('Orders','adn'); ?></span>
+                                </div>
+                                <!-- end .info_header -->
+                                <div class="input_container">
+                                    <div class="input_container_inner">
+                                        <?php echo ADNI_Sell::admin_dashboard(); ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- end .option_box -->
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- end .spr_row -->
+
+
         </div>
         <!-- end .container -->
     </div>

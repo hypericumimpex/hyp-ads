@@ -79,9 +79,6 @@ class ADNI_Widgets extends WP_Widget
 			<select id="<?php echo $this->get_field_id( 'banner_id' ); ?>" name="<?php echo $this->get_field_name( 'banner_id' ); ?>" style="width:100%;">
            	<option value=""><?php _e('-- Select a Banner --', 'adn'); ?></option>
             	<?php
-                /***
-				 * Multisite ___________________________________________________________________ */
-				//$pro_ads_multisite->wpproads_wpmu_load_from_main_start();
 				foreach( $banners as $i => $banner )
 				{
 					?>

@@ -97,6 +97,24 @@ if( !empty( $adzone['post'] ))
                                     <span class="description bottom"><?php _e('Adzone description.','adn'); ?></span>
                                 </div>
                                 <!-- end .input_container -->
+
+                                <?php
+                                $h = '';
+                                $h.= '<div class="input_container">';
+                                    $h.= '<h3 class="title">'.__('Status','adn').'</h3>';
+                                        $h.= '<div class="input_container_inner">';
+                                           
+                                            $h.= '<select name="status" class="">';
+                                                $h.= '<option value="active" '.selected( $adzone['args']['status'], 'active', false).'>'.__('Active','adn').'</option>';
+                                                $h.= '<option value="on-hold" '.selected( $adzone['args']['status'], 'on-hold', false).'>'.__('On Hold','adn').'</option>';
+                                            $h.= '</select>';
+                                            
+                                        $h.= '</div>';
+                                    $h.= '<span class="description bottom">'.__('Adzone status.','adn').'</span>';
+                                $h.= '</div>';
+                                //<!-- end .input_container -->
+                                echo $h;
+                                ?>
                                  
                                  
                                  <div class="input_container">
@@ -120,7 +138,6 @@ if( !empty( $adzone['post'] ))
                             <?php echo ADNI_Templates::stats_settings_tpl(array('id' => $id, 'frontend' => $is_frontend), $adzone['args']); ?>
 
                             
-
                             <!--
                             /**
                             * CAMPAIGNS
@@ -145,50 +162,13 @@ if( !empty( $adzone['post'] ))
                             <?php echo ADNI_Templates::border_settings_tpl($adzone['args']); ?>
                             
 
-                            
-
-
-                             
                             <!--
                             /**
                              * EXPORT adzone
                             */
                             -->
-                            <?php
-                            if($id)
-                            {
-                                ?>
-                                <div class="option_box">
-                                        <div class="info_header">
-                                            <span class="icon"><i class="fa fa-code" aria-hidden="true"></i></span>
-                                            <span class="text"><?php _e('Export','adn'); ?></span>
-                                    </div>
-                                    <div class="input_container">
-                                        <h3 class="title"><?php _e('','adn'); ?></h3>
-                                            <div class="input_container_inner">
-                                            <input id="sc_code" style="font-size:11px;" type="text" value='[adning id="<?php echo $id; ?>"]' />
-                                        </div>
-                                        <span class="description bottom"><?php _e('Shortcode.','adn'); ?></span>
-                                    </div>
-                                    <!-- end .input_container -->
-
-                                    <div class="input_container">
-                                        <h3 class="title"><?php _e('','adn'); ?></h3>
-                                            <div class="input_container_inner">
-                                                <?php
-                                                $code = '<script type="text/javascript">var _ning_embed = {"id":"'.$id.'","width":'.$adzone['args']['size_w'].',"height":'.$adzone['args']['size_h'].'};</script><script type="text/javascript" src="'.get_bloginfo('url').'?_dnembed=true"></script>';
-                                                ?>
-                                                <textarea id="embed_code" style="min-height:120px;font-size:11px;"><?php echo $code; ?></textarea>
-                                            </div>
-                                        <span class="description bottom"><?php _e('Embed code.','adn'); ?></span>
-                                    </div>
-                                    <!-- end .input_container -->
-                                </div>
-                                <!-- end .option_box -->
-                                <?php
-                            }
-                            ?>
-                             
+                            <?php echo ADNI_Templates::export_tpl($adzone); ?>
+                            
                              
                              
                          </div>
@@ -205,17 +185,11 @@ if( !empty( $adzone['post'] ))
                      <div class="spr_column-inner left_column">
                          <div class="spr_wrapper">
                              <div class="option_box">
-                        			<div class="info_header">
-                                		<span class="nr">2</span>
-                            			<span class="text"><?php _e('AD Zone','adn'); ?></span>
-                                		<input type="submit" value="<?php _e('Save AD Zone','adn'); ?>" class="button-primary" name="save_adzone" style="width:auto;float:right;margin:8px;">
-                                
-										<?php 
-										/*if( $id ){
-											echo '<a href="'.get_permalink($id).'" target="_blank" class="button" style="width:auto;float:right;margin:8px;">'.__('Preview Banner','adn').'</a>';
-										}*/
-										?>
-                             	</div>
+                        		<div class="info_header">
+                                    <span class="nr">2</span>
+                                    <span class="text"><?php _e('AD Zone','adn'); ?></span>
+                                    <input type="submit" value="<?php _e('Save AD Zone','adn'); ?>" class="button-primary" name="save_adzone" style="width:auto;float:right;margin:8px;">
+                                </div>
                                 <!-- end .info_header -->
                              
                              	<div class="sep_line" style="margin:0 0 15px 0;"><span><strong><?php _e('Sizing','adn'); ?></strong></span></div>
@@ -243,7 +217,26 @@ if( !empty( $adzone['post'] ))
                                 </div>
                                 <!-- end .spr_column -->
                                 
-                                
+                                <?php
+                                $h = '';
+                                $h.= ADNI_Templates::spr_column(array(
+                                    'col' => 'spr_col-2',
+                                    'title' => '',
+                                    'desc' => __('Responsive','adn'),
+                                    'content' => ADNI_Templates::switch_btn(array(
+                                        'name' => 'responsive',
+                                        'id' => 'ADNI_responsive',
+                                        'tooltip' => __('Responsive adzone.','adn'),
+                                        'checked' => $adzone['args']['responsive'],
+                                        'value' => 1,
+                                        'hidden_input' => 1,
+                                        'chk-on' => __('On','adn'),
+                                        'chk-off' => __('Off','adn'),
+                                        'chk-high' => 1
+                                    ))
+                                ));
+                                echo $h;
+                                /*
                                 <div class="spr_column spr_col-2">
                                     <div class="spr_column-inner">
                                         <div class="spr_wrapper">
@@ -263,56 +256,50 @@ if( !empty( $adzone['post'] ))
                                     </div>
                                 </div>
                                 <!-- end .spr_column -->
+                                */
+                                ?>
                                 
                                 
                                 <div class="spr_column spr_col-6">
                                     <div class="spr_column-inner">
                                         <div class="spr_wrapper">
                                             
-                                            <div class="spr_column spr_col-6">
-                                                <div class="spr_column-inner left_column">
-                                                    <div class="spr_wrapper">
-                                                        <div class="input_container">
-                                                            <h3 class="title"><?php _e('','adn'); ?></h3>
-                                                            <div class="input_container_inner">
-                                                                    <input 
-                                                                    type="text" 
-                                                                    class="_ning_custom_size" 
-                                                                    id="ADNI_size_w" 
-                                                                    name="size_w" 
-                                                                    value="<?php echo $adzone['args']['size_w']; ?>" 
-                                                                    placeholder="<?php _e('','adn'); ?>">
-                                                                <i class="input_icon fa fa-arrows-h" aria-hidden="true"></i>
-                                                            </div>
-                                                            <span class="description bottom"><?php _e('width.','adn'); ?></span>
-                                                         </div>
-                                                         <!-- end .input_container -->
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <!-- end .spr_column -->
-                                            <div class="spr_column spr_col-6">
-                                                <div class="spr_column-inner">
-                                                    <div class="spr_wrapper">
-                                                        <div class="input_container">
-                                                            <h3 class="title"><?php _e('','adn'); ?></h3>
-                                                            <div class="input_container_inner">
-                                                                    <input 
-                                                                    type="text" 
-                                                                    class="_ning_custom_size" 
-                                                                    id="ADNI_size_h" 
-                                                                    name="size_h" 
-                                                                    value="<?php echo $adzone['args']['size_h']; ?>" 
-                                                                    placeholder="<?php _e('','adn'); ?>">
-                                                                <i class="input_icon fa fa-arrows-v" aria-hidden="true"></i>
-                                                            </div>
-                                                            <span class="description bottom"><?php _e('height.','adn'); ?></span>
-                                                         </div>
-                                                         <!-- end .input_container -->
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <!-- end .spr_column -->
+                                            <?php
+                                            $h = '';
+                                            $h.= ADNI_Templates::spr_column(array(
+                                                'col' => 'spr_col-6',
+                                                'title' => '',
+                                                'desc' => __('width.','adn'),
+                                                'content' => ADNI_Templates::inpt_cont(array(
+                                                        'type' => 'text',
+                                                        'width' => '100%',
+                                                        'class' => '_ning_custom_size',
+                                                        'name' => 'size_w',
+                                                        'id' => 'ADNI_size_w',
+                                                        'value' => $adzone['args']['size_w'],
+                                                        'placeholder' => '',
+                                                        'icon' => 'arrows-h',
+                                                        'show_icon' => 1
+                                                    ))
+                                            ));
+                                            $h.= ADNI_Templates::spr_column(array(
+                                                'col' => 'spr_col-6',
+                                                'title' => '',
+                                                'desc' => __('height.','adn'),
+                                                'content' => ADNI_Templates::inpt_cont(array(
+                                                        'type' => 'text',
+                                                        'width' => '100%',
+                                                        'class' => '_ning_custom_size',
+                                                        'name' => 'size_h',
+                                                        'id' => 'ADNI_size_h',
+                                                        'value' => $adzone['args']['size_h'],
+                                                        'placeholder' => '',
+                                                        'icon' => 'arrows-v',
+                                                        'show_icon' => 1
+                                                    ))
+                                            ));
+                                            echo $h;
+                                            ?>
                                             
                                         </div>
                                     </div>
@@ -427,41 +414,38 @@ if( !empty( $adzone['post'] ))
                                                     <div class="spr_wrapper">
                                                         <div class="sep_line" style="margin:0 0 25px 0;"><span><strong><?php _e('Order and Loading settings','adn'); ?></strong></span></div>
                                                         
-                                                        <div class="spr_column spr_col-3">
-                                                            <div class="spr_column-inner">
-                                                                <div class="spr_wrapper">
-                                                                    <div class="input_container">
-                                                                        <h3 class="title"><?php _e('Random Order','adn'); ?></h3>
-                                                                        <div class="input_container_inner">
-                                                                            <label class="switch switch-slide small input_h ttip" title="<?php _e('Load random order.','adn'); ?>">
-                                                                                <input class="switch-input" type="checkbox" name="random_order" value="1" <?php checked( $adzone['args']['random_order'], 1 ); ?> />
-                                                                                <span class="switch-label" data-on="<?php _e('Yes','adn'); ?>" data-off="<?php _e('No','adn'); ?>"></span> 
-                                                                                <span class="switch-handle"></span>
-                                                                            </label>
-                                                                        </div>
-                                                                        <span class="description bottom"><?php _e('Load banners in random order.','adn'); ?></span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="spr_column spr_col-3">
-                                                            <div class="spr_column-inner">
-                                                                <div class="spr_wrapper">
-                                                                    <div class="input_container">
-                                                                        <h3 class="title"><?php _e('Load one banner','adn'); ?></h3>
-                                                                        <div class="input_container_inner">
-                                                                            <label class="switch switch-slide small input_h ttip" title="<?php _e('Load single banner.','adn'); ?>">
-                                                                                <input class="switch-input" type="checkbox" name="load_single" value="1" <?php checked( $adzone['args']['load_single'], 1 ); ?> />
-                                                                                <span class="switch-label" data-on="<?php _e('Yes','adn'); ?>" data-off="<?php _e('No','adn'); ?>"></span> 
-                                                                                <span class="switch-handle"></span>
-                                                                            </label>
-                                                                        </div>
-                                                                        <span class="description bottom"><?php _e('Load one banner at the time (no transition, one banner on page load).','adn'); ?></span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                                        <?php
+                                                        $h = '';
+                                                        $h.= ADNI_Templates::spr_column(array(
+                                                            'col' => 'spr_col-3',
+                                                            'title' => __('Random Order','adn'),
+                                                            'desc' => __('Load banners in random order.','adn'),
+                                                            'content' => ADNI_Templates::switch_btn(array(
+                                                                'name' => 'random_order',
+                                                                'checked' => $adzone['args']['random_order'],
+                                                                'value' => 1,
+                                                                'hidden_input' => 1,
+                                                                'chk-on' => __('Yes','adn'),
+                                                                'chk-off' => __('No','adn'),
+                                                                'chk-high' => 1
+                                                            ))
+                                                        ));
+                                                        $h.= ADNI_Templates::spr_column(array(
+                                                            'col' => 'spr_col-3',
+                                                            'title' => __('Load one banner','adn'),
+                                                            'desc' => __('Load one banner at the time (no transition, one banner on page load).','adn'),
+                                                            'content' => ADNI_Templates::switch_btn(array(
+                                                                'name' => 'load_single',
+                                                                'checked' => $adzone['args']['load_single'],
+                                                                'value' => 1,
+                                                                'hidden_input' => 1,
+                                                                'chk-on' => __('Yes','adn'),
+                                                                'chk-off' => __('No','adn'),
+                                                                'chk-high' => 1
+                                                            ))
+                                                        ));
+                                                        echo $h;
+                                                        ?>
                                                         
                                                         <div class="spr_column spr_col-3">
                                                             <div class="spr_column-inner">
@@ -504,25 +488,25 @@ if( !empty( $adzone['post'] ))
 
 
                                                         <div class="clearFix"></div>
-
-                                                        <div class="spr_column spr_col-3">
-                                                            <div class="spr_column-inner">
-                                                                <div class="spr_wrapper">
-                                                                    <div class="input_container">
-                                                                        <h3 class="title"><?php _e('Load as Grid','adn'); ?></h3>
-                                                                        <div class="input_container_inner">
-                                                                            <label class="switch switch-slide small input_h ttip" title="<?php _e('Load as grid (multiple banners).','adn'); ?>">
-                                                                                <input class="switch-input" type="checkbox" name="load_grid" value="1" <?php checked( $adzone['args']['load_grid'], 1 ); ?> />
-                                                                                <span class="switch-label" data-on="<?php _e('Yes','adn'); ?>" data-off="<?php _e('No','adn'); ?>"></span> 
-                                                                                <span class="switch-handle"></span>
-                                                                            </label>
-                                                                        </div>
-                                                                        <span class="description bottom"><?php _e('Load multiple banners at the same time.','adn'); ?></span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
+                                                        
+                                                        <?php
+                                                        $h = '';
+                                                        $h.= ADNI_Templates::spr_column(array(
+                                                            'col' => 'spr_col-3',
+                                                            'title' => __('Load as Grid','adn'),
+                                                            'desc' => __('Load multiple banners at the same time.','adn'),
+                                                            'content' => ADNI_Templates::switch_btn(array(
+                                                                'name' => 'load_grid',
+                                                                'checked' => $adzone['args']['load_grid'],
+                                                                'value' => 1,
+                                                                'hidden_input' => 1,
+                                                                'chk-on' => __('Yes','adn'),
+                                                                'chk-off' => __('No','adn'),
+                                                                'chk-high' => 1
+                                                            ))
+                                                        ));
+                                                        echo $h;
+                                                        ?>
 
                                                         <div class="spr_column spr_col-3">
                                                             <div class="spr_column-inner">
@@ -627,7 +611,7 @@ if( !empty( $adzone['post'] ))
 <script>
 jQuery(document).ready(function($) {
 
-    Adning_global.activate_tooltips($('.adning_dashboard'));
+    //Adning_global.activate_tooltips($('.adning_dashboard'));
     
 	$('#ADNI_size').on('change', function(){
 		var size = $(this).val(),
@@ -664,59 +648,6 @@ jQuery(document).ready(function($) {
 		//$("._ning_cont").ningResponsive({width:w, height:h});
 		//banner_resized_notice();
     });
-	
-	
-	/**
-	 * TOOLTIPS
-	*/
-	$('.ttip').tooltipster({
-		theme: 'tooltipster-light',
-		multiple:true,
-		maxWidth: 200,
-		speed:50,
-		delay:0,
-		contentAsHTML: true,
-		interactive: true
-	});	
-	
-	
-	
-	/*var config = {
-	    '.chosen-select'           : {},
-	    '.chosen-select-deselect'  : { allow_single_deselect: true },
-	    '.chosen-select-no-single' : { disable_search_threshold: 10 },
-	    '.chosen-select-no-results': { no_results_text: 'Oops, nothing found!' },
-	    '.chosen-select-rtl'       : { rtl: true },
-	    //'.chosen-select-width'     : { width: '100%' }
-	}
-	for (var selector in config) {
-        $(selector).chosen(config[selector]).chosenSortable();
-    }
-    
-    $('.chosen-search-input').autocomplete({
-        source: function( request, response ) {
-            console.log('search: '+request.term);
-            var select_obj = this.element.closest('.ning_chosen_select').find('.chosen-select');
-            if( select_obj.hasClass('ning_chosen_posttype_select') ){ 
-                var post_type = select_obj.data('ptype');
-                
-                $.ajax({
-                type: "POST",
-                url: _adn_.ajaxurl,
-                dataType: "json",
-                data: "action=display_filter_load_posts&search="+request.term+"&post_type="+post_type
-                }).done(function( obj ) {
-                    console.log(obj);
-                    $.map( obj, function( item ) {
-                        if( !select_obj.find('.opt_'+item.id).length ){
-                            select_obj.append('<option class="opt_'+item.id+'" value="'+item.id+'">' + item.name + ' - (#'+item.id+')</option>');
-                        }
-                    });
-                    select_obj.trigger("chosen:updated");
-                });
-            }
-        }
-    });*/
 	
 });
 </script>

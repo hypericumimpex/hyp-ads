@@ -131,7 +131,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                                                                     'width' => '100%',
                                                                     'name' => 'gdpr[cookie_name]',
                                                                     'value' => $settings['gdpr']['cookie_name'],
-                                                                    'placeholder' => ''
+                                                                    'placeholder' => '',
+                                                                    'icon' => 'pencil',
+                                                                    'show_icon' => 1
                                                                 ))
                                                         ));
 
@@ -144,7 +146,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                                                                     'width' => '100%',
                                                                     'name' => 'gdpr[cookie_value]',
                                                                     'value' => $settings['gdpr']['cookie_value'],
-                                                                    'placeholder' => ''
+                                                                    'placeholder' => '',
+                                                                    'icon' => 'pencil',
+                                                                    'show_icon' => 1
                                                                 ))
                                                         ));
                                                         

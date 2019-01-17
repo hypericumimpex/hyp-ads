@@ -30,6 +30,7 @@ class ADNI_Sell {
         // Shortcodes -----------------------------------------------------
         add_shortcode('adning_available_adzones', array(__CLASS__, 'sc_available_adzones'));
         add_shortcode('adning_user_dashboard', array(__CLASS__, 'sc_user_dashboard'));
+        add_shortcode('adning_edit_banner', array(__CLASS__, 'sc_edit_banner'));
 
 
         // AJAX --------------------------------------------------------
@@ -203,7 +204,9 @@ class ADNI_Sell {
      */
     public static function sell_settings_tab($tabs)
     {
-        $tabs['sell'] = array('text' => __('Sell','adn'), 'page' => 'adning-sell', 'data-tab' => 'about-sell');
+        $pending_order_count = self::pending_order_count();
+        $info_balloon = !empty($pending_order_count) ? ' <span class="info_balloon ttip" title="'.sprintf(__('You have %s orders pending for review.'), $pending_order_count).'">'.$pending_order_count.'</span>' : '';
+        $tabs['sell'] = array('text' => __('Sell','adn').$info_balloon, 'page' => 'adning-sell', 'data-tab' => 'about-sell');
 
         return $tabs;
     }
@@ -221,7 +224,8 @@ class ADNI_Sell {
             'payment' => self::sell_payment_options(),
             'urls' => array(
                 'available_adzones' => trailingslashit( home_url( 'index.php' ) ).'?_ning_front=1&view=available_adzones',
-                'user_dashboard' => trailingslashit( home_url( 'index.php' ) ).'?_ning_front=1&view=user_dashboard'
+                'user_dashboard' => trailingslashit( home_url( 'index.php' ) ).'?_ning_front=1&view=user_dashboard',
+                'edit_banner' => trailingslashit( home_url( 'index.php' ) ).'?_ning_front=1&view=banner',
             ),
             'template' => array(
                 'logo_title' => 'Adning',
@@ -241,7 +245,14 @@ class ADNI_Sell {
 	public static function sell_payment_options()
 	{	
 		return apply_filters('ADNI_sell_payment_options',array(
+            'bank-transfer' => array(
+                'title' => __('Bank Transfer','adn'),
+                'desc' => '',
+                'active' => 1,
+                'logo' => '<svg viewBox="0 0 640 512" style="width:40px;"><path fill="currentColor" d="M608 32H32C14.33 32 0 46.33 0 64v384c0 17.67 14.33 32 32 32h576c17.67 0 32-14.33 32-32V64c0-17.67-14.33-32-32-32zM176 327.88V344c0 4.42-3.58 8-8 8h-16c-4.42 0-8-3.58-8-8v-16.29c-11.29-.58-22.27-4.52-31.37-11.35-3.9-2.93-4.1-8.77-.57-12.14l11.75-11.21c2.77-2.64 6.89-2.76 10.13-.73 3.87 2.42 8.26 3.72 12.82 3.72h28.11c6.5 0 11.8-5.92 11.8-13.19 0-5.95-3.61-11.19-8.77-12.73l-45-13.5c-18.59-5.58-31.58-23.42-31.58-43.39 0-24.52 19.05-44.44 42.67-45.07V152c0-4.42 3.58-8 8-8h16c4.42 0 8 3.58 8 8v16.29c11.29.58 22.27 4.51 31.37 11.35 3.9 2.93 4.1 8.77.57 12.14l-11.75 11.21c-2.77 2.64-6.89 2.76-10.13.73-3.87-2.43-8.26-3.72-12.82-3.72h-28.11c-6.5 0-11.8 5.92-11.8 13.19 0 5.95 3.61 11.19 8.77 12.73l45 13.5c18.59 5.58 31.58 23.42 31.58 43.39 0 24.53-19.05 44.44-42.67 45.07zM416 312c0 4.42-3.58 8-8 8H296c-4.42 0-8-3.58-8-8v-16c0-4.42 3.58-8 8-8h112c4.42 0 8 3.58 8 8v16zm160 0c0 4.42-3.58 8-8 8h-80c-4.42 0-8-3.58-8-8v-16c0-4.42 3.58-8 8-8h80c4.42 0 8 3.58 8 8v16zm0-96c0 4.42-3.58 8-8 8H296c-4.42 0-8-3.58-8-8v-16c0-4.42 3.58-8 8-8h272c4.42 0 8 3.58 8 8v16z"></path></svg>'
+            ),
             'paypal' => array(
+                'title' => __('Paypal','adn'),
                 'active' => 1,
                 'email' => '',
                 'debug' => 0,
@@ -887,6 +898,32 @@ class ADNI_Sell {
     }
 
 
+    /**
+	 * Shortcode function to show the banner editor in a page
+	 */
+    public static function sc_edit_banner($args = array())
+    {  
+        $h = '';
+        $is_frontend = 1;
+
+        ADNI_Init::enqueue(
+            array(
+                'files' => array(
+                    array('file' => '_ning_css', 'type' => 'style'),
+                    array('file' => '_ning_admin_css', 'type' => 'style'),
+                    array('file' => '_ning_frontend_manager_css', 'type' => 'style'),
+                    array('file' => '_ning_global', 'type' => 'script'),
+                    array('file' => '_ning_uploader', 'type' => 'script'),
+                    array('file' => '_ning_admin_global', 'type' => 'script')
+                )
+            )
+        );
+
+        require_once(ADNI_TPL_DIR.'/single_banner.php'); 
+        return $h;
+    }
+
+
 
     /**
 	 * All available adzones
@@ -1095,6 +1132,123 @@ class ADNI_Sell {
 
 
 
+
+
+    /**
+	 * ADMIN DASHBOARD
+	 */
+	public static function admin_dashboard($args = array())
+	{
+        $h = '';
+        $sell_settings = self::sell_main_settings();
+        $sell_settings = $sell_settings['sell'];
+
+        self::check_if_table_exists( 'adning_sell' );
+		$orders = self::load_order(array('query' => "ORDER BY id DESC"));
+            
+        $h.= '<div class="available_zones">';
+			$h.= '<h1 class="title">'.__('All Orders','adn').'</h1>';
+            $h.= '<ul class="bs">';
+                if( !empty($orders))
+                {
+                    foreach( $orders as $order)
+                    {
+                        $status = self::order_status($order);
+                        $adzone = ADNI_multi::get_post_meta($order->adzone_id, '_adning_args', array());
+                        $post_status = !empty($order->adzone_id) ? get_post_status($order->adzone_id) : '';
+                        
+                        $h.= '<li class="order" style="padding:10px;" data-order-id="'.$order->id.'">';
+                            // Banner info
+                            $h.= '<div class="one_third v_middle">';
+                                $h.= !empty($order->adzone_id) ? '<span><small>#'.$order->id.'</small> '.get_the_title($order->adzone_id).'</span>' : '';
+                                $h.= '<span style="color:#c3c3c3;font-size:11px;margin-left:5px;">'.sprintf(__('Purchased: %s ago','adn'), self::time_ago($order->time)).'</span>';
+                                $h.= '<div>';
+                                    $h.= '<span class="status '.$status['value'].'">'.$status['name'].'</span>';
+                                    $h.= $post_status == 'trash' ? '<span class="status trash">'.__('Trashed','adn').'</span>' : '';
+                                    $h.= '<span style="font-size:12px;color:#c3c3c3;"><strong>'.__('Size','adn').'</strong> - '.$adzone['size'].'</span>';
+                                $h.= '</div>';
+                            $h.= '</div>';
+
+                            $h.= '<div class="one_fifth v_middle">';
+                                $h.= '<span style="color:#c3c3c3;font-size:11px;">'.__('Advertiser:','adn').'</span>';
+                                $h.= '<div style="font-size:12px;color:#c3c3c3;">';
+                                    $h.= '<small>#'.$order->user_id.'</small> <strong>'.$order->email.'</strong>';
+                                $h.= '</div>';
+                            $h.= '</div>';
+                            
+                            $h.= '<div class="one_fifth v_middle">';
+                                $h.= '<span style="color:#c3c3c3;font-size:11px;">'.sprintf(__('Contract: %s','adn'), $adzone['sell']['contract']).'</span>';
+                                $h.= '<div style="font-size:12px;color:#c3c3c3;">';
+                                    $h.= '<strong>'.self::contract_expire_line($adzone, $order).'</strong>';
+                                $h.= '</div>';
+                            $h.= '</div>';
+
+
+                            if( !empty($order->banner_id) )
+                            {
+                                $banner = ADNI_CPT::load_post($order->banner_id, array('post_type' => ADNI_CPT::$banner_cpt, 'filter' => 0));
+                                //echo '<pre>'.print_r($banner,true).'</pre>';
+                                $h.= '<div class="one_forth v_middle">';
+                                    $h.= '<span style="color:#c3c3c3;font-size:11px;">'.__('Linked Banner:','adn').'</span>';
+                                    $h.= !empty($banner) ? ' <strong>'.$banner['post']->post_title.'</strong>' : '';
+                                    $h.= '<div style="font-size:12px;color:#c3c3c3;"><strong>'.__('Size','adn').'</strong> - '.$banner['args']['size'].'</div>';
+                                $h.= '</div>';
+
+                                // Edit banner
+                                if( is_admin() )
+                                {
+                                    $edit_url = 'admin.php?page=adning&view=banner&id='.$order->banner_id;
+                                }
+                                else
+                                {
+                                    $urlf = strpos($sell_settings['urls']['edit_banner'], '?') !== false ? '&' : '?';
+                                    $edit_url = $sell_settings['urls']['edit_banner'].$urlf.'id='.$order->banner_id;
+                                }
+                                $btn_title = $order->status === 'draft' ? __('Review Banner','adn') : __('Edit Banner','adn');
+                                $h.= '<a class="button-secondary" href="'.$edit_url.'">'.$btn_title.'</a>';
+                            }
+
+
+                            // ACTIVATE ORDER
+                            if( empty($order->status) ) // || $order->status === 'draft'
+                            {
+                                if( is_admin() )
+                                {
+                                    $activate_url = 'admin.php?page=adning-sell&activate_order='.$order->id;
+                                }
+                                else
+                                {
+                                    $urlf = strpos($sell_settings['urls']['user_dashboard'], '?') !== false ? '&' : '?';
+                                    $activate_url = $sell_settings['urls']['user_dashboard'].$urlf.'activate_order='.$order->id;
+                                }
+                                $h.= '<a class="button-secondary" href="'.$activate_url.'">'.__('Activate Order','adn').'</a>';
+                            }
+
+
+                            // REMOVE ORDER
+                            if( is_admin() )
+                            {
+                                $remove_url = 'admin.php?page=adning-sell&remove_order='.$order->id;
+                            }
+                            else
+                            {
+                                $urlf = strpos($sell_settings['urls']['user_dashboard'], '?') !== false ? '&' : '?';
+                                $remove_url = $sell_settings['urls']['user_dashboard'].$urlf.'remove_order='.$order->id;
+                            }
+                            $h.= '<a id="_ning_remove_sell_order" title="'.__('Remove Order','adn').'" class="remove_order button-secondary" data-href="'.$remove_url.'" data-msg="'.sprintf(__('Are you sure you want to remove this order (#: %s)? This cannot be undone.','adn'),$order->id).'" style="margin-left: 40px;">';
+                                $h.= '<svg viewBox="0 0 448 512" style="height:12px;"><path fill="currentColor" d="M0 84V56c0-13.3 10.7-24 24-24h112l9.4-18.7c4-8.2 12.3-13.3 21.4-13.3h114.3c9.1 0 17.4 5.1 21.5 13.3L312 32h112c13.3 0 24 10.7 24 24v28c0 6.6-5.4 12-12 12H12C5.4 96 0 90.6 0 84zm416 56v324c0 26.5-21.5 48-48 48H80c-26.5 0-48-21.5-48-48V140c0-6.6 5.4-12 12-12h360c6.6 0 12 5.4 12 12zm-272 68c0-8.8-7.2-16-16-16s-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208zm96 0c0-8.8-7.2-16-16-16s-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208zm96 0c0-8.8-7.2-16-16-16s-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208z"></path></svg>';
+                            $h.= '</a>';
+
+                        $h.= '</li>';
+                    }
+                }
+            $h.= '</ul>';
+        $h.= '</div>';
+
+        return $h;
+    }
+
+
     /**
 	 * USER DASHBOARD - Frontent
 	 */
@@ -1151,12 +1305,13 @@ class ADNI_Sell {
                                 $html.= '</div>';
                                 
 
-                                if($order->status === 'active')
+                                if($order->status === 'active' || $order->status === 'draft')
                                 {
                                     if( empty($order->banner_id) )
                                     {
+                                        $urlf = strpos($sell_settings['urls']['edit_banner'], '?') !== false ? '&' : '?';
                                         $html.= '<div class="one_forth v_middle">';
-                                            $html.= '<a class="button-secondary add_banner" href="?_ning_front=1&view=banner&oid='.$order->id.'&slid='.$order->adzone_id.'">'.__('Add Banner','adn').'</a>';
+                                            $html.= '<a class="button-secondary add_banner" href="'.$sell_settings['urls']['edit_banner'].$urlf.'oid='.$order->id.'&slid='.$order->adzone_id.'">'.__('Add Banner','adn').'</a>';
                                         $html.= '</div>';
                                     }
                                     else
@@ -1184,6 +1339,38 @@ class ADNI_Sell {
                                         // Renew Contract
                                         if( $status['value'] === 'expired' )
                                         {
+                                            if($order->provider === 'paypal')
+                                            {
+                                                $html.= self::paypal(
+                                                    array(
+                                                        'aid' => $order->adzone_id,
+                                                        'bid' => $order->banner_id,
+                                                        'price' => $order->price,
+                                                        'email' => $order->email,
+                                                        'type' => 'renew',
+                                                        'order_id' => $order->id
+                                                    ), // ipn_data
+                                                    array(
+                                                        'form_id'      => 'renewContract',
+                                                        'form_style'   => 'display:inline-block',
+                                                        'show_btn'     => 1,
+                                                        'submit_btn'   => __('Renew Contract','adn'),
+                                                    ) // args
+                                                ); 
+                                            }
+                                        }
+                                        else
+                                        {
+                                            $urlf = strpos($sell_settings['urls']['edit_banner'], '?') !== false ? '&' : '?';
+                                            $html.= '<a class="button-secondary" href="'.$sell_settings['urls']['edit_banner'].$urlf.'id='.$order->banner_id.'">'.__('Edit Banner','adn').'</a>';
+                                            //$html.= '<a class="button-secondary" href="?_ning_front=1&view=banner&id='.$order->banner_id.'">'.__('Edit Banner','adn').'</a>';
+                                        }
+                                    }
+
+                                    if( $status['value'] === 'abandoned' )
+                                    {
+                                        if($order->provider === 'paypal')
+                                        {
                                             $html.= self::paypal(
                                                 array(
                                                     'aid' => $order->adzone_id,
@@ -1197,34 +1384,10 @@ class ADNI_Sell {
                                                     'form_id'      => 'renewContract',
                                                     'form_style'   => 'display:inline-block',
                                                     'show_btn'     => 1,
-			                                        'submit_btn'   => __('Renew Contract','adn'),
+                                                    'submit_btn'   => __('Complete Purchase','adn'),
                                                 ) // args
-                                            ); 
+                                            );
                                         }
-                                        else
-                                        {
-                                            $html.= '<a class="button-secondary" href="?_ning_front=1&view=banner&id='.$order->banner_id.'">'.__('Edit Banner','adn').'</a>';
-                                        }
-                                    }
-
-                                    if( $status['value'] === 'abandoned' )
-                                    {
-                                        $html.= self::paypal(
-                                            array(
-                                                'aid' => $order->adzone_id,
-                                                'bid' => $order->banner_id,
-                                                'price' => $order->price,
-                                                'email' => $order->email,
-                                                'type' => 'renew',
-                                                'order_id' => $order->id
-                                            ), // ipn_data
-                                            array(
-                                                'form_id'      => 'renewContract',
-                                                'form_style'   => 'display:inline-block',
-                                                'show_btn'     => 1,
-                                                'submit_btn'   => __('Complete Purchase','adn'),
-                                            ) // args
-                                        );
                                     }
 
                                     $urlf = strpos($sell_settings['urls']['user_dashboard'], '?') !== false ? '&' : '?';
@@ -1311,174 +1474,180 @@ class ADNI_Sell {
                                             $html.= '</span>
                                         </div>';
                                         // end .info_header
+                                    
 
-                                        $html.= '<div class="loading_overlay">
-                                            <div class="inner_loader"><svg aria-hidden="true" data-prefix="fas" data-icon="spinner" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-inline--fa fa-spinner fa-w-16 fa-spin fa-lg"><path fill="currentColor" d="M304 48c0 26.51-21.49 48-48 48s-48-21.49-48-48 21.49-48 48-48 48 21.49 48 48zm-48 368c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zm208-208c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zM96 256c0-26.51-21.49-48-48-48S0 229.49 0 256s21.49 48 48 48 48-21.49 48-48zm12.922 99.078c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.491-48-48-48zm294.156 0c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.49-48-48-48zM108.922 60.922c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.491-48-48-48z" class=""></path></svg></div>
-                                        </div>';
+                                        $html.= '<div class="spr_row adzone_order_form" style="position:relative;">';
 
-                                        //$html.= '<div class="sep_line" style="margin:0 0 15px 0;"><span><strong>'.__('Rotation Info','adn').'</strong></span></div>';
-                                        $html.= '<div class="spr_column spr_col">
-                                            <div class="spr_column-inner left_column">
-                                                <div class="spr_wrapper">
-                                                    <div class="input_container">';
-                                                        if( $adzone_info['spots'] <= 0 )
-                                                        {
-                                                            // soldout
-                                                            $html.= '<div class="status soldout" style="text-transform:uppercase;margin:0;">'.__('Currently sold out','adn').'</div>';
-                                                        }
-                                                        else
-                                                        {
-                                                            // available
-                                                            $html.= '<div class="status available" style="text-transform:uppercase;margin:0;">'.sprintf(__('%s Spots Available','adn'), $adzone_info['spots_available']).'</div>';
-                                                        }
+                                            $html.= '<div class="loading_overlay">
+                                                <div class="inner_loader"><svg aria-hidden="true" data-prefix="fas" data-icon="spinner" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-inline--fa fa-spinner fa-w-16 fa-spin fa-lg"><path fill="currentColor" d="M304 48c0 26.51-21.49 48-48 48s-48-21.49-48-48 21.49-48 48-48 48 21.49 48 48zm-48 368c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zm208-208c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zM96 256c0-26.51-21.49-48-48-48S0 229.49 0 256s21.49 48 48 48 48-21.49 48-48zm12.922 99.078c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.491-48-48-48zm294.156 0c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.49-48-48-48zM108.922 60.922c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.491-48-48-48z" class=""></path></svg></div>
+                                            </div>';
 
-                                                        // adzone rotation info
-                                                        $html.= $adzone_info['rotation'] ? '<div style="font-size:12px;color: #c3c3c3;"><strong>'.__('Rotation','adn').'</strong> - '.$adzone_info['rotate_info'].'</div>' : '';
-                                                        // adzone size info
-                                                        $html.= '<div style="font-size:12px;color: #c3c3c3;"><strong>'.__('Size','adn').'</strong> - '.$adzone_info['size'].'</div>';
-                                                        
-                                                        $html.= '<span class="description bottom">'.__('','adn').'</span>';
-                                                    $html.= '</div>
-                                                </div>  
-                                            </div>
-                                        </div>'; 
-                                        // end .spr_column
-                                        
-                                        
-
-                                        // Check if user is loggedin
-                                        $email = '';
-                                        $name = '';
-                                        
-                                        $html.= '<div class="clearFix"></div>';
-                                        $html.= '<div class="sep_line" style="margin:0 0 15px 0;"><span><strong>'.__('Your Details','adn').'</strong></span></div>';
-                                        
-                                        if( is_user_logged_in() )
-                                        {
-                                            $user = wp_get_current_user();
-                                            $email = $user->user_email; 
-                                            $name = !empty($user->user_firstname) && !empty($user->user_lastname) ? $user->user_firstname.' '.$user->user_lastname : '';
-                                        
-                                            $html.= '<div class="spr_column spr_col-6">';
-                                                $html.= '<div class="spr_column-inner left_column">
+                                            //$html.= '<div class="sep_line" style="margin:0 0 15px 0;"><span><strong>'.__('Rotation Info','adn').'</strong></span></div>';
+                                            $html.= '<div class="spr_column spr_col">
+                                                <div class="spr_column-inner left_column">
                                                     <div class="spr_wrapper">
                                                         <div class="input_container">';
-                                                            $html.= ADNI_Templates::inpt_cont(array(
-                                                                'title' => __('Full Name','adn'),
-                                                                'desc' => __('Provide your full name to create your advertiser account on our website.','adn'),
-                                                                'id' => 'bs_name', 
-                                                                'width' => '100%',
-                                                                'placeholder' => __('Firstname Lastname','adn'),
-                                                                'value' => $name,
-                                                                'icon' => 'pencil',
-                                                                'show_icon' => 1
-                                                            ));  
+                                                            if( $adzone_info['spots'] <= 0 )
+                                                            {
+                                                                // soldout
+                                                                $html.= '<div class="status soldout" style="text-transform:uppercase;margin:0;">'.__('Currently sold out','adn').'</div>';
+                                                            }
+                                                            else
+                                                            {
+                                                                // available
+                                                                $html.= '<div class="status available" style="text-transform:uppercase;margin:0;">'.sprintf(__('%s Spots Available','adn'), $adzone_info['spots_available']).'</div>';
+                                                            }
+
+                                                            // adzone rotation info
+                                                            $html.= $adzone_info['rotation'] ? '<div style="font-size:12px;color: #c3c3c3;"><strong>'.__('Rotation','adn').'</strong> - '.$adzone_info['rotate_info'].'</div>' : '';
+                                                            // adzone size info
+                                                            $html.= '<div style="font-size:12px;color: #c3c3c3;"><strong>'.__('Size','adn').'</strong> - '.$adzone_info['size'].'</div>';
+                                                            
+                                                            $html.= '<span class="description bottom">'.__('','adn').'</span>';
                                                         $html.= '</div>
-                                                    </div>
-                                                </div>';
-                                            $html.= '</div>'; 
+                                                    </div>  
+                                                </div>
+                                            </div>'; 
                                             // end .spr_column
-
-                                            $html.= '<div class="spr_column spr_col-6">';
-                                                $html.= '<div class="spr_column-inner left_column">
-                                                    <div class="spr_wrapper">
-                                                        <div class="input_container">';
-                                                            $html.= ADNI_Templates::inpt_cont(array(
-                                                                'title' => __('Email Address','adn'),
-                                                                'desc' => __('Provide a valid email address to activate your account and receive status updates about your banners.','adn'),
-                                                                'id' => 'bs_email',  
-                                                                'width' => '100%',
-                                                                'placeholder' => __('email','adn'),
-                                                                'value' => $email,
-                                                                'icon' => 'pencil',
-                                                                'show_icon' => 1
-                                                            ));
-                                                        $html.= '</div>
-                                                    </div>
-                                                </div>';
-                                            $html.= '</div>'; 
-                                            // end .spr_column
-
-                                        
-                                            // PAYMENT OPTIONS
-                                            $html.= '<div class="clearFix"></div>';
-                                            $html.= '<div class="sep_line" style="margin:0 0 15px 0;"><span><strong>'.__('Payment Option','adn').'</strong></span></div>';
-                                        
-                                            $active_payment = 0;
-                                            if( !empty($sell_settings['payment']))
-                                            {
-                                                $i = 0;
-                                                foreach( $sell_settings['payment'] as $key => $payment)
-                                                {
-                                                    if( $payment['active'] && !empty($payment['email']) )
-                                                    {
-                                                        $active_payment = 1;
-                                                        $selected = !$i ? ' selected' : '';
-                                                        $html.= '<div class="spr_column spr_col-1">';
-                                                            $html.= '<div class="spr_column-inner left_column">
-                                                                <div class="spr_wrapper">
-                                                                    <div class="input_container">';
-
-                                                                        $html.= '<a class="payment_btn'.$selected.'" data-opt="'.$key.'">';
-                                                                            $html.= $payment['logo'];
-                                                                        $html.= '</a>';
-
-                                                                        $html.= '<span class="description bottom">'.__('','adn').'</span>';
-                                                                    $html.= '</div>
-                                                                </div>
-                                                            </div>';
-                                                        $html.= '</div>'; 
-                                                        // end .spr_column 
-                                                        $i++;
-                                                    }
-                                                }
-                                            }
-
-                                            $html.= !$active_payment ? '<div class="clearFix"></div><div class="input_container"><p>'.__('Sorry, no payment options are currently available. Please contact the website administration.','adn').'</p></div>' : '';
+                                            
                                             
 
-                                            // CONFIRMATION
-                                            if( $active_payment )
+                                            // Check if user is loggedin
+                                            $email = '';
+                                            $name = '';
+                                            
+                                            $html.= '<div class="clearFix"></div>';
+                                            $html.= '<div class="sep_line" style="margin:0 0 15px 0;"><span><strong>'.__('Your Details','adn').'</strong></span></div>';
+                                            
+                                            if( is_user_logged_in() )
                                             {
-                                                $html.= '<div class="clearFix"></div>';
-                                                $html.= '<div class="sep_line" style="margin:0 0 15px 0;"><span><strong>'.__('Confirmation','adn').'</strong></span></div>';
-                                                $html.= '<div class="spr_column spr_col">';
+                                                $user = wp_get_current_user();
+                                                $email = $user->user_email; 
+                                                $name = !empty($user->user_firstname) && !empty($user->user_lastname) ? $user->user_firstname.' '.$user->user_lastname : '';
+                                            
+                                                $html.= '<div class="spr_column spr_col-6">';
                                                     $html.= '<div class="spr_column-inner left_column">
                                                         <div class="spr_wrapper">
                                                             <div class="input_container">';
-                                                                $html.= '<p>'.sprintf(__('Purchase ad spot in the %s adzone <small>(ID: %s)</small>','adn'), '<strong>'.$adzone_info['name'].'</strong>', $adzone_id).'</p>';
-                                                                $html.= '<ul style="margin-left: 20px;">';
-                                                                    $html.= '<li>'.__('Price:','adn').' <strong><span id="bs_conf_price">'.$adzone_info['price'].'</span> '.$sell_settings['cur'].'</strong></li>';
-                                                                    $html.= '<li>'.__('Contract:','adn').' <strong>'.self::contract_line(array('contract' => $adzone_info['contract'], 'duration' => $adzone_info['duration'])).'</strong></li>';
-                                                                        
-                                                                $html.= '</ul>';
-                                                                $html.= '<div class="bs_confirmation_notice" style="margin-top: 20px;"></div>';
-                                                                $html.= '<a id="_ning_confirm_order" class="button-primary">'.__('Confirm & proceed to payment','adn').'</a>';
-                                                                
-                                                                $html.= '<span class="description bottom">'.__('','adn').'</span>';
+                                                                $html.= ADNI_Templates::inpt_cont(array(
+                                                                    'title' => __('Full Name','adn'),
+                                                                    'desc' => __('Provide your full name to create your advertiser account on our website.','adn'),
+                                                                    'id' => 'bs_name', 
+                                                                    'width' => '100%',
+                                                                    'placeholder' => __('Firstname Lastname','adn'),
+                                                                    'value' => $name,
+                                                                    'icon' => 'pencil',
+                                                                    'show_icon' => 1
+                                                                ));  
                                                             $html.= '</div>
                                                         </div>
                                                     </div>';
                                                 $html.= '</div>'; 
-                                                // end .spr_column   
-                                            }
-                                        }
-                                        else
-                                        {
-                                            $html.= '<div class="spr_column spr_col">';
+                                                // end .spr_column
+
+                                                $html.= '<div class="spr_column spr_col-6">';
                                                     $html.= '<div class="spr_column-inner left_column">
                                                         <div class="spr_wrapper">
                                                             <div class="input_container">';
-                                                                $html.= '<div class="ning_login_box">';
-                                                                    $html.= '<a href="'.wp_login_url( $_SERVER['REQUEST_URI'] ).'" title="'.__('Login','adn').'">'.__('Please login to continue.','adn').'</a>';
-                                                                $html.= '</div>';
-                                                                $html.= '<span class="description bottom"></span>';
+                                                                $html.= ADNI_Templates::inpt_cont(array(
+                                                                    'title' => __('Email Address','adn'),
+                                                                    'desc' => __('Provide a valid email address to activate your account and receive status updates about your banners.','adn'),
+                                                                    'id' => 'bs_email',  
+                                                                    'width' => '100%',
+                                                                    'placeholder' => __('email','adn'),
+                                                                    'value' => $email,
+                                                                    'icon' => 'pencil',
+                                                                    'show_icon' => 1
+                                                                ));
                                                             $html.= '</div>
                                                         </div>
-                                                    </div>
-                                                </div>';
-                                            $html.= '</div>';
-                                        }
+                                                    </div>';
+                                                $html.= '</div>'; 
+                                                // end .spr_column
+
+                                            
+                                                // PAYMENT OPTIONS
+                                                $html.= '<div class="clearFix"></div>';
+                                                $html.= '<div class="sep_line" style="margin:0 0 15px 0;"><span><strong>'.__('Payment Option','adn').'</strong></span></div>';
+                                            
+                                                $active_payment = 0;
+                                                if( !empty($sell_settings['payment']))
+                                                {
+                                                    $i = 0;
+                                                    foreach( $sell_settings['payment'] as $key => $payment)
+                                                    {
+                                                        if( $payment['active'] )
+                                                        {
+                                                            $active_payment = 1;
+                                                            $selected = !$i ? ' selected' : '';
+                                                            $html.= '<div class="spr_column spr_col-1">';
+                                                                $html.= '<div class="spr_column-inner left_column">
+                                                                    <div class="spr_wrapper">
+                                                                        <div class="input_container">';
+
+                                                                            $html.= '<a class="payment_btn ttip'.$selected.'" title="'.$payment['title'].'" data-opt="'.$key.'">';
+                                                                                $html.= $payment['logo'];
+                                                                            $html.= '</a>';
+
+                                                                            $html.= '<span class="description bottom">'.__('','adn').'</span>';
+                                                                        $html.= '</div>
+                                                                    </div>
+                                                                </div>';
+                                                            $html.= '</div>'; 
+                                                            // end .spr_column 
+                                                            $i++;
+                                                        }
+                                                    }
+                                                }
+
+                                                $html.= !$active_payment ? '<div class="clearFix"></div><div class="input_container"><p>'.__('Sorry, no payment options are currently available. Please contact the website administration.','adn').'</p></div>' : '';
+                                                
+
+                                                // CONFIRMATION
+                                                if( $active_payment )
+                                                {
+                                                    $html.= '<div class="clearFix"></div>';
+                                                    $html.= '<div class="sep_line" style="margin:0 0 15px 0;"><span><strong>'.__('Confirmation','adn').'</strong></span></div>';
+                                                    $html.= '<div class="spr_column spr_col">';
+                                                        $html.= '<div class="spr_column-inner left_column">
+                                                            <div class="spr_wrapper">
+                                                                <div class="input_container">';
+                                                                    $html.= '<p>'.sprintf(__('Purchase ad spot in the %s adzone <small>(ID: %s)</small>','adn'), '<strong>'.$adzone_info['name'].'</strong>', $adzone_id).'</p>';
+                                                                    $html.= '<ul style="margin-left: 20px;">';
+                                                                        $html.= '<li>'.__('Price:','adn').' <strong><span id="bs_conf_price">'.$adzone_info['price'].'</span> '.$sell_settings['cur'].'</strong></li>';
+                                                                        $html.= '<li>'.__('Contract:','adn').' <strong>'.self::contract_line(array('contract' => $adzone_info['contract'], 'duration' => $adzone_info['duration'])).'</strong></li>';
+                                                                            
+                                                                    $html.= '</ul>';
+                                                                    $html.= '<div class="bs_confirmation_notice" style="margin-top: 20px;"></div>';
+                                                                    $html.= '<a id="_ning_confirm_order" class="button-primary">'.__('Confirm & proceed to payment','adn').'</a>';
+                                                                    
+                                                                    $html.= '<span class="description bottom">'.__('','adn').'</span>';
+                                                                $html.= '</div>
+                                                            </div>
+                                                        </div>';
+                                                    $html.= '</div>'; 
+                                                    // end .spr_column   
+                                                }
+                                            }
+                                            else
+                                            {
+                                                $html.= '<div class="spr_column spr_col">';
+                                                        $html.= '<div class="spr_column-inner left_column">
+                                                            <div class="spr_wrapper">
+                                                                <div class="input_container">';
+                                                                    $html.= '<div class="ning_login_box">';
+                                                                        $html.= '<a href="'.wp_login_url( $_SERVER['REQUEST_URI'] ).'" title="'.__('Login','adn').'">'.__('Please login to continue.','adn').'</a>';
+                                                                    $html.= '</div>';
+                                                                    $html.= '<span class="description bottom"></span>';
+                                                                $html.= '</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>';
+                                                $html.= '</div>';
+                                            }
+                                    
+                                        $html.= '</div>';
+                                        // end .spr_row
 
                                     $html.= '</div>';
                                     // end .option_box
@@ -1537,7 +1706,11 @@ class ADNI_Sell {
                                     //msg = JSON.parse( obj );
                                     $(".bs_confirmation_notice").html(obj);
                                     $( "#_ning_pmt_send" ).submit();
-                                    //$(".loading_overlay").hide();
+
+                                    if( data.payment === "bank-transfer" ){
+                                        $(".loading_overlay").hide();
+                                        $(".adzone_order_form").html(obj);
+                                    }
                                 });
                             }else{
                                 $(".loading_overlay").hide();
@@ -1641,6 +1814,7 @@ class ADNI_Sell {
     {
         global $wpdb;
 
+        $h = '';
         $data = json_decode(json_encode(json_decode(stripslashes($_POST['data']))), true);
         $adzone_info = json_decode(json_encode(json_decode(stripslashes($_POST['adzone_info']))), true);
         $payment = $data['payment'];
@@ -1677,6 +1851,24 @@ class ADNI_Sell {
         if( $payment === 'paypal')
         {
             echo self::paypal($ipn_data);
+        }
+        if( $payment === 'bank-transfer')
+        {
+            $sell_settings = self::sell_main_settings();
+            $sell_settings = $sell_settings['sell']['payment'][$payment];
+
+            $h.= '<div class="spr_row" style="position:relative;">';
+                $h.= '<div class="spr_column spr_col-6">';
+                    $h.= '<div class="spr_column-inner left_column">
+                        <div class="spr_wrapper">
+                            <div class="input_container">';
+                                $h.= '<h2>'.sprintf(__('Your order (#%s) has been received.','adn'), $ipn_data['order_id']).'</h2>';
+                                $h.= '<p>'.$sell_settings['desc'].'</p>';
+                            $h.= '</div>
+                        </div>
+                    </div>';
+            $h.= '</div>';
+            echo $h;
         }
 
         exit;
@@ -1764,6 +1956,17 @@ class ADNI_Sell {
 
 
 
+    /**
+     * Pending order count
+     */
+    public static function pending_order_count()
+    {
+        $orders = self::load_order(array('query' => "WHERE status = 'draft'"));
+
+        return count($orders);
+    }
+
+
 
     /**
      * Remove Order
@@ -1782,6 +1985,26 @@ class ADNI_Sell {
             wp_delete_post($order[0]->banner_id, true); 
 
             $wpdb->query("DELETE FROM ".$wpdb->prefix . "adning_sell WHERE id= ".$id.";");
+        }
+    }
+
+
+
+    /**
+     * Manually Activate Order
+     */
+    public static function activate_order($id)
+    {
+        $order = self::load_order(array('query' => "WHERE id = '".$id."' LIMIT 1"));
+        if(!empty($order))
+        {
+            global $wpdb;
+
+            $adzone = ADNI_CPT::load_post($order[0]->adzone_id, array('post_type' => ADNI_CPT::$adzone_cpt, 'filter' => 0));
+            $adzone_info = self::adzone_details($adzone);
+            $order_status = $adzone_info['review'] ? 'draft' : 'active';
+
+            $wpdb->query("UPDATE ".$wpdb->prefix . "adning_sell SET status = '".$order_status."' WHERE id= ".$id.";");
         }
     }
 

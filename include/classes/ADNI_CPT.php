@@ -265,14 +265,14 @@ class ADNI_CPT {
 			$labels = array(
 				'name' 				=> $cpt['name'],
 				'singular_name'		=> $cpt['singular_name'],
-				'add_new' 			=> sprintf( __( 'Add New %s', 'wpproads' ), $cpt['singular_name']),
-				'add_new_item' 		=> sprintf( __( 'Add New %s', 'wpproads' ), $cpt['singular_name']),
-				'edit_item' 		=> sprintf( __( 'Edit %s', 'wpproads' ), $cpt['singular_name']),
-				'new_item' 			=> sprintf( __( 'New %s', 'wpproads' ), $cpt['singular_name']),
-				'view_item' 		=> sprintf( __( 'View %s', 'wpproads' ), $cpt['singular_name']),
-				'search_items' 		=> sprintf( __( 'Search %s', 'wpproads' ), $cpt['name']),
-				'not_found' 		=> sprintf( __( 'No %s Found', 'wpproads' ), $cpt['name']),
-				'not_found_in_trash'=> sprintf( __( 'No %s Found in Trash', 'wpproads' ), $cpt['name']),
+				'add_new' 			=> sprintf( __( 'Add New %s', 'adn' ), $cpt['singular_name']),
+				'add_new_item' 		=> sprintf( __( 'Add New %s', 'adn' ), $cpt['singular_name']),
+				'edit_item' 		=> sprintf( __( 'Edit %s', 'adn' ), $cpt['singular_name']),
+				'new_item' 			=> sprintf( __( 'New %s', 'adn' ), $cpt['singular_name']),
+				'view_item' 		=> sprintf( __( 'View %s', 'adn' ), $cpt['singular_name']),
+				'search_items' 		=> sprintf( __( 'Search %s', 'adn' ), $cpt['name']),
+				'not_found' 		=> sprintf( __( 'No %s Found', 'adn' ), $cpt['name']),
+				'not_found_in_trash'=> sprintf( __( 'No %s Found in Trash', 'adn' ), $cpt['name']),
 				'parent_item_colon' => '',
 				'menu_name'			=> $cpt['name']
 			);
@@ -391,15 +391,15 @@ class ADNI_CPT {
 
 		$columns          = array();
 		$columns['cb']    = '<input type="checkbox" />';
-		//$columns['b_banner'] = __('<img src="'.WP_ADS_URL.'images/banner_icon_20.png" />', 'wpproads');
+		//$columns['b_banner'] = __('<img src="'.WP_ADS_URL.'images/banner_icon_20.png" />', 'adn');
 		$columns['_adn_b_name'] = __('Title', 'adn');
 		$columns['_adn_b_advertiser'] = __('Advertiser', 'adn');
 		$columns['_adn_b_status'] = __('Status', 'adn');
-		/*$columns['b_campaign'] = __('Campaign', 'wpproads');
-		$columns['b_status'] = __('Status', 'wpproads');
-		$columns['b_stats'] = __('Stats', 'wpproads');*/
-		//$columns['b_filetype'] = __('Type', 'wpproads');
-		//$columns['b_adzone'] = __('adzone', 'wpproads');
+		/*$columns['b_campaign'] = __('Campaign', 'adn');
+		$columns['b_status'] = __('Status', 'adn');
+		$columns['b_stats'] = __('Stats', 'adn');*/
+		//$columns['b_filetype'] = __('Type', 'adn');
+		//$columns['b_adzone'] = __('adzone', 'adn');
 		
 		//return $columns;
 		return array_merge( $columns, $existing_columns );
@@ -504,14 +504,15 @@ class ADNI_CPT {
 
 		$columns          = array();
 		$columns['cb']    = '<input type="checkbox" />';
-		//$columns['b_banner'] = __('<img src="'.WP_ADS_URL.'images/banner_icon_20.png" />', 'wpproads');
-		$columns['_adn_a_name'] = __('Title', 'wpproads');
-		/*$columns['b_advertiser'] = __('Advertiser', 'wpproads');
-		$columns['b_campaign'] = __('Campaign', 'wpproads');
-		$columns['b_status'] = __('Status', 'wpproads');
-		$columns['b_stats'] = __('Stats', 'wpproads');*/
-		//$columns['b_filetype'] = __('Type', 'wpproads');
-		//$columns['b_adzone'] = __('adzone', 'wpproads');
+		//$columns['b_banner'] = __('<img src="'.WP_ADS_URL.'images/banner_icon_20.png" />', 'adn');
+		$columns['_adn_a_name'] = __('Title', 'adn');
+		$columns['_adn_a_status'] = __('Status', 'adn');
+		/*$columns['b_advertiser'] = __('Advertiser', 'adn');
+		$columns['b_campaign'] = __('Campaign', 'adn');
+		$columns['b_status'] = __('Status', 'adn');
+		$columns['b_stats'] = __('Stats', 'adn');*/
+		//$columns['b_filetype'] = __('Type', 'adn');
+		//$columns['b_adzone'] = __('adzone', 'adn');
 		
 		//return $columns;
 		return array_merge( $columns, $existing_columns );
@@ -595,6 +596,11 @@ class ADNI_CPT {
 				get_inline_data( $post );
 			
 			break;
+			case '_adn_a_status':
+				$post_args = ADNI_Multi::get_post_meta($post->ID, '_adning_args', array());
+				$status = self::status(array('key' => $post_args['status']));
+				echo $status['name'];
+			break;
 		}
 	}
 
@@ -608,14 +614,14 @@ class ADNI_CPT {
 
 		$columns          = array();
 		$columns['cb']    = '<input type="checkbox" />';
-		//$columns['b_banner'] = __('<img src="'.WP_ADS_URL.'images/banner_icon_20.png" />', 'wpproads');
+		//$columns['b_banner'] = __('<img src="'.WP_ADS_URL.'images/banner_icon_20.png" />', 'adn');
 		$columns['_adn_c_name'] = __('Title', 'adn');
-		/*$columns['b_advertiser'] = __('Advertiser', 'wpproads');
-		$columns['b_campaign'] = __('Campaign', 'wpproads');
-		$columns['b_status'] = __('Status', 'wpproads');
-		$columns['b_stats'] = __('Stats', 'wpproads');*/
-		//$columns['b_filetype'] = __('Type', 'wpproads');
-		//$columns['b_adzone'] = __('adzone', 'wpproads');
+		/*$columns['b_advertiser'] = __('Advertiser', 'adn');
+		$columns['b_campaign'] = __('Campaign', 'adn');
+		$columns['b_status'] = __('Status', 'adn');
+		$columns['b_stats'] = __('Stats', 'adn');*/
+		//$columns['b_filetype'] = __('Type', 'adn');
+		//$columns['b_adzone'] = __('adzone', 'adn');
 		
 		//return $columns;
 		return array_merge( $columns, $existing_columns );
@@ -757,7 +763,8 @@ class ADNI_CPT {
 			'size_h' => 250,
 			'campaigns' => array(),
 			'adzones' => array(),
-			'responsive' => $args['empty_checkbox_values'] ? 0 : 1,
+			'responsive' => 1,
+			//'responsive' => $args['empty_checkbox_values'] ? 0 : 1, // @since v1.1.7 deprecated (empty_checkbox_values)
 			'enable_stats' => 0,
 			'banner_size' => '300x250', // @since v1.0.7 deprecated - start using size
 			'banner_size_w' => 300, // @since v1.0.7 deprecated - start using size_w
@@ -765,12 +772,15 @@ class ADNI_CPT {
 			'banner_url' => '',
 			'banner_target' => '',
 			'banner_no_follow' => 0,
-			'banner_link_masking' => $args['empty_checkbox_values'] ? 0 : 1,
+			'banner_link_masking' => 1,
+			//'banner_link_masking' => $args['empty_checkbox_values'] ? 0 : 1, // @since v1.1.7 deprecated
 			'banner_content' => '',
-			'banner_responsive' => $args['empty_checkbox_values'] ? 0 : 1, // @since v1.0.7 deprecated - start using responsive
-			'banner_scale' => $args['empty_checkbox_values'] ? 0 : 1,
+			//'banner_responsive' => $args['empty_checkbox_values'] ? 0 : 1, // @since v1.0.7 deprecated - start using responsive
+			//'banner_scale' => $args['empty_checkbox_values'] ? 0 : 1,
+			'banner_scale' => 0,
 			'align' => 'center',
-			'wrap_text' => $args['empty_checkbox_values'] ? 0 : 1,
+			//'wrap_text' => $args['empty_checkbox_values'] ? 0 : 1, // @since v1.1.7 deprecated (empty_checkbox_values)
+			'wrap_text' => 0,
 			'positioning' => '',
 			'cont_border' => 0,
 			'cont_border_color' => '',
@@ -792,7 +802,7 @@ class ADNI_CPT {
 				'show_desktop' => 1,
             	'show_tablet' => 1,
 				'show_mobile' => 1,
-				'homepage' => 0,
+				'homepage' => 1,
 				'countries' => array(),
 				'categories' => array(),
 				'tags' => array(),
@@ -806,7 +816,7 @@ class ADNI_CPT {
 	public static function default_adzone_args($args = array())
 	{
 		$defaults = array(
-			'empty_checkbox_values' => 0  // fix for $_POST not sending empty checkbox values.
+			'empty_checkbox_values' => 0  // @since v1.1.7 deprecated  fix for $_POST not sending empty checkbox values.
 		);
 		$args = wp_parse_args($args, $defaults);
 		
@@ -818,7 +828,8 @@ class ADNI_CPT {
 			'size_w' => 300,
 			'size_h' => 250,
 			'campaigns' => array(),
-			'responsive' => $args['empty_checkbox_values'] ? 0 : 1,
+			//'responsive' => $args['empty_checkbox_values'] ? 0 : 1, // @since v1.1.7 deprecated (empty_checkbox_values)
+			'responsive' => 1,
 			'no_banner_filter' => 0,
 			'enable_stats' => 0,
 			'random_order' => 0,
@@ -830,11 +841,12 @@ class ADNI_CPT {
 			'adzone_size_w' => 300, // @since v1.0.7 deprecated - start using size_w
 			'adzone_size_h' => 250, // @since v1.0.7 deprecated - start using size_h
 			'adzone_content' => '',
-			'adzone_responsive' => $args['empty_checkbox_values'] ? 0 : 1, // @since v1.0.7 deprecated - start using responsive
+			//'adzone_responsive' => $args['empty_checkbox_values'] ? 0 : 1, // @since v1.0.7 deprecated - start using responsive
 			'adzone_transition' => '{$Duration:400,x:-1,$Easing:$Jease$.$InQuad}',
 			'linked_banners' => array(),
 			'align' => 'center',
-			'wrap_text' => $args['empty_checkbox_values'] ? 0 : 1,
+			//'wrap_text' => $args['empty_checkbox_values'] ? 0 : 1, // @since v1.1.7 deprecated (empty_checkbox_values)
+			'wrap_text' => 0,
 			'positioning' => '',
 			'cont_border' => 0,
 			'cont_border_color' => '',
@@ -846,7 +858,7 @@ class ADNI_CPT {
 				'show_desktop' => 1,
             	'show_tablet' => 1,
 				'show_mobile' => 1,
-				'homepage' => 0,
+				'homepage' => 1,
 				'countries' => array(),
 				'categories' => array(),
 				'tags' => array(),
@@ -938,15 +950,13 @@ class ADNI_CPT {
 		$post = apply_filters( 'ADNI_save_post', $post );
 
 		
-
-
 		if( $type !== 'campaign')
 		{
-			$display_filter['homepage'] = isset($post['display_filter']['homepage']) ? $post['display_filter']['homepage'] : 0;
+			$display_filter['homepage'] = isset($post['display_filter']['homepage']) ? $post['display_filter']['homepage'] : 1;
 			
-			$display_filter['show_desktop'] = isset($post['df_show_desktop']) ? $post['df_show_desktop'] : 0;
-			$display_filter['show_tablet'] = isset($post['df_show_tablet']) ? $post['df_show_tablet'] : 0;
-			$display_filter['show_mobile'] = isset($post['df_show_mobile']) ? $post['df_show_mobile'] : 0;
+			$display_filter['show_desktop'] = isset($post['df_show_desktop']) ? $post['df_show_desktop'] : 1;
+			$display_filter['show_tablet'] = isset($post['df_show_tablet']) ? $post['df_show_tablet'] : 1;
+			$display_filter['show_mobile'] = isset($post['df_show_mobile']) ? $post['df_show_mobile'] : 1;
 			// remove post values we dont need anymore.
 			unset($_POST['df_show_desktop']);
 			unset($_POST['df_show_tablet']);
@@ -957,7 +967,7 @@ class ADNI_CPT {
 			{
 				foreach( $post['display_filter']['post_types'] as $key => $post_arr)
 				{
-					$display_filter['post_types'][$key]['show_hide'] = isset($post_arr['show_hide']) ? $post_arr['show_hide'] : 0;
+					$display_filter['post_types'][$key]['show_hide'] = isset($post_arr['show_hide']) ? $post_arr['show_hide'] : 1;
 					$display_filter['post_types'][$key]['ids'] = isset($post_arr['ids']) ? $post_arr['ids'] : array();
 
 					// Taxonomies
@@ -967,7 +977,7 @@ class ADNI_CPT {
 						{
 							//echo $tax;
 							//echo '<pre>'.print_r($tax_arr).'</pre>';
-							$display_filter['post_types'][$key]['taxonomies'][$tax]['show_hide'] = isset($tax_arr['show_hide']) ? $tax_arr['show_hide'] : 0;
+							$display_filter['post_types'][$key]['taxonomies'][$tax]['show_hide'] = isset($tax_arr['show_hide']) ? $tax_arr['show_hide'] : 1;
 							$display_filter['post_types'][$key]['taxonomies'][$tax]['ids'] = isset($tax_arr['ids']) ? $tax_arr['ids'] : array();
 						}
 					}
@@ -977,20 +987,32 @@ class ADNI_CPT {
 			
 			
 			//echo '<pre>'.print_r($display_filter,true).'</pre>';
-			if( current_user_can(ADNI_BANNERS_ROLE) )
+			if( current_user_can(ADNI_BANNERS_ROLE) || current_user_can(ADNI_ADZONES_ROLE) )
 			{
 				// POSITIONING SETTINGS
-				$custom_positioning_arr = array();
+				//$custom_positioning_arr = array();
 				$auto_pos = ADNI_Main::auto_positioning();
 				if( !empty($post['positioning']))
 				{
-					$popup_w = isset($post['popup_width']) ? $post['popup_width'] : '';
+					// @since v1.1.6.2 Positioning
+					$positioning = array();
+					if(isset($post['pos']))
+					{
+						$positioning[$post['positioning']] = array_key_exists($post['positioning'], $post['pos']) ? $post['pos'][$post['positioning']] : array();
+					}
+					unset($post['pos']);
+					//echo '<pre>'.print_r($positioning,true).'</pre>';
+					$auto_pos[$b_id] = $positioning;
+					ADNI_Multi::update_option('_adning_auto_positioning', $auto_pos);
+
+					/*$popup_w = isset($post['popup_width']) ? $post['popup_width'] : '';
 					$popup_h = isset($post['popup_height']) ? $post['popup_height'] : '';
 					$popup_w = empty($popup_w) && $post['positioning'] === 'popup' ? $post['size_w'] : $popup_w;
 					$popup_h = empty($popup_h) && $post['positioning'] === 'popup' ? $post['size_h'] : $popup_h;
 					
 					$custom_pos_arr = array(
 						'position_after_x_p' => isset($post['position_after_x_p']) ? $post['position_after_x_p'] : '',
+						'position_after_x_post' => isset($post['position_after_x_post']) ? $post['position_after_x_post'] : '',
 						'popup_width' => $popup_w,
 						'popup_height' => $popup_h,
 						'popup_bg_color' => isset($post['popup_bg_color']) ? $post['popup_bg_color'] : '',
@@ -1018,17 +1040,19 @@ class ADNI_CPT {
 					);
 					ADNI_Multi::update_option('_adning_auto_positioning', $auto_pos);
 					//update_option('_adning_auto_positioning', $auto_pos);
+					*/
 				}
 				else
 				{
 					if( array_key_exists($b_id, $auto_pos)) {
 						unset($auto_pos[$b_id]);
 						ADNI_Multi::update_option('_adning_auto_positioning', $auto_pos);
-						//update_option('_adning_auto_positioning', $auto_pos);
 					}
 				}
+
+
 				// remove post values we dont need anymore.
-				unset($post['position_after_x_p']); 
+				/*unset($post['position_after_x_p']); 
 				unset($post['popup_width']);
 				unset($post['popup_height']);
 				unset($post['popup_bg_color']);
@@ -1038,7 +1062,7 @@ class ADNI_CPT {
 				unset($post['popup_cookie_type']);
 				unset($post['popup_custom_json']);
 				unset($post['inject_where']);
-				unset($post['inject_element']);
+				unset($post['inject_element']);*/
 			}
 			
 
@@ -1064,7 +1088,7 @@ class ADNI_CPT {
 					$admin_args['display_filter']['post_types'] = array();
 					$admin_args['campaigns'] = array();
 					$post = ADNI_Main::parse_args($post, $admin_args);
-					
+
 					if( !empty($admin_args['adzones']))
 					{
 						foreach($admin_args['adzones'] as $adzone_id)
@@ -1476,7 +1500,8 @@ class ADNI_CPT {
 			'review' => array('value' => 'draft', 'name' => __('Pending Review','adn')),
 			'draft' => array('value' => 'draft', 'name' => __('Draft','adn')),
 			'active' => array('value' => 'active', 'name' => __('Active','adn')),
-			'expired' => array('value' => 'expired', 'name' => __('Expired','adn'))
+			'expired' => array('value' => 'expired', 'name' => __('Expired','adn')),
+			'on-hold' => array('value' => 'on-hold', 'name' => __('On Hold','adn'))
 		);
 		
 		return !empty($args['key']) ? $array[$args['key']] : $array;

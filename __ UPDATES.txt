@@ -1,3 +1,25 @@
+ADNING DEV V1.1.7
+——————————————————————————————————
+* Added Bank Transfer option for selling ad spots.
+* Added Admin order list to follow up purchases.
+* Improved Auto Positioning functionality.
+* Fixed issue with display filter Tags only showing first 20.
+
+
+ADNING DEV V1.1.6.1
+——————————————————————————————————
+* Added status for adzones.
+* Changed default "link masking" settings to true.
+* Fixed manually approve issue for purchased ads.
+
+
+ADNING V1.1.6
+——————————————————————————————————
+* Drastically improved load times for banner and adzone settings pages.
+* Improved Display Filter functionality.
+* smarTrack v1.0.9
+
+
 ADNING V1.1.5
 ——————————————————————————————————
 * Improved load times for banner and adzone settings pages.

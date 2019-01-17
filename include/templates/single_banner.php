@@ -6,10 +6,22 @@ if( !is_user_logged_in() )
     return;
 }
 
+
 $id = isset($_GET['id']) ? $_GET['id'] : 0;
 $id = !$id && isset($_POST['post_id']) ? $_POST['post_id'] : $id;
 $is_frontend = isset($is_frontend) ? $is_frontend : 0;
 $user_id = get_current_user_id();
+
+if( !current_user_can(ADNI_BANNERS_ROLE) && empty($id) )
+{
+    // If user is purchasing a banner it's ok
+    // If not EXIT!
+    if( !isset($_GET['oid']) && !isset($_GET['slid']) )
+    {
+        $h.= '<div style="margin-top:50px;text-align:center;">'.__('Sorry you cannot access this area.','adn').'</div>';
+        return;
+    }
+}
 
 
 if( isset($_GET['reset_stats']) && !empty($_GET['reset_stats']))
@@ -36,7 +48,10 @@ if( !$id )
     );
 
     // Add new ID to url
-    $h.= '<script>var url = document.location.href+"&id='.$id.'";document.location = url;</script>';
+    $current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+    $urlf = strpos($current_url, '?') !== false ? '&' : '?';
+    $h.= '<script>var url = "'.$current_url.$urlf.'id='.$id.'";document.location = url;</script>';
+    //$h.= '<script>var url = document.location.href+"&id='.$id.'";document.location = url;</script>';
 }
 
 
@@ -178,7 +193,7 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                                     $h.= '<option value="active" '.selected( $b['status'], 'active', false).'>'.__('Active','adn').'</option>';
                                                     $h.= '<option value="expired" '.selected( $b['status'], 'expired', false).'>'.__('Expired','adn').'</option>';
                                                     $h.= '<option value="draft" '.selected( $b['status'], 'draft', false).'>'.__('Draft','adn').'</option>';
-                                                    $h.= '<option value="review" '.selected( $b['status'], 'review', false).'>'.__('Pending Review','adn').'></option>';
+                                                    $h.= '<option value="review" '.selected( $b['status'], 'review', false).'>'.__('Pending Review','adn').'</option>';
                                                     $h.= '<option value="on-hold" '.selected( $b['status'], 'on-hold', false).'>'.__('On Hold','adn').'</option>';
                                                 $h.= '</select>';
                                             }
@@ -310,34 +325,7 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                         /**
                          * EXPORT BANNER
                         */
-                        if($id)
-                        {
-                            $h.= '<div class="option_box">';
-                                $h.= '<div class="info_header">';
-                                    $h.= '<span class="icon"><i class="fa fa-code" aria-hidden="true"></i></span>';
-                                    $h.= '<span class="text">'.__('Export','adn').'</span>';
-                                $h.= '</div>';
-                                $h.= '<div class="input_container">';
-                                    $h.= '<h3 class="title"></h3>';
-                                    $h.= '<div class="input_container_inner">';
-                                        $h.= '<input id="sc_code" style="font-size:11px;" type="text" value=\'[adning id="'.$id.'"]\' />';
-                                    $h.= '</div>';
-                                    $h.= '<span class="description bottom">'.__('Shortcode.','adn').'</span>';
-                                $h.= '</div>';
-                                //<!-- end .input_container -->
-
-                                $h.= '<div class="input_container">';
-                                    $h.= '<h3 class="title"></h3>';
-                                        $h.= '<div class="input_container_inner">';
-                                            $code = '<script type="text/javascript">var _ning_embed = {"id":"'.$id.'","width":'.$b['size_w'].',"height":'.$b['size_h'].'};</script><script type="text/javascript" src="'.get_bloginfo('url').'?_dnembed=true"></script>';
-                                            $h.= '<textarea id="embed_code" style="min-height:120px;font-size:11px;">'.$code.'</textarea>';
-                                        $h.= '</div>';
-                                    $h.= '<span class="description bottom">'.__('Embed code.','adn').'</span>';
-                                $h.= '</div>';
-                                //<!-- end .input_container -->
-                            $h.= '</div>';
-                            //<!-- end .option_box -->
-                        }
+                        $h.= ADNI_Templates::export_tpl($banner_post);
                         
                     $h.= '</div>
                 </div>
@@ -390,6 +378,7 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                         'tooltip' => __('Responsive banner.','adn'),
                                         'checked' => $b['responsive'],
                                         'value' => 1,
+                                        'hidden_input' => 1,
                                         'chk-on' => __('On','adn'),
                                         'chk-off' => __('Off','adn'),
                                         'chk-high' => 1
@@ -691,7 +680,7 @@ $h.= '</div>';
 $h.= '<script>';
 $h.= 'jQuery(document).ready(function($) {';
 
-    $h.= 'window.Adning_global.activate_tooltips($(\'.adning_dashboard\'));';
+    //$h.= 'window.Adning_global.activate_tooltips($(\'.adning_dashboard\'));';
 	
 	// Initiate banner
 	$h.= '$("._ning_cont").ningResponsive();';
@@ -790,34 +779,6 @@ $h.= 'jQuery(document).ready(function($) {';
     $h.= "});";
 	
 	
-	/**
-	 * TOOLTIPS
-	*/
-	$h.= "$('.ttip').tooltipster({";
-		$h.= "theme: 'tooltipster-light',";
-		$h.= "multiple:true,";
-		$h.= "maxWidth: 200,";
-		$h.= "speed:50,";
-		$h.= "delay:0,";
-		$h.= "contentAsHTML: true,";
-		$h.= "interactive: true";
-    $h.= "});";
-    
-
-    /*$h.= "var config = {";
-        $h.= "'.chosen-select'           : {},";
-        $h.= "'.chosen-select-deselect'  : { allow_single_deselect: true },";
-        $h.= "'.chosen-select-no-single' : { disable_search_threshold: 10 },";
-        $h.= "'.chosen-select-no-results': { no_results_text: 'Oops, nothing found!' },";
-        $h.= "'.chosen-select-rtl'       : { rtl: true },";
-	    //'.chosen-select-width'     : { width: '100%' }
-    $h.= "};";
-	$h.= "for (var selector in config) {";
-        $h.= "$(selector).chosen(config[selector]).chosenSortable();";
-    $h.= "}";*/
-    
-
-
 
     // .ZIP HTML5 uploads
     $h.= "$('#HTML5Uploader')._ning_file_uploader({";

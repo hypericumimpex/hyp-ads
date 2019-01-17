@@ -4,6 +4,8 @@ if ( ! defined( "ABSPATH" ) ) exit;
 if ( ! class_exists( 'ADNI_Filters' ) ) :
 
 class ADNI_Filters {
+
+    static $post_count = 0;
 	
 	public function __construct() 
 	{
@@ -11,6 +13,7 @@ class ADNI_Filters {
         add_action( 'wp_head', array( __CLASS__, 'inject_header' ), 20 );
         add_action( 'adning_head', array( __CLASS__, 'debug_marker' ), 2 );
         add_action( 'wp_footer', array( __CLASS__, 'inject_footer' ), 20 );
+        add_action( 'loop_start', array( __CLASS__, 'loop_start') );
         
         // Filters --------------------------------------------------------
         add_filter( 'the_content', array(__CLASS__, 'content_filter'));
@@ -193,6 +196,7 @@ class ADNI_Filters {
                         if( !$show )
                             return;
                     }
+                    
 
                     // Taxonomies
                     $taxonomy_names = get_post_taxonomies($post->ID);
@@ -205,13 +209,29 @@ class ADNI_Filters {
                             $tax_arr = array_key_exists($taxonomy, $tax_arr) ? $tax_arr[$taxonomy] : array();
                             $show = array_key_exists('show_hide', $tax_arr) ? $tax_arr['show_hide'] : 0;
                             $ids = array_key_exists('ids', $tax_arr) ? $tax_arr['ids'] : array();
-                    
-                            $term_list = wp_get_post_terms($post->ID, $taxonomy, array("fields" => "ids"));
-                            $match = array_intersect($term_list, $ids);
-                            if( empty($match) && $show || !empty($match) && !$show ){
-                                return;
+                            
+                            if(!empty($ids))
+                            {
+                                $term_list = wp_get_post_terms($post->ID, $taxonomy, array("fields" => "ids"));
+                                $match = array_intersect($term_list, $ids);
+                                
+                                if( empty($match) && $show || !empty($match) && !$show ){
+                                    return;
+                                }
                             }
-                            //echo print_r($term_list,true);
+                            else
+                            {
+                                // Always return the AD. Even when "hide" is selected but no taxonomies are selected.
+                                return $ad;
+                                /*if( !$show ) // && in_array($ad['post']->ID, ADNI_Main::auto_positioning())
+                                {
+                                    return;
+                                }
+                                else
+                                {
+                                    return $ad;
+                                }*/
+                            }
                         }
                     }
                     
@@ -284,33 +304,34 @@ class ADNI_Filters {
         {
             foreach($auto_pos as $key => $arr)
             {
-                if($arr['pos'] === 'popup')
+                $pos = key($arr);
+                if($pos === 'popup')
                 {
                     $b = ADNI_Multi::get_post_meta($key, '_adning_args', array());
                     
                     if( self::show_hide(array('args' => $b)) )
                     {
                         $css = '';
-                        $css.= !empty($arr['custom']['popup_shadow_color']) ? '"box-shadow":"'.$arr['custom']['popup_shadow_color'].' 0px 5px 20px 0px"' : '"box-shadow":"none"';
+                        $css.= !empty($arr[$pos]['shadow_color']) ? '"box-shadow":"'.$arr[$pos]['shadow_color'].' 0px 5px 20px 0px"' : '"box-shadow":"none"';
                         
                         $h.= '<div id="mdl-elmt-'.$key.'"><div class="mdl_content">'.ADNI_Multi::do_shortcode('[adning id="'.$key.'"]').'</div></div>';
                         $h.= '<script>';
                             $h.= 'if( jQuery("#mdl-elmt-'.$key.'").find(".mdl_content").html() !== "" ){';
                                 $h.= 'jQuery("#mdl-elmt-'.$key.'").modalJS({';
-                                    $h.= 'width:"'.$arr['custom']['popup_width'].'",';
-                                    $h.= 'height:"'.$arr['custom']['popup_height'].'",';
-                                    $h.= !empty( $arr['custom']['popup_bg_color'] ) ? 'bg_color:"'.$arr['custom']['popup_bg_color'].'",' : '';
-                                    $h.= !empty( $arr['custom']['popup_overlay_color'] ) ? 'overlay_color:"'.$arr['custom']['popup_overlay_color'].'",' : '';
+                                    $h.= 'width:"'.$arr[$pos]['width'].'",';
+                                    $h.= 'height:"'.$arr[$pos]['height'].'",';
+                                    $h.= !empty( $arr[$pos]['bg_color'] ) ? 'bg_color:"'.$arr[$pos]['bg_color'].'",' : '';
+                                    $h.= !empty( $arr[$pos]['overlay_color'] ) ? 'overlay_color:"'.$arr[$pos]['overlay_color'].'",' : '';
                                     $h.= !empty($css) ? 'css:{'.$css.'},' : '';
-                                    $h.= !empty($arr['custom']['popup_cookie_value']) ? 'cookie: {"expires":"'.$arr['custom']['popup_cookie_value'].'","type":"'.$arr['custom']['popup_cookie_type'].'"}' : '';
-                                    $h.= !empty( $arr['custom']['popup_custom_json'] ) ? stripslashes($arr['custom']['popup_custom_json']) : '';
+                                    $h.= !empty($arr[$pos]['cookie_value']) ? 'cookie: {"expires":"'.$arr[$pos]['cookie_value'].'","type":"'.$arr[$pos]['cookie_type'].'"}' : '';
+                                    $h.= !empty( $arr[$pos]['custom_json'] ) ? stripslashes($arr[$pos]['custom_json']) : '';
                                 $h.= '});';
                             $h.= '}';
                         $h.= '</script>';
                     }
                 }
 
-                if($arr['pos'] === 'cornerpeel')
+                if($pos === 'cornerpeel')
                 {
                     $b = ADNI_Multi::get_post_meta($key, '_adning_args', array());
                     
@@ -321,7 +342,7 @@ class ADNI_Filters {
                     }
                 }
 
-                if($arr['pos'] === 'bg_takeover')
+                if($pos === 'bg_takeover')
                 {
                     $b = ADNI_Multi::get_post_meta($key, '_adning_args', array());
                     
@@ -347,18 +368,18 @@ class ADNI_Filters {
                     }
                 }
 
-                if($arr['pos'] === 'js_inject')
+                if($pos === 'js_inject')
                 {
                     $b = ADNI_Multi::get_post_meta($key, '_adning_args', array());
                     
                     if( self::show_hide(array('args' => $b)) )
                     {
-                        if( !empty($arr['custom']['inject_element']))
+                        if( !empty($arr[$pos]['element']))
                         {
                             $h.= '<div id="inject-elmt-'.$key.'">'.ADNI_Multi::do_shortcode('[adning id="'.$key.'"]').'</div>';
                             $h.= '<script>';
-                                $h.= 'var ins_where = "'.$arr['custom']['inject_where'].'";';
-                                $h.= 'var ins_element = "'.$arr['custom']['inject_element'].'";';
+                                $h.= 'var ins_where = "'.$arr[$pos]['where'].'";';
+                                $h.= 'var ins_element = "'.$arr[$pos]['element'].'";';
 
                                 // Make sure element exists.
                                 $h.= "jQuery(document).ready(function($){";
@@ -418,20 +439,25 @@ class ADNI_Filters {
 
         foreach($auto_pos as $key => $arr)
         {
-            if($arr['pos'] === 'above_content')
+            $pos = key($arr);
+            if($pos === 'above_content')
             {
                 //$above_content.= '[adning id="'.$key.'" no_iframe="1"]';
                 $above_content.= ADNI_Shortcodes::sc_adning(array('id' => $key));
             }
-            if( $arr['pos'] === 'inside_content')
+            if($pos === 'inside_content')
             {
                 if ( is_single() && !is_admin() ) 
                 {
-                    $after_x_p = array_key_exists('position_after_x_p', $arr['custom']) ? $arr['custom']['position_after_x_p'] : 2;
-                    $content = self::insert_after_paragraph( '[adning id="'.$key.'" no_iframe="1"]', $after_x_p, $content );
+                    //$after_x_p = array_key_exists('after_x_p', $arr[$pos]) ? $arr[$pos]['after_x_p'] : 2;
+                    //$after_x_p = !empty($arr[$pos]['after_x_p']) ? $arr[$pos]['after_x_p'] : 2;
+                    if( !empty($arr[$pos]['after_x_p']) )
+                    {
+                        $content = self::insert_after_paragraph( '[adning id="'.$key.'" no_iframe="1"]', $arr[$pos]['after_x_p'], $content );
+                    }
                 }
             } 
-            if($arr['pos'] === 'below_content')
+            if($pos === 'below_content')
             {
                 $below_content.= '[adning id="'.$key.'" no_iframe="1"]';
             }
@@ -462,6 +488,50 @@ class ADNI_Filters {
         }
     
         return $content;
+    }
+
+
+
+
+
+    /**
+     * WP LOOP
+     */
+    public static function loop_start($query)
+    {
+        if( is_single() )
+            return;
+
+        add_action( 'the_post', array(__CLASS__, 'post_in_loop') );
+        add_action( 'loop_end', array(__CLASS__, 'loop_end') );
+    }
+    public static function post_in_loop($post_object)
+    {
+        $auto_pos = ADNI_Main::auto_positioning();
+        if( empty($auto_pos) || is_single() )
+            return;
+
+        foreach($auto_pos as $key => $arr)
+        {
+            $pos = key($arr);
+            if($pos === 'inside_content')
+            {
+                if( !empty($arr[$pos]['after_x_post']) )
+                {
+                    if( self::$post_count == $arr[$pos]['after_x_post'] )
+                    {
+                        echo ADNI_Multi::do_shortcode('[adning id="'.$key.'"]');
+                        self::$post_count = 0;
+                    }
+                }
+            }
+        }
+
+        self::$post_count++;
+    }
+    public static function loop_end()
+    {
+        remove_action( 'the_post', 'post_in_loop' );   
     }
 
 
