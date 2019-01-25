@@ -620,7 +620,7 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                                     	$h.= '<div class="input_container_inner">';
                                                             $h.= '<textarea id="banner_content" class="code_editor" name="banner_content" data-lang="htmlmixed" style="min-height:200px;font-size: 13px;">'.$b['banner_content'].'</textarea>';
                                                         $h.= '</div>';
-                                                        $h.= '<span class="description bottom">'.__('Banner HTML content.','adn').'></span>';
+                                                        $h.= '<span class="description bottom">'.__('Banner HTML content.','adn').'</span>';
                                                     $h.= '</div>';
                                                     // <!-- end .input_container -->
                                                 $h.= '</div>';

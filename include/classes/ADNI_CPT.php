@@ -64,7 +64,7 @@ class ADNI_CPT {
 			ADNI_Main::delete_dir(ADNI_UPLOAD_DIR.'banners/'.$post_id);
 
 			// Remove stats
-			if( !class_exists('sTrack_DB') )
+			if( class_exists('sTrack_DB') )
 			{
 				$group = $post_type === strtolower(self::$adzone_cpt) ? 'id_2' : 'id_1';
 				sTrack_DB::delete_stats(array('id' => $post_id, 'group' => $group));
@@ -393,8 +393,11 @@ class ADNI_CPT {
 		$columns['cb']    = '<input type="checkbox" />';
 		//$columns['b_banner'] = __('<img src="'.WP_ADS_URL.'images/banner_icon_20.png" />', 'adn');
 		$columns['_adn_b_name'] = __('Title', 'adn');
+		$columns['_adn_b_size'] = __('Size', 'adn');
 		$columns['_adn_b_advertiser'] = __('Advertiser', 'adn');
 		$columns['_adn_b_status'] = __('Status', 'adn');
+		$columns['_adn_b_stats'] = __('Statistics', 'adn');
+
 		/*$columns['b_campaign'] = __('Campaign', 'adn');
 		$columns['b_status'] = __('Status', 'adn');
 		$columns['b_stats'] = __('Stats', 'adn');*/
@@ -408,6 +411,8 @@ class ADNI_CPT {
 	public static function ADNI_banners_show_columns($name) 
 	{
 		global $post;
+
+		$post_args = ADNI_Multi::get_post_meta($post->ID, '_adning_args', array());
 		
 		switch ($name) 
 		{
@@ -483,13 +488,20 @@ class ADNI_CPT {
 				get_inline_data( $post );
 			
 			break;
+			case '_adn_b_size':
+				$size = $post_args['size'] === 'custom' ? $post_args['size_w'].'x'.$post_args['size_h'] : $post_args['size'];
+				echo $size;
+			break;
 			case '_adn_b_advertiser':
 				echo get_the_author_meta('display_name', $post->post_author);
 			break;
 			case '_adn_b_status':
-				$post_args = ADNI_Multi::get_post_meta($post->ID, '_adning_args', array());
+				//$post_args = ADNI_Multi::get_post_meta($post->ID, '_adning_args', array());
 				$status = self::status(array('key' => $post_args['status']));
 				echo $status['name'];
+			break;
+			case '_adn_b_stats':
+				echo ADNI_Main::has_stats() ? '<a href="admin.php?page=strack-statistics&group=id_1&group_id='.$post->ID.'"><svg viewBox="0 0 512 512" style="height:20px;"><path fill="currentColor" d="M496 384H64V80c0-8.84-7.16-16-16-16H16C7.16 64 0 71.16 0 80v336c0 17.67 14.33 32 32 32h464c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16zM464 96H345.94c-21.38 0-32.09 25.85-16.97 40.97l32.4 32.4L288 242.75l-73.37-73.37c-12.5-12.5-32.76-12.5-45.25 0l-68.69 68.69c-6.25 6.25-6.25 16.38 0 22.63l22.62 22.62c6.25 6.25 16.38 6.25 22.63 0L192 237.25l73.37 73.37c12.5 12.5 32.76 12.5 45.25 0l96-96 32.4 32.4c15.12 15.12 40.97 4.41 40.97-16.97V112c.01-8.84-7.15-16-15.99-16z"></path></svg></a>' : __('N/A','adn');
 			break;
 		}
 	}
@@ -506,13 +518,9 @@ class ADNI_CPT {
 		$columns['cb']    = '<input type="checkbox" />';
 		//$columns['b_banner'] = __('<img src="'.WP_ADS_URL.'images/banner_icon_20.png" />', 'adn');
 		$columns['_adn_a_name'] = __('Title', 'adn');
+		$columns['_adn_a_size'] = __('Size', 'adn');
 		$columns['_adn_a_status'] = __('Status', 'adn');
-		/*$columns['b_advertiser'] = __('Advertiser', 'adn');
-		$columns['b_campaign'] = __('Campaign', 'adn');
-		$columns['b_status'] = __('Status', 'adn');
-		$columns['b_stats'] = __('Stats', 'adn');*/
-		//$columns['b_filetype'] = __('Type', 'adn');
-		//$columns['b_adzone'] = __('adzone', 'adn');
+		$columns['_adn_a_stats'] = __('Statistics', 'adn');
 		
 		//return $columns;
 		return array_merge( $columns, $existing_columns );
@@ -521,6 +529,7 @@ class ADNI_CPT {
 	public static function ADNI_adzones_show_columns($name) 
 	{
 		global $post;
+		$post_args = ADNI_Multi::get_post_meta($post->ID, '_adning_args', array());
 		
 		switch ($name) 
 		{
@@ -596,10 +605,16 @@ class ADNI_CPT {
 				get_inline_data( $post );
 			
 			break;
+			case '_adn_a_size':
+				$size = $post_args['size'] === 'custom' ? $post_args['size_w'].'x'.$post_args['size_h'] : $post_args['size'];
+				echo $size;
+			break;
 			case '_adn_a_status':
-				$post_args = ADNI_Multi::get_post_meta($post->ID, '_adning_args', array());
 				$status = self::status(array('key' => $post_args['status']));
 				echo $status['name'];
+			break;
+			case '_adn_a_stats':
+				echo ADNI_Main::has_stats() ? '<a href="admin.php?page=strack-statistics&group=id_2&group_id='.$post->ID.'"><svg viewBox="0 0 512 512" style="height:20px;"><path fill="currentColor" d="M496 384H64V80c0-8.84-7.16-16-16-16H16C7.16 64 0 71.16 0 80v336c0 17.67 14.33 32 32 32h464c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16zM464 96H345.94c-21.38 0-32.09 25.85-16.97 40.97l32.4 32.4L288 242.75l-73.37-73.37c-12.5-12.5-32.76-12.5-45.25 0l-68.69 68.69c-6.25 6.25-6.25 16.38 0 22.63l22.62 22.62c6.25 6.25 16.38 6.25 22.63 0L192 237.25l73.37 73.37c12.5 12.5 32.76 12.5 45.25 0l96-96 32.4 32.4c15.12 15.12 40.97 4.41 40.97-16.97V112c.01-8.84-7.15-16-15.99-16z"></path></svg></a>' : __('N/A','adn');
 			break;
 		}
 	}
@@ -834,6 +849,7 @@ class ADNI_CPT {
 			'enable_stats' => 0,
 			'random_order' => 0,
 			'load_single' => 0,
+			'touch_scroll' => 0,
 			'load_grid' => 0,
 			'grid_columns' => 2,
 			'grid_rows' => 2,
@@ -990,11 +1006,9 @@ class ADNI_CPT {
 			if( current_user_can(ADNI_BANNERS_ROLE) || current_user_can(ADNI_ADZONES_ROLE) )
 			{
 				// POSITIONING SETTINGS
-				//$custom_positioning_arr = array();
 				$auto_pos = ADNI_Main::auto_positioning();
 				if( !empty($post['positioning']))
 				{
-					// @since v1.1.6.2 Positioning
 					$positioning = array();
 					if(isset($post['pos']))
 					{
@@ -1004,43 +1018,6 @@ class ADNI_CPT {
 					//echo '<pre>'.print_r($positioning,true).'</pre>';
 					$auto_pos[$b_id] = $positioning;
 					ADNI_Multi::update_option('_adning_auto_positioning', $auto_pos);
-
-					/*$popup_w = isset($post['popup_width']) ? $post['popup_width'] : '';
-					$popup_h = isset($post['popup_height']) ? $post['popup_height'] : '';
-					$popup_w = empty($popup_w) && $post['positioning'] === 'popup' ? $post['size_w'] : $popup_w;
-					$popup_h = empty($popup_h) && $post['positioning'] === 'popup' ? $post['size_h'] : $popup_h;
-					
-					$custom_pos_arr = array(
-						'position_after_x_p' => isset($post['position_after_x_p']) ? $post['position_after_x_p'] : '',
-						'position_after_x_post' => isset($post['position_after_x_post']) ? $post['position_after_x_post'] : '',
-						'popup_width' => $popup_w,
-						'popup_height' => $popup_h,
-						'popup_bg_color' => isset($post['popup_bg_color']) ? $post['popup_bg_color'] : '',
-						'popup_overlay_color' => isset($post['popup_overlay_color']) ? $post['popup_overlay_color'] : '',
-						'popup_shadow_color' => isset($post['popup_shadow_color']) ? $post['popup_shadow_color'] : '',
-						'popup_cookie_value' => isset($post['popup_cookie_value']) ? $post['popup_cookie_value'] : '',
-						'popup_cookie_type' => isset($post['popup_cookie_type']) ? $post['popup_cookie_type'] : '',
-						'popup_custom_json' => isset($post['popup_custom_json']) ? $post['popup_custom_json'] : '',
-						'inject_where' => isset($post['inject_where']) ? $post['inject_where'] : '',
-						'inject_element' => isset($post['inject_element']) ? $post['inject_element'] : '',
-					);
-					
-					foreach($custom_pos_arr as $key => $pos_val)
-					{
-						if( !empty( $pos_val ))
-						{
-							$custom_positioning_arr[$key] = $pos_val;
-						}
-					}
-					
-					// Add to auto positioning array
-					$auto_pos[$b_id] = array(
-						'pos' => $post['positioning'],
-						'custom' => $custom_positioning_arr
-					);
-					ADNI_Multi::update_option('_adning_auto_positioning', $auto_pos);
-					//update_option('_adning_auto_positioning', $auto_pos);
-					*/
 				}
 				else
 				{
@@ -1049,20 +1026,6 @@ class ADNI_CPT {
 						ADNI_Multi::update_option('_adning_auto_positioning', $auto_pos);
 					}
 				}
-
-
-				// remove post values we dont need anymore.
-				/*unset($post['position_after_x_p']); 
-				unset($post['popup_width']);
-				unset($post['popup_height']);
-				unset($post['popup_bg_color']);
-				unset($post['popup_overlay_color']);
-				unset($post['popup_shadow_color']);
-				unset($post['popup_cookie_value']);
-				unset($post['popup_cookie_type']);
-				unset($post['popup_custom_json']);
-				unset($post['inject_where']);
-				unset($post['inject_element']);*/
 			}
 			
 

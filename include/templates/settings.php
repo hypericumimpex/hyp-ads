@@ -1,4 +1,6 @@
 <?php
+$error = array();
+
 //delete_option( '_adning_settings' );
 if( isset($_GET['run_update']) && !empty($_GET['run_update']))
 {
@@ -25,6 +27,16 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
         foreach($_POST as $key => $post){
             $settings[$key] = $_POST[$key];
         }
+
+        // create debug file if necessary
+        if($settings['debug'] && !file_exists(ADNI_Init::$log_file)) 
+        {
+            ADNI_Init::error_log(__('Adning - created debug.log file','adn'));
+            if( !is_writable(ADNI_Init::$log_file) )
+            {
+                $error[] = array('type' => 'warning', 'msg' => __('We are unable to create the Adning <strong><em>debug.log</em></strong> file on your server. This is most likely a file permission issue. You can manually create the file under <em><strong>plugins/adning/</strong>debug.log</em> and make sure it\'s writable.','adn'));
+            }
+        }
     
         // UPDATE SETTINGS
         ADNI_Multi::update_option('_adning_settings', $settings);
@@ -43,7 +55,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
         <?php echo ADNI_Templates::main_admin_header(array(
             'page' => 'settings',
             'title' => 'Adning General Settings',
-            'desc' => '⚡ ' . __('Adning is designed in a very modular fashion so that lots of functions are customizable. Should you wish to, you can find most general settings below.','adn')
+            'desc' => '⚡ ' . __('Adning is designed in a very modular fashion so that lots of functions are customizable. Should you wish to, you can find most general settings below.','adn'),
+            'errors' => $error
         )); ?>
 
         <div class="container">
@@ -259,7 +272,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                                                     
                                             
                                             $html.= '<div class="adn_settings_cont">';
-                                                $html.= '<h4>'.__('Post Types for ADS','adn').'</h4>';
+                                                $html.= '<h4 id="posttypes_for_ads">'.__('Post Types for ADS','adn').'</h4>';
                                                 $html.= '<div class="adn_settings_cont_inner clear">';
                                                     $html.= '<p>'.__('Select the post types where "Auto Positioning" for Ads should be available.','adn').'</p>';
                                                 
@@ -493,16 +506,45 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                                                 ?>
                                             </div>
                                         </div>
-                                        <div>
-                                            <?php echo ADNI_Templates::checkbox(array(
-                                                    'title' => __('Debug','adn'),
-                                                    'tooltip' => __('Run plugin in debug mode.','adn'),
-                                                    'checked' => array_key_exists('debug',$settings) ? $settings['debug'] : 0,
-                                                    'value' => 1,
-                                                    'hidden_input' => 1,
-                                                    'name' => 'debug',
-                                                    'class' => 'option_checkbox _debug'
-                                                ));
+
+                                        <div class="system_status">
+                                            <?php 
+                                            echo ADNI_Templates::checkbox(array(
+                                                'title' => __('Debug','adn'),
+                                                'tooltip' => __('Run plugin in debug mode.','adn'),
+                                                'checked' => array_key_exists('debug',$settings) ? $settings['debug'] : 0,
+                                                'value' => 1,
+                                                'hidden_input' => 1,
+                                                'name' => 'debug',
+                                                'class' => 'option_checkbox _debug'
+                                            ));
+
+                                            if( $settings['debug'] )
+                                            {
+                                                $h = '';
+                                                $h.= '<div class="option_box">';
+                                                
+                                                    $h.= __('Error log:', 'adn');
+                                                    if(is_writable(ADNI_Init::$log_file))
+                                                    {
+                                                        $h.= '<code class="status-good">'.__('Yes', 'adn').'</code>';
+                                                    }
+                                                    else
+                                                    {
+                                                        $h.= sprintf(__('<code class="status-okay">%s</code> The Adning debug.log file could not be created or is not writable.','adn'), __('No','adn'));
+                                                    }
+                                                $h.= '</div>';
+                                                
+                                                // Read error log
+                                                if(file_exists(ADNI_Init::$log_file))
+                                                {
+                                                    $content = file_get_contents(ADNI_Init::$log_file);
+                                                    $h.= '<div class="option_box error_log_container">';
+                                                        $h.= '<textarea class="error_log" readonly>'.$content.'</textarea>';
+                                                    $h.= '</div>';
+                                                }
+                                                echo $h;
+                                            }
                                             ?>
                                         </div>
                                     </div>

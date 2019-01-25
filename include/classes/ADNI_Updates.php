@@ -33,8 +33,10 @@ class ADNI_Updates {
             $settings = $set['settings'];
         }
 
+        $last_update = ADNI_Multi::get_option( '_adning_latest_update', 1 );
 
-        if( ADNI_VERSION === '1.1.6.2')
+
+        if( ADNI_VERSION >= '1.1.7' && $last_update < '1.1.7' )
         {
             $auto_pos = ADNI_Main::auto_positioning();
             if(!empty($auto_pos))
@@ -68,14 +70,14 @@ class ADNI_Updates {
 
 
         // Updates for v1.0.8
-        if( ADNI_VERSION === '1.0.8')
+        if( ADNI_VERSION >= '1.0.8' && $last_update < '1.0.8')
         {
             ADNI_CPT::add_custom_caps(array('role' => $set['roles']['create_campaign_role'], 'cpt' => ADNI_CPT::$campaign_cpt));
         }
 
 
         // Updates for v1.0.7
-        if( ADNI_VERSION === '1.0.7')
+        if( ADNI_VERSION >= '1.0.7' && $last_update < '1.0.7')
         {
             $args = array(
                 'post_type' => array(ADNI_CPT::$banner_cpt, ADNI_CPT::$adzone_cpt)
@@ -107,7 +109,7 @@ class ADNI_Updates {
 
 
         // Check license
-        $activation = true;
+        $activation = ADNI_Multi::get_option('adning_activation', array());
         if( !empty($activation))
         {
             $resp = ADNI_Activate::check(array(
@@ -116,6 +118,8 @@ class ADNI_Updates {
         }
         
         //echo '<pre>'.print_r($resp, true).'</pre>';
+        // Last update
+        ADNI_Multi::update_option( '_adning_latest_update', ADNI_VERSION );
 
         return ADNI_VERSION;
     }

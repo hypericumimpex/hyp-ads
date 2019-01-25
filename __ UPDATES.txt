@@ -1,4 +1,36 @@
-ADNING DEV V1.1.7
+ADNING V1.2.0
+——————————————————————————————————
+* Added automatic add-on installation functions.
+* Added option to allow scrolling true adzone ads.
+* Improved responsive design for adzones.
+* Improved collecting stats to prevent caching issues.
+* Improved parse args function for deprecated PHP each function.
+* Fixed some small random bugs.
+
+
+ADNING V1.1.9
+——————————————————————————————————
+* Improved display filter for home pages (front_page).
+* Improved error handling.
+* Fixed unknown "after_x_post_repeat" notice.
+* Fixed display filter issue for singular pages.
+* Fixed issue while removing banners when smarTrack is not activated.
+
+
+ADNING V1.1.8
+——————————————————————————————————
+* Added WooCommerce Checkout to payment options for selling ADS.
+* Added click stats for BG ADS.
+* Added repeat option for in loop and in content ADS.
+
+
+ADNING DEV V1.1.7.1
+——————————————————————————————————
+* Update fix
+* Install fix
+
+
+ADNING V1.1.7
 ——————————————————————————————————
 * Added Bank Transfer option for selling ad spots.
 * Added Admin order list to follow up purchases.

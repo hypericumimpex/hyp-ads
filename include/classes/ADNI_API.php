@@ -142,7 +142,9 @@ class ADNI_API {
   				$html.= 'firstScript.parentNode.insertBefore(js, firstScript);';
 				
 				// Create iframe
-				$html.= 'document.write("<div class=\'_ning_holder _ning_holder_"+_ning_embed.id+"\' style=\'width:100%;max-width:"+_ning_embed.width+"px;max-height:"+_ning_embed.height+"px;\'><iframe id=\'_dn"+_ning_embed.id+"\' src=\'"+site_url+"?_dnid="+_ning_embed.id+"\' width=\'100%\' height=\'"+_ning_embed.height+"px\' frameborder=\'0\' allowtransparency=\'true\' scrolling=\'no\' style=\'"+maxWidth+opacity+"\' allowfullscreen></iframe></div>");';
+				// Time str to prevent caching
+				$time_str = '&t='.current_time('timestamp');
+				$html.= 'document.write("<div class=\'_ning_holder _ning_holder_"+_ning_embed.id+"\' style=\'width:100%;max-width:"+_ning_embed.width+"px;max-height:"+_ning_embed.height+"px;\'><iframe id=\'_dn"+_ning_embed.id+"\' src=\'"+site_url+"?_dnid="+_ning_embed.id+"'.$time_str.'\' width=\'100%\' height=\'"+_ning_embed.height+"px\' frameborder=\'0\' allowtransparency=\'true\' scrolling=\'no\' style=\'"+maxWidth+opacity+"\' allowfullscreen></iframe></div>");';
 				
 				// Talk to iframe content - https://gist.github.com/pbojinov/8965299
 				$html.= 'function bindEvent(element, eventName, eventHandler) {

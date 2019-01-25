@@ -2,11 +2,10 @@
 <h2 class="messages-position"></h2>
 
 
-<div class="adning_dashboard">
+<div class="adning_dashboard adning_cont">
 	<div class="wrap">
        
-		<?php 
-		//$activation = get_option('adning_activation', array());
+		<?php
 		$activation = ADNI_Multi::get_option('adning_activation', array());
 		$tip = empty($activation) && current_user_can(ADNI_ADMIN_ROLE) ? ' <span style="background-color:#d4ff00;">'.__('Tip: start by activting your Product License.','adn').'</span>' : '';
 
@@ -70,28 +69,81 @@
 			}
 			if( $tab ==  'addons')
 			{
+				// spr_hidden data-animation="fadeInLeft"
 				?>
 				<div class="spr_row">  
-					<div class="spr_column spr_col-6 spr_hidden" data-animation="fadeInLeft">
+					<div class="spr_column spr_col"> 
 						<div class="spr_column-inner left_column">
 							<div class="spr_wrapper">
 								<div> <!-- class="option_box" -->
 									<div class="input_container">
-										<div class="input_container_inner _imc_editor">
+										<div class="input_container_inner">
+											<p>
+												<?php _e('Add-ons extend the functionalities from the main Adning plugin. They are default Wordpress plugins and need to be installed just like any other Wordpress plugin. If your WordPress file permissions allow it we will install the add-ons automatically if you click on them.','adn'); ?>
+											</p>
+											<div class="ajax_errors"></div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="spr_column spr_col-6"> 
+						<div class="spr_column-inner left_column">
+							<div class="spr_wrapper">
+								<div> <!-- class="option_box" -->
+									<div class="input_container">
+										<div class="input_container_inner">
+											
 											<div style="margin: 20px 0 30px 0; font-size: 14px;max-width:960px;">
-												<h4><?php _e('Included','adn'); ?></h4>
-												<ul>
-													<li>
-														<a href="<?php echo ADNI_INC_URL; ?>/extensions/plugins/smartrack.zip" target="_blank">SmarTrack</a>
-														<p>
-															<?php _e('Statistics add-on to keep track of your banner/adzone stats.','adn'); ?>
-														</p>
-													</li>
-												</ul>
+												
+												<h3><?php _e('Included Add-Ons','adn'); ?></h3>
+												<?php
+												$h = '';
+												$activation = ADNI_Multi::get_option('adning_activation', array());
+												$addOns = array(
+													'smartrack' => array(
+														'name' => 'smarTrack',
+														'desc' => __('Statistics add-on to keep track of your banner/adzone stats.','adn'),
+														'package' => ADNI_INC_URL.'/extensions/plugins/smartrack.zip'
+													),
+													'adning_woo' => array(
+														'name' => 'Adning WooCommerce',
+														'desc' => __('Sell adzones on your website and handle payments using WooCommerce.','adn'),
+														'package' => ADNI_INC_URL.'/extensions/plugins/adning_woo.zip'
+ 													)
+												);
+
+												if( empty($activation))
+												{
+													$h.= '<p class="_ning_notices">'.sprintf(__('Please %s in order to install the Add-Ons.','adn'), '<a href="admin.php?page=adning-updates">'.__('activate your license','adn').'</a>').'</p>';
+												}
+								
+												$h.= '<ul>';
+													foreach($addOns as $key => $addon)
+													{
+														$h.= '<li>';
+															if( !empty($activation) && !is_plugin_active( $key.'/'.$key.'.php' ) ) 
+															{
+																$h.= '<a href="#" class="install_addon" data-plugin="'.$key.'" data-package="'.$addon['package'].'">'.$addon['name'].'</a>';
+															}
+															else
+															{
+																$h.= '<strong>'.$addon['name'].'</strong>';
+															}
+															$h.= '<p>';
+																$h.= $addon['desc'];
+															$h.= '</p>';
+														$h.= '</li>';
+													}
+												$h.= '</ul>';
+												echo $h;
+												?>
 
                                                
                                                 
-                                                <h4 style="margin-top:80px;"><?php _e('Premium','adn'); ?></h4>
+                                                <h3 style="margin-top:80px;"><?php _e('Premium Add-Ons','adn'); ?></h3>
 												<ul>
 													<li>
 														<a href="https://codecanyon.net/item/imgmce-professional-animated-html5-image-editor/22443664" target="_blank">imgMCE</a>
@@ -170,6 +222,26 @@
 
 <script type="text/javascript">
 jQuery(document).ready(function($) {
+	$('.install_addon').on('click', function(){
+		var plugin = $(this).data('plugin'),
+			package = $(this).data('package');
+
+		$.ajax({
+			type: "POST",
+			url: _adn_.ajaxurl,
+			dataType: "json",
+			data: "action=ajax_install_plugin&package="+package+"&plugin="+plugin
+		}).done(function( obj ) {
+			if( obj.success ){
+				console.log( 'Installed', obj );
+				$('.ajax_errors').addClass('_ning_notices').html( 'Plugin installed successfully' );
+			}else{
+				console.log( 'Error: ', obj.data.message );
+				$('.ajax_errors').addClass('_ning_notices').html( 'Error: '+ obj.data.message );
+			}
+		});
+	});
+
 	$(".spr_column").inViewport(function(px){
 		var animation = $(this).data('animation');
 		if( typeof animation !== 'undefined' && animation != ''){

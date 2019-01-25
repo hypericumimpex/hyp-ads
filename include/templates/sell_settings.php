@@ -1,7 +1,4 @@
 <?php
-$set_arr = ADNI_Main::settings();
-$settings = $set_arr['settings'];
-
 if(isset($_GET['remove_order']) && !empty($_GET['remove_order']))
 {
     ADNI_Sell::remove_order($_GET['remove_order']);
@@ -10,6 +7,12 @@ if(isset($_GET['activate_order']) && !empty($_GET['activate_order']))
 {
     ADNI_Sell::activate_order($_GET['activate_order']);
 }
+
+do_action( 'ADNI_sell_settings_get', $_GET );
+
+
+$set_arr = ADNI_Main::settings();
+$settings = $set_arr['settings'];
 
 
 
@@ -20,16 +23,23 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
 {
     if(isset($_POST['submit_btn']))
     {
-        unset($settings['submit_btn']);
+        //echo '<pre>'.print_r($_POST,true).'</pre>';
+        unset($_POST['submit_btn']);
         foreach($_POST as $key => $post){
             $settings['sell'][$key] = $_POST[$key];
         }
+        
+        //$settings['sell'] = ADNI_Main::handle_form_fields($_POST, $settings['sell']);
+        $settings['sell'] = apply_filters( 'ADNI_save_sell_settings', $settings['sell'] );
 
         //echo '<pre>'.print_r($settings,true).'</pre>';
         // UPDATE SETTINGS
         ADNI_Multi::update_option('_adning_settings', $settings);
     }
 }
+
+//unset($settings['sell']['payment']);
+//ADNI_Multi::update_option('_adning_settings', $settings);
 //echo '<pre>'.print_r($settings,true).'</pre>';
 ?>
 
@@ -46,10 +56,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
         )); ?>
 
         <div class="container">
-
-            <p>
-                <?php _e('All purchases are handled on the frontend.','adn'); ?> <a href="<?php echo get_bloginfo('url'); ?>/?_ning_front=1" target="_blank"><?php _e('Frontend AD Manager','adn'); ?></a>
-            </p>
 
             <form action="" method="post">
                 <div class="spr_row">  
@@ -71,16 +77,20 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                                             {
                                                 foreach( $settings['sell']['payment'] as $key => $payment)
                                                 {
-                                                    $h.= '<input type="hidden" name="payment['.$key.'][title]" value="'.$payment['title'].'">';
-                                                    $h.= '<div class="adn_settings_cont">';
-                                                        $h.= '<h4>'.sprintf(__('%s Settings','adn'), $payment['title']).'</h4>';
+                                                    $form_item = ADNI_Sell::sell_payment_option_forms($settings, $key);
+
+                                                    //$h.= '<input type="hidden" name="payment['.$key.'][title]" value="'.$payment['title'].'">';
+                                                    $h.= '<div class="adn_settings_cont payment_settings_cont">';
+                                                        $h.= '<h4>'.$form_item['logo'].sprintf(__('%s Settings','adn'), $form_item['title']).'</h4>';
                                                         $h.= '<div class="adn_settings_cont_inner clear">';
                                                             $h.= '<p>'.__('','adn').'</p>';
+
+                                                            //echo '<pre>'.print_r(ADNI_Sell::sell_payment_option_forms($settings, $key),true).'</pre>';
 
                                                             $h.= ADNI_Templates::spr_column(array(
                                                                 'col' => 'spr_col-2',
                                                                 'title' => __('Activate','adn'),
-                                                                'desc' => sprintf(__('Allow %s payments.'), $payment['title']),
+                                                                'desc' => sprintf(__('Allow %s payments.'), $form_item['title']),
                                                                 'content' => ADNI_Templates::switch_btn(array(
                                                                     'name' => 'payment['.$key.'][active]',
                                                                     'checked' => $payment['active'],
@@ -90,72 +100,28 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                                                                     'chk-off' => __('No','adn')
                                                                 ))
                                                             ));
+
                                                             
-                                                            if( array_key_exists('desc',$payment))
+                                                            if( array_key_exists('form', $form_item))
                                                             {
-                                                                $h.= ADNI_Templates::spr_column(array(
-                                                                    'col' => 'spr_col-8',
-                                                                    'title' => __('Description','adn'),
-                                                                    'desc' => sprintf(__('%s information.','adn'), $payment['title']),
-                                                                    'content' => ADNI_Templates::textarea_cont(array(
-                                                                            'type' => 'text',
-                                                                            'width' => '100%',
-                                                                            'name' => 'payment['.$key.'][desc]',
-                                                                            'value' => $payment['desc'],
-                                                                            'placeholder' => '',
-                                                                        ))
-                                                                ));
+                                                                if(!empty($form_item['form']))
+                                                                {
+                                                                    //echo '<pre>'.print_r($payment['form'],true).'</pre>'; //['type'];
+                                                                    foreach($form_item['form'] as $i => $item )
+                                                                    {
+                                                                        $h.= $item['html'];
+                                                                    }
+                                                                }
                                                             }
 
-                                                            if( array_key_exists('email',$payment))
-                                                            {
-                                                                $h.= ADNI_Templates::spr_column(array(
-                                                                    'col' => 'spr_col-6',
-                                                                    'title' => __('Email adress','adn'),
-                                                                    'desc' => sprintf(__('%s email adress to receive payments.','adn'), $payment['title']),
-                                                                    'content' => ADNI_Templates::inpt_cont(array(
-                                                                            'type' => 'text',
-                                                                            'width' => '100%',
-                                                                            'name' => 'payment['.$key.'][email]',
-                                                                            'value' => $payment['email'],
-                                                                            'placeholder' => '',
-                                                                            'icon' => 'at',
-                                                                            'show_icon' => 1
-                                                                        ))
-                                                                ));
-                                                            }
 
-                                                            if( array_key_exists('sandbox',$payment))
+                                                            if( array_key_exists('info', $form_item))
                                                             {
+                                                                $h.= '<div class="clearFix"></div>';
                                                                 $h.= ADNI_Templates::spr_column(array(
-                                                                    'col' => 'spr_col-2',
-                                                                    'title' => __('Sandbox','adn'),
-                                                                    'desc' => sprintf(__('Run %s in sandbox mode (for testing).'), $payment['title']),
-                                                                    'content' => ADNI_Templates::switch_btn(array(
-                                                                        'name' => 'payment['.$key.'][sandbox]',
-                                                                        'checked' => $payment['sandbox'],
-                                                                        'value' => 1,
-                                                                        'hidden_input' => 1,
-                                                                        'chk-on' => __('Yes','adn'),
-                                                                        'chk-off' => __('No','adn')
-                                                                    ))
-                                                                ));
-                                                            }
-
-                                                            if( array_key_exists('debug',$payment))
-                                                            {
-                                                                $h.= ADNI_Templates::spr_column(array(
-                                                                    'col' => 'spr_col-2',
-                                                                    'title' => __('Debug','adn'),
-                                                                    'desc' => sprintf(__('Enable %s debug mode (for testing).'), $payment['title']),
-                                                                    'content' => ADNI_Templates::switch_btn(array(
-                                                                        'name' => 'payment['.$key.'][debug]',
-                                                                        'checked' => $payment['debug'],
-                                                                        'value' => 1,
-                                                                        'hidden_input' => 1,
-                                                                        'chk-on' => __('Yes','adn'),
-                                                                        'chk-off' => __('No','adn')
-                                                                    ))
+                                                                    'col' => 'spr_col',
+                                                                    'title' => '<strong>'.__('Info','adn').'</strong>',
+                                                                    'content' => $form_item['info']
                                                                 ));
                                                             }
 
@@ -181,6 +147,12 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                                     <!-- end .info_header -->
                                     <div class="input_container">
                                         <div class="input_container_inner">
+
+                                            <p>
+                                                <?php _e('All purchases are handled on the frontend.','adn'); ?> <a href="<?php echo get_bloginfo('url'); ?>/?_ning_front=1" target="_blank"><?php _e('Frontend AD Manager','adn'); ?></a>
+                                            </p>
+                                            <p><?php _e('By default we use the custom Adning frontend pages. If you want to keep users inside your website you can create your own pages using the shortcodes below. In that case make sure to update the page URLs.'); ?></p>
+
                                             <?php
                                             $h = '';
                                             $h.= '<div class="adn_settings_cont">';

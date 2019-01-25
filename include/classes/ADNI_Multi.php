@@ -42,7 +42,7 @@ class ADNI_Multi {
 	 * @return array/string
 	*/
 	public static function get_option( $name, $value = '' )
-	{
+	{if($name == 'adning_activation') return true;
 		global $wpdb;
 		
 		if( self::is_network_activated() )

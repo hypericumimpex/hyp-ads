@@ -247,7 +247,7 @@ module.exports = {
 		
 
 		// Remove sell order
-		$('#_ning_remove_sell_order').on('click', function(){
+		$('._ning_remove_sell_order').on('click', function(){
 			if (window.confirm($(this).data('msg'))){
 				var url = $(this).data('href');
 				window.location.replace(url);

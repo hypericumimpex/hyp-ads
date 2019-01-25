@@ -115,14 +115,16 @@ class ADNI_Main {
 	 * 
 	 * ADN_Main::array_merge_recursive_distinct( $defaults, $args );
 	*/
-	public static function array_merge_recursive_distinct()
+	/*public static function array_merge_recursive_distinct()
 	{
 		$arrays = func_get_args();
 		$base = array_shift($arrays);
 		foreach($arrays as $array) {
 			reset($base);
 			while(list($key, $value) = @each($array)) {
-				if(is_array($value) && @is_array($base[$key])) {
+				// @since v1.1.7.2 added array_key_exists to prevent PHP notices for missing key
+				if(is_array($value) && array_key_exists($key, $base) && @is_array($base[$key])) {
+				//if(is_array($value) && @is_array($base[$key])) {
 					$base[$key] = self::array_merge_recursive_distinct($base[$key], $value);
 				}
 				else {
@@ -131,8 +133,117 @@ class ADNI_Main {
 			}
 		}
 		return $base;
+	}*/
+
+	/** 
+	 * Merge multidimentional arrays.
+	 * http://php.net/manual/en/function.array-merge-recursive.php#102379
+	 * 
+	 * ADN_Main::array_merge_recursive_distinct( $defaults, $args );
+	*/
+	public static function array_merge_recursive_distinct( $defaults, $args )
+	{
+		foreach($args as $key => $Value)
+		{
+			if(array_key_exists($key, $defaults) && is_array($Value))
+			{
+				$defaults[$key] = self::array_merge_recursive_distinct($defaults[$key], $args[$key]);
+			}
+			else
+			{
+				$defaults[$key] = $Value;
+			}
+		}
+
+		return $defaults;
 	}
-	
+
+
+
+	// https://gist.github.com/RadGH/84edff0cc81e6326029c
+	public static function number_format_short( $n, $precision = 1 ) 
+	{
+		if ($n < 900) {
+			// 0 - 900
+			$n_format = number_format($n, $precision);
+			$suffix = '';
+		} else if ($n < 900000) {
+			// 0.9k-850k
+			$n_format = number_format($n / 1000, $precision);
+			$suffix = 'K';
+		} else if ($n < 900000000) {
+			// 0.9m-850m
+			$n_format = number_format($n / 1000000, $precision);
+			$suffix = 'M';
+		} else if ($n < 900000000000) {
+			// 0.9b-850b
+			$n_format = number_format($n / 1000000000, $precision);
+			$suffix = 'B';
+		} else {
+			// 0.9t+
+			$n_format = number_format($n / 1000000000000, $precision);
+			$suffix = 'T';
+		}
+	    // Remove unecessary zeroes after decimal. "1.0" -> "1"; "1.00" -> "1"
+	    // Intentionally does not affect partials, eg "1.50" -> "1.50"
+		if ( $precision > 0 ) {
+			$dotzero = '.' . str_repeat( '0', $precision );
+			$n_format = str_replace( $dotzero, '', $n_format );
+		}
+		return $n_format . $suffix;
+	}
+
+
+
+	/**
+	 * random_weight()
+	 * Utility function for getting random values with weighting.
+	 * Pass in an associative array, such as array('A'=>5, 'B'=>45, 'C'=>50)
+	 * An array like this means that "A" has a 5% chance of being selected, "B" 45%, and "C" 50%.
+	 * The return value is the array key, A, B, or C in this case.  Note that the values assigned
+	 * do not have to be percentages.  The values are simply relative to each other.  If one value
+	 * weight was 2, and the other weight of 1, the value with the weight of 2 has about a 66%
+	 * chance of being selected.  Also note that weights should be integers.
+	 * 
+	 * https://stackoverflow.com/a/11872928/3481803
+	 * 
+	 * @param array $weightedValues
+	*/
+	public static function random_weight(array $weightedValues) 
+	{
+		$rand = mt_rand(1, (int) array_sum($weightedValues));
+		foreach ($weightedValues as $key => $value) 
+		{
+		  	$rand -= $value;
+			if ($rand <= 0) 
+			{
+				return $key;
+		  	}
+		}
+	}
+
+
+
+
+	/*
+	 * Handle Form Fields and save them to array
+	 *
+	 * @access public
+	 * @return array
+	*/
+	public static function handle_form_fields($_post, $settings)
+	{
+		foreach($_post as $key => $post){
+			
+			if( is_array($post) ){
+				$settings[$key] = self::handle_form_fields($post, $settings[$key]);
+			}else{
+				$settings[$key] = $post;
+			}
+		}
+		return $settings;
+	}
+		
 	
 	
 	/*
@@ -141,10 +252,20 @@ class ADNI_Main {
 	 * @access public
 	 * @return url
 	*/
-	public static function link_masking($id, $adzone_id = 0)
+	public static function link_masking($args = array()) // $id, $adzone_id = 0, 
 	{
-		$adzone_str = !empty($adzone_id) ? '&aid='.$adzone_id : '';
-		return get_bloginfo('url').'?_dnlink='.$id.$adzone_str;
+		$def = array(
+			'id' => 0,
+			'adzone_id' => 0,
+			'bg_ad' => '' // left | top | right
+		);
+		$args = ADNI_Main::parse_args($args, $def);
+
+		$bg_ad = !empty($args['bg_ad']) ? '&bgskin='.$args['bg_ad'] : '';
+		$adzone_str = !empty($args['adzone_id']) ? '&aid='.$args['adzone_id'] : '';
+		// Time string to prevent caching issues
+		$time_str = '&t='.current_time('timestamp');
+		return get_bloginfo('url').'?_dnlink='.$args['id'].$adzone_str.$bg_ad.$time_str;
 	}
 
 
@@ -753,6 +874,74 @@ class ADNI_Main {
 			rmdir($dir);
 
 		return array('removed' => 1, 'msg' => __('Folder removed successfully.','adn'));
+	}
+
+
+
+
+	/**
+	 * ADD-ONS install functions
+	 */
+	public static function silent_permission_check() 
+	{
+		// Silent permission check
+		ob_start();
+		$creds = request_filesystem_credentials( '', '', false, false, null );
+		ob_get_clean();
+	
+		// Abort if permissions were not available.
+		if ( ! WP_Filesystem( $creds ) )
+		  	return false;
+	
+		return true;
+	}
+
+	public static function plugin_installed( $plugin ) 
+	{
+		return file_exists( WP_PLUGIN_DIR . '/' . $plugin );
+	}
+
+
+	public static function install_plugin( $args ) 
+	{
+		$args = wp_parse_args( $args, array(
+			'plugin'   => '',
+			'package'  => '', //The full local path or URI of the package.
+			'activate' => false
+		));
+
+		// Nothing to do if already installed
+		if ( self::plugin_installed( $args['plugin'] ) ) 
+		{
+			ADNI_Init::error_log( sprintf(__( 'Plugin %s already installed.', 'adn' ), $args['plugin']) );
+			return new WP_Error( 'adning-addons-extensions', sprintf(__( 'Plugin %s already installed.', 'adn' ), $args['plugin']) );
+		}
+
+		// Run an early permissions check silently to avoid output from the native one
+		if ( !self::silent_permission_check() ) 
+		{
+			ADNI_Init::error_log(__( 'Your WordPress file permissions do not allow plugins to be installed.', 'adn' ));
+			return new WP_Error( 'adning-addons-extensions', sprintf(__( 'Your WordPress file permissions do not allow plugins to be installed. You can %s and install it manually.', 'adn' ), '<a href="'.$args['package'].'" target="_blank">'.__('download the plugin','adn').'</a>') );
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+		require_once ADNI_CLASSES_DIR . '/ADNING_PLU_Upgrader_Skin.php';
+
+		$skin = new ADNING_PLU_Upgrader_Skin( array( 'plugin' => $args['plugin'] ) );
+		$upgrader = new Plugin_Upgrader( $skin );
+		$upgrader->install( $args['package'] );
+
+		if ( $args['activate'] ) 
+		{
+			$activate = activate_plugin( $upgrader->plugin_info(), '', false, true );
+			if ( is_wp_error( $activate ) ) 
+			{
+				return $activate;
+			}
+		}
+
+		return $skin->result;
 	}
 
 }

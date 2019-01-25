@@ -4,6 +4,8 @@ if ( ! defined( "ABSPATH" ) ) exit;
 if ( ! class_exists( 'ADNI_Init' ) ) :
 
 class ADNI_Init {
+
+	static $log_file = ADNI_DIR.'debug.log';
 	
 	public function __construct() 
 	{
@@ -64,6 +66,12 @@ class ADNI_Init {
 		ADNI_CPT::add_custom_caps(array('role' => $settings['roles']['create_banner_role'], 'cpt' => ADNI_CPT::$banner_cpt));
 		ADNI_CPT::add_custom_caps(array('role' => $settings['roles']['create_adzone_role'], 'cpt' => ADNI_CPT::$adzone_cpt));
 		ADNI_CPT::add_custom_caps(array('role' => $settings['roles']['create_campaign_role'], 'cpt' => ADNI_CPT::$campaign_cpt));
+
+		/*
+		 * Action: 'ADNI_install' - Allow other plugins to do sstuff during installation.
+		*/
+		do_action('ADNI_install');
+		//self::error_log(__('Adning installation complete!','adn'));
 	}
 	
 
@@ -97,6 +105,13 @@ class ADNI_Init {
 		define( "ADNI_ADZONES_ROLE", ADNI_Main::ADNI_capability($settings['roles']['create_adzone_role']) );
 		define( "ADNI_CAMPAIGNS_ROLE", ADNI_Main::ADNI_capability($settings['roles']['create_campaign_role']) );
 	}
+
+
+
+	public static function error_log($message)
+	{
+		error_log(date('[Y-m-d H:i e] ', current_time( 'timestamp' )). $message . PHP_EOL, 3, self::$log_file);
+	}
 	
 	
 	
@@ -116,6 +131,8 @@ class ADNI_Init {
 			$adzone_id = isset($_GET['aid']) && is_numeric($_GET['aid']) ? $_GET['aid'] : 0;
 			$banner = ADNI_CPT::load_post($banner_id, array('filter' => 0));
 			$save_stats = $banner['args']['enable_stats'];
+
+			ADNI_Init::error_log(__('Adning - loaded from click. banner_id:'.$banner_id,'adn'));
 			
 			// Filter -------------------------------------------------------
 			if( $save_stats )
@@ -129,8 +146,18 @@ class ADNI_Init {
 					));
 				}
 			}
+
+			if(isset($_GET['bgskin']))
+			{
+				$url = $banner['args']['bg_takeover_'.$_GET['bgskin'].'_skin_url'];
+			}
+			else
+			{
+				$url = $banner['args']['banner_url'];
+			}
 			
-			header('Location: '. $banner['args']['banner_url']);
+			
+			header('Location: '. $url);
 			exit;
 		}
 	}
@@ -205,32 +232,13 @@ class ADNI_Init {
 		// Scripts
 		wp_register_script( '_ning_global', ADNI_ASSETS_URL.'/dist/_ning.bundle.js', array( 'jquery' ), ADNI_VERSION, true );
 		wp_localize_script( '_ning_global', '_adn_', $var_array );
-		//wp_register_script( '_ning_uploader', ADNI_ASSETS_URL.'/dev/js/_ning_uploader.js', array( 'jquery' ), ADNI_VERSION, true );
 		wp_register_script( '_ning_admin_global', ADNI_ASSETS_URL.'/dist/_ning_admin.bundle.js', array( 'jquery' ), ADNI_VERSION, true );
-		/*wp_register_script( '_ning_global', ADNI_ASSETS_URL.'/dev/js/_ning.js', array( 'jquery' ), ADNI_VERSION, true );
-		wp_localize_script( '_ning_global', '_adn_', $var_array );
-		wp_register_script( '_ning_admin_global', ADNI_ASSETS_URL.'/dev/js/_ning_admin.js', array( 'jquery' ), ADNI_VERSION, true );
-		wp_register_script( '_ning_jquery_plugins', ADNI_ASSETS_URL.'/dev/js/jQuery.adnplugins.js', array( 'jquery' ), ADNI_VERSION, true );
-		//wp_register_script( '_ning_jssor', ADNI_ASSETS_URL.'/js/jssor.slider-22.2.16.min.js', array( 'jquery' ), ADNI_VERSION, true );
-		wp_register_script( '_ning_jssor', ADNI_ASSETS_URL.'/dev/js/jssor.slider.min.js', array( 'jquery' ), ADNI_VERSION, true );
-		*/
-
-		//wp_register_script('_ning_tooltipster', ADNI_INC_URL.'/widgets/tooltipster/tooltipster.bundle.min.js', array('jquery'), ADNI_VERSION, true);
-		//wp_register_script( '_ning_chosen', ADNI_INC_URL.'/widgets/chosen/chosen.jquery.min.js', array( 'jquery' ), ADNI_VERSION, true );
-		//wp_register_script( '_ning_chosen_sort', ADNI_INC_URL.'/widgets/chosen/jquery-chosen-sortable.min.js', array( 'jquery' ), ADNI_VERSION, true );
 		
 		// styles
 		wp_register_style( '_ning_css', ADNI_ASSETS_URL. '/dist/_ning.bundle.js.css', false, ADNI_VERSION, "all" );
 		wp_register_style( '_ning_admin_css', ADNI_ASSETS_URL. '/dist/_ning_admin.bundle.js.css', false, ADNI_VERSION, "all" );
 		wp_register_style( '_ning_frontend_manager_css', ADNI_ASSETS_URL. '/dist/_ning_frontend_manager.bundle.js.css', false, ADNI_VERSION, "all" );
-		/*wp_register_style( '_ning_css', ADNI_ASSETS_URL. '/dev/css/_ning.css', false, ADNI_VERSION, "all" );
-		wp_register_style( '_ning_admin_css', ADNI_ASSETS_URL. '/dev/css/_ning_admin.css', false, ADNI_VERSION, "all" );
-		*/
-
-
-		//wp_register_style( '_ning_chosen_css', ADNI_INC_URL.'/widgets/chosen/chosen.css', false, ADNI_VERSION, "all" );
-		//wp_register_style('_ning_checkbox', ADNI_INC_URL.'/widgets/checkbox/checkbox.css', false, ADNI_VERSION, "all");
-
+		
 		ADNI_Uploader::enqueue_scripts(array('upload_folder' => 'path'));
 	}
 	
@@ -342,13 +350,14 @@ class ADNI_Init {
 			
 			// Check if plugin needs update
 			ADNI_Updates::needs_update();
+			//self::error_log('Loading admin area');
 			
-			$pending_order_count = ADNI_Sell::pending_order_count();
+			$noti_balloon_count = apply_filters('ADNI_noti_balloon', 0);
 			
 			// Create menu
 			add_menu_page(
 				__('ADning', 'adn'), 
-				__('ADning', 'adn').' <span class="update-plugins count-'.$pending_order_count.'"><span class="update-count">' . number_format_i18n($pending_order_count) . '</span></span>', 
+				__('ADning', 'adn').' <span class="update-plugins count-'.$noti_balloon_count.'"><span class="update-count">' . number_format_i18n($noti_balloon_count) . '</span></span>', 
 				ADNI_ACCESS_ROLE,  
 				'adning', 
 				array( __CLASS__, 'dashboard_template'),

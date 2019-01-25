@@ -124,7 +124,7 @@ class ADNI_Filters {
             // HOME PAGE
             if( array_key_exists('homepage', $display) )
             {
-                if( !$display['homepage'] && is_home() )
+                if( !$display['homepage'] && is_front_page() ) // is_home() doesn't work for static pages.
                     return;
             }
             
@@ -349,6 +349,11 @@ class ADNI_Filters {
                     if( self::show_hide(array('args' => $b)) )
                     {
                         $bg_container = !empty($b['bg_takeover_bg_container']) ? $b['bg_takeover_bg_container'] : 'body';
+                        // URLs
+                        $top_url = $b['banner_link_masking'] ? ADNI_Main::link_masking(array('id' => $key, 'bg_ad' => 'top' )) : $b['bg_takeover_top_skin_url'];
+                        $left_url = $b['banner_link_masking'] ? ADNI_Main::link_masking(array('id' => $key, 'bg_ad' => 'left' )) : $b['bg_takeover_left_skin_url'];
+                        $right_url = $b['banner_link_masking'] ? ADNI_Main::link_masking(array('id' => $key, 'bg_ad' => 'right' )) : $b['bg_takeover_right_skin_url'];
+
 
                         $h.= '<script>';
                             $h.= "jQuery('".$bg_container."').bgTakeover({
@@ -359,12 +364,19 @@ class ADNI_Filters {
                                 top_skin: '".$b['bg_takeover_top_skin']."',
                                 container: '".$b['bg_takeover_content_container']."',
                                 click_url: {
-                                    'top': '".$b['bg_takeover_top_skin_url']."',
-                                    'left': '".$b['bg_takeover_left_skin_url']."',
-                                    'right': '".$b['bg_takeover_right_skin_url']."'
+                                    'top': '".$top_url."',
+                                    'left': '".$left_url."',
+                                    'right': '".$right_url."'
                                 }
                             });";
                         $h.= '</script>';
+                        /*
+                        click_url: {
+                            'top': '".$b['bg_takeover_top_skin_url']."',
+                            'left': '".$b['bg_takeover_left_skin_url']."',
+                            'right': '".$b['bg_takeover_right_skin_url']."'
+                        }
+                        */
                     }
                 }
 
@@ -447,13 +459,14 @@ class ADNI_Filters {
             }
             if($pos === 'inside_content')
             {
-                if ( is_single() && !is_admin() ) 
+                if ( is_singular() && !is_admin() )  // is_single() is not for pages!
                 {
                     //$after_x_p = array_key_exists('after_x_p', $arr[$pos]) ? $arr[$pos]['after_x_p'] : 2;
                     //$after_x_p = !empty($arr[$pos]['after_x_p']) ? $arr[$pos]['after_x_p'] : 2;
                     if( !empty($arr[$pos]['after_x_p']) )
                     {
-                        $content = self::insert_after_paragraph( '[adning id="'.$key.'" no_iframe="1"]', $arr[$pos]['after_x_p'], $content );
+                        $repeat = array_key_exists('after_x_p_repeat', $arr[$pos]) ? $arr[$pos]['after_x_p_repeat'] : 0;
+                        $content = self::insert_after_paragraph( '[adning id="'.$key.'" no_iframe="1"]', $arr[$pos]['after_x_p'], $repeat, $content );
                     }
                 }
             } 
@@ -468,20 +481,25 @@ class ADNI_Filters {
 
 
     // INSERT AD AFTER X PARAGRAPHS
-    public static function insert_after_paragraph( $insertion, $paragraph_id, $content ) 
+    public static function insert_after_paragraph( $insertion, $after_x_p, $repeat, $content ) 
     {
         $closing_p = '</p>';
         $paragraphs = explode( $closing_p, $content );
-        if (count($paragraphs) >= $insertion) {
-            foreach ($paragraphs as $index => $paragraph) {
-    
+        if (count($paragraphs) >= $insertion) 
+        {
+            $p = 1;
+            foreach ($paragraphs as $index => $paragraph) 
+            {
                 if ( trim( $paragraph ) ) {
                     $paragraphs[$index] .= $closing_p;
                 }
     
-                if ( $paragraph_id == $index + 1 ) {
+                if ( $after_x_p == $p ) {
                     $paragraphs[$index] .= $insertion;
+                    $p = $repeat ? 0 : $p;
                 }
+
+                $p++;
             }
     
             return implode( '', $paragraphs );
@@ -499,7 +517,7 @@ class ADNI_Filters {
      */
     public static function loop_start($query)
     {
-        if( is_single() )
+        if( is_singular() || is_admin() )
             return;
 
         add_action( 'the_post', array(__CLASS__, 'post_in_loop') );
@@ -508,7 +526,7 @@ class ADNI_Filters {
     public static function post_in_loop($post_object)
     {
         $auto_pos = ADNI_Main::auto_positioning();
-        if( empty($auto_pos) || is_single() )
+        if( empty($auto_pos) ) // || is_single() || is_admin()
             return;
 
         foreach($auto_pos as $key => $arr)
@@ -518,10 +536,11 @@ class ADNI_Filters {
             {
                 if( !empty($arr[$pos]['after_x_post']) )
                 {
+                    $repeat = array_key_exists('after_x_post_repeat', $arr[$pos]) ? $arr[$pos]['after_x_post_repeat'] : 0;
                     if( self::$post_count == $arr[$pos]['after_x_post'] )
                     {
                         echo ADNI_Multi::do_shortcode('[adning id="'.$key.'"]');
-                        self::$post_count = 0;
+                        self::$post_count = $repeat ? 0 : self::$post_count;
                     }
                 }
             }

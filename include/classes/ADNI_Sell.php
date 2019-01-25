@@ -13,6 +13,7 @@ class ADNI_Sell {
         add_action( 'adning_single_adzone_settings', array( __CLASS__, 'adzone_sell_box' ), 10, 1 );
         add_action( 'parse_request', array(__CLASS__, 'handle_api_requests'), 0);
         add_action( 'before_delete_post', array(__CLASS__, 'delete_post'));
+        add_action( 'ADNI_install', array(__CLASS__, 'create_tables'));
 
         // Filters --------------------------------------------------------
         add_filter( 'submenu_file', array( __CLASS__,'admin_submenu_filter') );
@@ -26,6 +27,7 @@ class ADNI_Sell {
         add_filter( 'ADNI_settings_tabs', array( __CLASS__, 'sell_settings_tab' ), 10 );
         add_filter( 'ADNI_load_post', array( __CLASS__, 'sell_load_post' ), 10, 2 );
         add_filter( 'adning_single_banner_notice', array(__CLASS__, 'approve_banner_box'), 10, 2);
+        add_filter( 'ADNI_noti_balloon', array(__CLASS__, 'count_order_notifications'), 10, 1);
 
         // Shortcodes -----------------------------------------------------
         add_shortcode('adning_available_adzones', array(__CLASS__, 'sc_available_adzones'));
@@ -217,11 +219,11 @@ class ADNI_Sell {
 	 * SELL MAIN DATA
 	 *
 	 */
-	public static function default_sell_settings()
+	public static function default_sell_settings($settings = array())
 	{	
 		return array(
             'cur' => 'USD',
-            'payment' => self::sell_payment_options(),
+            'payment' => self::sell_payment_options($settings),
             'urls' => array(
                 'available_adzones' => trailingslashit( home_url( 'index.php' ) ).'?_ning_front=1&view=available_adzones',
                 'user_dashboard' => trailingslashit( home_url( 'index.php' ) ).'?_ning_front=1&view=user_dashboard',
@@ -240,26 +242,112 @@ class ADNI_Sell {
 
     /** 
 	 * SELL PAYMENT OPTIONS
+     * values only. Form fields get created using the function self::sell_payment_option_forms()
+     * 
 	 *
 	 */
-	public static function sell_payment_options()
+	public static function sell_payment_options($settings = array())
 	{	
-		return apply_filters('ADNI_sell_payment_options',array(
+		return apply_filters('ADNI_sell_payment_options_settings',array(
+            'bank-transfer' => array(
+                'desc' => '',
+                'active' => 1
+            ),
+            'paypal' => array(
+                'active' => 0,
+                'email' => '',
+                'debug' => 0,
+                'sandbox' => 0
+            )
+        ), $settings);
+    }
+
+
+    /** 
+	 * SELL PAYMENT OPTIONS FORM TEMPLATES
+	 *
+	 */
+	public static function sell_payment_option_forms($settings = array(), $key = '')
+	{
+        // Only send sell settings after this point
+        $settings = array_key_exists('sell', $settings) ? $settings['sell'] : $settings;
+
+		$options = apply_filters('ADNI_sell_payment_option_form_settings',array(
             'bank-transfer' => array(
                 'title' => __('Bank Transfer','adn'),
-                'desc' => '',
-                'active' => 1,
-                'logo' => '<svg viewBox="0 0 640 512" style="width:40px;"><path fill="currentColor" d="M608 32H32C14.33 32 0 46.33 0 64v384c0 17.67 14.33 32 32 32h576c17.67 0 32-14.33 32-32V64c0-17.67-14.33-32-32-32zM176 327.88V344c0 4.42-3.58 8-8 8h-16c-4.42 0-8-3.58-8-8v-16.29c-11.29-.58-22.27-4.52-31.37-11.35-3.9-2.93-4.1-8.77-.57-12.14l11.75-11.21c2.77-2.64 6.89-2.76 10.13-.73 3.87 2.42 8.26 3.72 12.82 3.72h28.11c6.5 0 11.8-5.92 11.8-13.19 0-5.95-3.61-11.19-8.77-12.73l-45-13.5c-18.59-5.58-31.58-23.42-31.58-43.39 0-24.52 19.05-44.44 42.67-45.07V152c0-4.42 3.58-8 8-8h16c4.42 0 8 3.58 8 8v16.29c11.29.58 22.27 4.51 31.37 11.35 3.9 2.93 4.1 8.77.57 12.14l-11.75 11.21c-2.77 2.64-6.89 2.76-10.13.73-3.87-2.43-8.26-3.72-12.82-3.72h-28.11c-6.5 0-11.8 5.92-11.8 13.19 0 5.95 3.61 11.19 8.77 12.73l45 13.5c18.59 5.58 31.58 23.42 31.58 43.39 0 24.53-19.05 44.44-42.67 45.07zM416 312c0 4.42-3.58 8-8 8H296c-4.42 0-8-3.58-8-8v-16c0-4.42 3.58-8 8-8h112c4.42 0 8 3.58 8 8v16zm160 0c0 4.42-3.58 8-8 8h-80c-4.42 0-8-3.58-8-8v-16c0-4.42 3.58-8 8-8h80c4.42 0 8 3.58 8 8v16zm0-96c0 4.42-3.58 8-8 8H296c-4.42 0-8-3.58-8-8v-16c0-4.42 3.58-8 8-8h272c4.42 0 8 3.58 8 8v16z"></path></svg>'
+                'logo' => '<svg viewBox="0 0 640 512"><path fill="currentColor" d="M608 32H32C14.33 32 0 46.33 0 64v384c0 17.67 14.33 32 32 32h576c17.67 0 32-14.33 32-32V64c0-17.67-14.33-32-32-32zM176 327.88V344c0 4.42-3.58 8-8 8h-16c-4.42 0-8-3.58-8-8v-16.29c-11.29-.58-22.27-4.52-31.37-11.35-3.9-2.93-4.1-8.77-.57-12.14l11.75-11.21c2.77-2.64 6.89-2.76 10.13-.73 3.87 2.42 8.26 3.72 12.82 3.72h28.11c6.5 0 11.8-5.92 11.8-13.19 0-5.95-3.61-11.19-8.77-12.73l-45-13.5c-18.59-5.58-31.58-23.42-31.58-43.39 0-24.52 19.05-44.44 42.67-45.07V152c0-4.42 3.58-8 8-8h16c4.42 0 8 3.58 8 8v16.29c11.29.58 22.27 4.51 31.37 11.35 3.9 2.93 4.1 8.77.57 12.14l-11.75 11.21c-2.77 2.64-6.89 2.76-10.13.73-3.87-2.43-8.26-3.72-12.82-3.72h-28.11c-6.5 0-11.8 5.92-11.8 13.19 0 5.95 3.61 11.19 8.77 12.73l45 13.5c18.59 5.58 31.58 23.42 31.58 43.39 0 24.53-19.05 44.44-42.67 45.07zM416 312c0 4.42-3.58 8-8 8H296c-4.42 0-8-3.58-8-8v-16c0-4.42 3.58-8 8-8h112c4.42 0 8 3.58 8 8v16zm160 0c0 4.42-3.58 8-8 8h-80c-4.42 0-8-3.58-8-8v-16c0-4.42 3.58-8 8-8h80c4.42 0 8 3.58 8 8v16zm0-96c0 4.42-3.58 8-8 8H296c-4.42 0-8-3.58-8-8v-16c0-4.42 3.58-8 8-8h272c4.42 0 8 3.58 8 8v16z"></path></svg>',
+                'form' => array(
+                    'desc' => array(
+                        'html' => ADNI_Templates::spr_column(array(
+                            'col' => 'spr_col-8',
+                            'title' => __('Description','adn'),
+                            'desc' => sprintf(__('%s information.','adn'), __('Bank Transfer','adn')),
+                            'content' => ADNI_Templates::textarea_cont(array(
+                                    'type' => 'text',
+                                    'width' => '100%',
+                                    'name' => 'payment[bank-transfer][desc]',
+                                    'value' => $settings['payment']['bank-transfer']['desc'],
+                                    'placeholder' => '',
+                                ))
+                        ))
+                    )
+                )
             ),
             'paypal' => array(
                 'title' => __('Paypal','adn'),
-                'active' => 1,
-                'email' => '',
-                'debug' => 0,
-                'sandbox' => 0,
-                'logo' => '<svg viewBox="0 0 576 512" style="width:40px;"><path fill="currentColor" d="M186.3 258.2c0 12.2-9.7 21.5-22 21.5-9.2 0-16-5.2-16-15 0-12.2 9.5-22 21.7-22 9.3 0 16.3 5.7 16.3 15.5zM80.5 209.7h-4.7c-1.5 0-3 1-3.2 2.7l-4.3 26.7 8.2-.3c11 0 19.5-1.5 21.5-14.2 2.3-13.4-6.2-14.9-17.5-14.9zm284 0H360c-1.8 0-3 1-3.2 2.7l-4.2 26.7 8-.3c13 0 22-3 22-18-.1-10.6-9.6-11.1-18.1-11.1zM576 80v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V80c0-26.5 21.5-48 48-48h480c26.5 0 48 21.5 48 48zM128.3 215.4c0-21-16.2-28-34.7-28h-40c-2.5 0-5 2-5.2 4.7L32 294.2c-.3 2 1.2 4 3.2 4h19c2.7 0 5.2-2.9 5.5-5.7l4.5-26.6c1-7.2 13.2-4.7 18-4.7 28.6 0 46.1-17 46.1-45.8zm84.2 8.8h-19c-3.8 0-4 5.5-4.2 8.2-5.8-8.5-14.2-10-23.7-10-24.5 0-43.2 21.5-43.2 45.2 0 19.5 12.2 32.2 31.7 32.2 9 0 20.2-4.9 26.5-11.9-.5 1.5-1 4.7-1 6.2 0 2.3 1 4 3.2 4H200c2.7 0 5-2.9 5.5-5.7l10.2-64.3c.3-1.9-1.2-3.9-3.2-3.9zm40.5 97.9l63.7-92.6c.5-.5.5-1 .5-1.7 0-1.7-1.5-3.5-3.2-3.5h-19.2c-1.7 0-3.5 1-4.5 2.5l-26.5 39-11-37.5c-.8-2.2-3-4-5.5-4h-18.7c-1.7 0-3.2 1.8-3.2 3.5 0 1.2 19.5 56.8 21.2 62.1-2.7 3.8-20.5 28.6-20.5 31.6 0 1.8 1.5 3.2 3.2 3.2h19.2c1.8-.1 3.5-1.1 4.5-2.6zm159.3-106.7c0-21-16.2-28-34.7-28h-39.7c-2.7 0-5.2 2-5.5 4.7l-16.2 102c-.2 2 1.3 4 3.2 4h20.5c2 0 3.5-1.5 4-3.2l4.5-29c1-7.2 13.2-4.7 18-4.7 28.4 0 45.9-17 45.9-45.8zm84.2 8.8h-19c-3.8 0-4 5.5-4.3 8.2-5.5-8.5-14-10-23.7-10-24.5 0-43.2 21.5-43.2 45.2 0 19.5 12.2 32.2 31.7 32.2 9.3 0 20.5-4.9 26.5-11.9-.3 1.5-1 4.7-1 6.2 0 2.3 1 4 3.2 4H484c2.7 0 5-2.9 5.5-5.7l10.2-64.3c.3-1.9-1.2-3.9-3.2-3.9zm47.5-33.3c0-2-1.5-3.5-3.2-3.5h-18.5c-1.5 0-3 1.2-3.2 2.7l-16.2 104-.3.5c0 1.8 1.5 3.5 3.5 3.5h16.5c2.5 0 5-2.9 5.2-5.7L544 191.2v-.3zm-90 51.8c-12.2 0-21.7 9.7-21.7 22 0 9.7 7 15 16.2 15 12 0 21.7-9.2 21.7-21.5.1-9.8-6.9-15.5-16.2-15.5z" class=""></path></svg>'
+                'logo' => '<svg viewBox="0 0 576 512"><path fill="currentColor" d="M186.3 258.2c0 12.2-9.7 21.5-22 21.5-9.2 0-16-5.2-16-15 0-12.2 9.5-22 21.7-22 9.3 0 16.3 5.7 16.3 15.5zM80.5 209.7h-4.7c-1.5 0-3 1-3.2 2.7l-4.3 26.7 8.2-.3c11 0 19.5-1.5 21.5-14.2 2.3-13.4-6.2-14.9-17.5-14.9zm284 0H360c-1.8 0-3 1-3.2 2.7l-4.2 26.7 8-.3c13 0 22-3 22-18-.1-10.6-9.6-11.1-18.1-11.1zM576 80v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V80c0-26.5 21.5-48 48-48h480c26.5 0 48 21.5 48 48zM128.3 215.4c0-21-16.2-28-34.7-28h-40c-2.5 0-5 2-5.2 4.7L32 294.2c-.3 2 1.2 4 3.2 4h19c2.7 0 5.2-2.9 5.5-5.7l4.5-26.6c1-7.2 13.2-4.7 18-4.7 28.6 0 46.1-17 46.1-45.8zm84.2 8.8h-19c-3.8 0-4 5.5-4.2 8.2-5.8-8.5-14.2-10-23.7-10-24.5 0-43.2 21.5-43.2 45.2 0 19.5 12.2 32.2 31.7 32.2 9 0 20.2-4.9 26.5-11.9-.5 1.5-1 4.7-1 6.2 0 2.3 1 4 3.2 4H200c2.7 0 5-2.9 5.5-5.7l10.2-64.3c.3-1.9-1.2-3.9-3.2-3.9zm40.5 97.9l63.7-92.6c.5-.5.5-1 .5-1.7 0-1.7-1.5-3.5-3.2-3.5h-19.2c-1.7 0-3.5 1-4.5 2.5l-26.5 39-11-37.5c-.8-2.2-3-4-5.5-4h-18.7c-1.7 0-3.2 1.8-3.2 3.5 0 1.2 19.5 56.8 21.2 62.1-2.7 3.8-20.5 28.6-20.5 31.6 0 1.8 1.5 3.2 3.2 3.2h19.2c1.8-.1 3.5-1.1 4.5-2.6zm159.3-106.7c0-21-16.2-28-34.7-28h-39.7c-2.7 0-5.2 2-5.5 4.7l-16.2 102c-.2 2 1.3 4 3.2 4h20.5c2 0 3.5-1.5 4-3.2l4.5-29c1-7.2 13.2-4.7 18-4.7 28.4 0 45.9-17 45.9-45.8zm84.2 8.8h-19c-3.8 0-4 5.5-4.3 8.2-5.5-8.5-14-10-23.7-10-24.5 0-43.2 21.5-43.2 45.2 0 19.5 12.2 32.2 31.7 32.2 9.3 0 20.5-4.9 26.5-11.9-.3 1.5-1 4.7-1 6.2 0 2.3 1 4 3.2 4H484c2.7 0 5-2.9 5.5-5.7l10.2-64.3c.3-1.9-1.2-3.9-3.2-3.9zm47.5-33.3c0-2-1.5-3.5-3.2-3.5h-18.5c-1.5 0-3 1.2-3.2 2.7l-16.2 104-.3.5c0 1.8 1.5 3.5 3.5 3.5h16.5c2.5 0 5-2.9 5.2-5.7L544 191.2v-.3zm-90 51.8c-12.2 0-21.7 9.7-21.7 22 0 9.7 7 15 16.2 15 12 0 21.7-9.2 21.7-21.5.1-9.8-6.9-15.5-16.2-15.5z" class=""></path></svg>',
+                'form' => array(
+                    'email' => array(
+                        'html' => ADNI_Templates::spr_column(array(
+                            'col' => 'spr_col-6',
+                            'title' => __('Email adress','adn'),
+                            'desc' => sprintf(__('%s email adress to receive payments.','adn'), __('Paypal','adn')),
+                            'content' => ADNI_Templates::inpt_cont(array(
+                                'type' => 'text',
+                                'width' => '100%',
+                                'name' => 'payment[paypal][email]',
+                                'value' => $settings['payment']['paypal']['email'],
+                                'placeholder' => '',
+                                'icon' => 'at',
+                                'show_icon' => 1
+                            ))
+                        ))
+                    ),
+                    'sandbox' => array(
+                        'html' => ADNI_Templates::spr_column(array(
+                            'col' => 'spr_col-2',
+                            'title' => __('Sandbox','adn'),
+                            'desc' => sprintf(__('Run %s in sandbox mode (for testing).'), __('Paypal','adn')),
+                            'content' => ADNI_Templates::switch_btn(array(
+                                'name' => 'payment[paypal][sandbox]',
+                                'checked' => $settings['payment']['paypal']['sandbox'],
+                                'value' => 1,
+                                'hidden_input' => 1,
+                                'chk-on' => __('Yes','adn'),
+                                'chk-off' => __('No','adn')
+                            ))
+                        ))
+                    ),
+                    'debug' => array(
+                        'html' => ADNI_Templates::spr_column(array(
+                            'col' => 'spr_col-2',
+                            'title' => __('Debug','adn'),
+                            'desc' => sprintf(__('Enable %s debug mode (for testing).'), __('Paypal','adn')),
+                            'content' => ADNI_Templates::switch_btn(array(
+                                'name' => 'payment[paypal][debug]',
+                                'checked' => $settings['payment']['paypal']['debug'],
+                                'value' => 1,
+                                'hidden_input' => 1,
+                                'chk-on' => __('Yes','adn'),
+                                'chk-off' => __('No','adn')
+                            ))
+                        ))
+                    )
+                )
             )
-        ));
+        ), $settings, $key);
+
+        return !empty($key) ? $options[$key] : $options;
     }
     
 
@@ -275,7 +363,7 @@ class ADNI_Sell {
             $set_arr = ADNI_Main::settings();
             $settings = $set_arr['settings'];
         }
-        return ADNI_Main::parse_args( $settings, array('sell' => self::default_sell_settings()) );
+        return ADNI_Main::parse_args( $settings, array('sell' => self::default_sell_settings($settings)) );
     }
 	
 
@@ -955,8 +1043,6 @@ class ADNI_Sell {
                         {
                             $urlf = strpos($sell_settings['urls']['available_adzones'], '?') !== false ? '&' : '?';
                             $url = $sell_settings['urls']['available_adzones'].$urlf.'adzone='.$adzone['post']->ID;
-                            //$urlf = strpos($args['url'], '?') !== false ? '&' : '?';
-                            //$url_args = $urlf.'view=available_adzones&adzone='.$adzone['post']->ID;
 
                             $html.= '<li class="order">';
                                 //$html.= '<a href="'.$args['url'].$url_args.'" class="box">';
@@ -1019,6 +1105,7 @@ class ADNI_Sell {
             );
             $args = wp_parse_args( $args, $defaults );
 
+            self::check_if_table_exists( 'adning_sell' );
             $result = $wpdb->get_results("SELECT * FROM " . $wpdb->prefix . "adning_sell ".$args['query']);
         ADNI_Multi::wpmu_load_from_main_stop();
 
@@ -1235,7 +1322,7 @@ class ADNI_Sell {
                                 $urlf = strpos($sell_settings['urls']['user_dashboard'], '?') !== false ? '&' : '?';
                                 $remove_url = $sell_settings['urls']['user_dashboard'].$urlf.'remove_order='.$order->id;
                             }
-                            $h.= '<a id="_ning_remove_sell_order" title="'.__('Remove Order','adn').'" class="remove_order button-secondary" data-href="'.$remove_url.'" data-msg="'.sprintf(__('Are you sure you want to remove this order (#: %s)? This cannot be undone.','adn'),$order->id).'" style="margin-left: 40px;">';
+                            $h.= '<a title="'.__('Remove Order','adn').'" class="_ning_remove_sell_order remove_order button-secondary" data-href="'.$remove_url.'" data-msg="'.sprintf(__('Are you sure you want to remove this order (#: %s)? This cannot be undone.','adn'),$order->id).'" style="margin-left: 40px;">';
                                 $h.= '<svg viewBox="0 0 448 512" style="height:12px;"><path fill="currentColor" d="M0 84V56c0-13.3 10.7-24 24-24h112l9.4-18.7c4-8.2 12.3-13.3 21.4-13.3h114.3c9.1 0 17.4 5.1 21.5 13.3L312 32h112c13.3 0 24 10.7 24 24v28c0 6.6-5.4 12-12 12H12C5.4 96 0 90.6 0 84zm416 56v324c0 26.5-21.5 48-48 48H80c-26.5 0-48-21.5-48-48V140c0-6.6 5.4-12 12-12h360c6.6 0 12 5.4 12 12zm-272 68c0-8.8-7.2-16-16-16s-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208zm96 0c0-8.8-7.2-16-16-16s-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208zm96 0c0-8.8-7.2-16-16-16s-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208z"></path></svg>';
                             $h.= '</a>';
 
@@ -1287,7 +1374,7 @@ class ADNI_Sell {
                             $html.= '<li class="order" style="padding:10px;" data-order-id="'.$order->id.'">';
                                 // Banner info
                                 $html.= '<div class="one_third v_middle">';
-                                    $html.= !empty($order->adzone_id) ? '<span>'.get_the_title($order->adzone_id).'</span>' : '';
+                                    $html.= !empty($order->adzone_id) ? '<span><small>#'.$order->id.'</small> '.get_the_title($order->adzone_id).'</span>' : '';
                                     $html.= '<span style="color:#c3c3c3;font-size:11px;margin-left:5px;">'.sprintf(__('Purchased: %s ago','adn'), self::time_ago($order->time)).'</span>';
                                     $html.= '<div>';
                                         $html.= '<span class="status '.$status['value'].'">'.$status['name'].'</span>';
@@ -1391,7 +1478,7 @@ class ADNI_Sell {
                                     }
 
                                     $urlf = strpos($sell_settings['urls']['user_dashboard'], '?') !== false ? '&' : '?';
-                                    $html.= '<a id="_ning_remove_sell_order" title="'.__('Remove Order','adn').'" class="remove_order button-secondary" data-href="'.$sell_settings['urls']['user_dashboard'].$urlf.'remove_order='.$order->id.'" data-msg="'.sprintf(__('Are you sure you want to remove this order (#: %s)? This cannot be undone.','adn'),$order->id).'" style="margin-left: 40px;">';
+                                    $html.= '<a title="'.__('Remove Order','adn').'" class="_ning_remove_sell_order remove_order button-secondary" data-href="'.$sell_settings['urls']['user_dashboard'].$urlf.'remove_order='.$order->id.'" data-msg="'.sprintf(__('Are you sure you want to remove this order (#: %s)? This cannot be undone.','adn'),$order->id).'" style="margin-left: 40px;">';
                                         $html.= '<svg viewBox="0 0 448 512" style="height:12px;"><path fill="currentColor" d="M0 84V56c0-13.3 10.7-24 24-24h112l9.4-18.7c4-8.2 12.3-13.3 21.4-13.3h114.3c9.1 0 17.4 5.1 21.5 13.3L312 32h112c13.3 0 24 10.7 24 24v28c0 6.6-5.4 12-12 12H12C5.4 96 0 90.6 0 84zm416 56v324c0 26.5-21.5 48-48 48H80c-26.5 0-48-21.5-48-48V140c0-6.6 5.4-12 12-12h360c6.6 0 12 5.4 12 12zm-272 68c0-8.8-7.2-16-16-16s-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208zm96 0c0-8.8-7.2-16-16-16s-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208zm96 0c0-8.8-7.2-16-16-16s-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208z"></path></svg>';
                                     $html.= '</a>';
                                 $html.= '</div>';
@@ -1448,7 +1535,6 @@ class ADNI_Sell {
         $adzone_id = $args['id'];
 		$html = '';
         
-        
 		if( $adzone_id )
 		{
             $adzone = ADNI_CPT::load_post($adzone_id, array('post_type' => ADNI_CPT::$adzone_cpt, 'filter' => 0));
@@ -1474,16 +1560,15 @@ class ADNI_Sell {
                                             $html.= '</span>
                                         </div>';
                                         // end .info_header
-                                    
+
+                                        $html.= '<div class="loading_overlay">
+                                            <div class="inner_loader"><svg aria-hidden="true" data-prefix="fas" data-icon="spinner" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-inline--fa fa-spinner fa-w-16 fa-spin fa-lg"><path fill="currentColor" d="M304 48c0 26.51-21.49 48-48 48s-48-21.49-48-48 21.49-48 48-48 48 21.49 48 48zm-48 368c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zm208-208c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zM96 256c0-26.51-21.49-48-48-48S0 229.49 0 256s21.49 48 48 48 48-21.49 48-48zm12.922 99.078c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.491-48-48-48zm294.156 0c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.49-48-48-48zM108.922 60.922c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.491-48-48-48z" class=""></path></svg></div>
+                                        </div>';
 
                                         $html.= '<div class="spr_row adzone_order_form" style="position:relative;">';
 
-                                            $html.= '<div class="loading_overlay">
-                                                <div class="inner_loader"><svg aria-hidden="true" data-prefix="fas" data-icon="spinner" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-inline--fa fa-spinner fa-w-16 fa-spin fa-lg"><path fill="currentColor" d="M304 48c0 26.51-21.49 48-48 48s-48-21.49-48-48 21.49-48 48-48 48 21.49 48 48zm-48 368c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zm208-208c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zM96 256c0-26.51-21.49-48-48-48S0 229.49 0 256s21.49 48 48 48 48-21.49 48-48zm12.922 99.078c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.491-48-48-48zm294.156 0c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.49-48-48-48zM108.922 60.922c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.491-48-48-48z" class=""></path></svg></div>
-                                            </div>';
-
                                             //$html.= '<div class="sep_line" style="margin:0 0 15px 0;"><span><strong>'.__('Rotation Info','adn').'</strong></span></div>';
-                                            $html.= '<div class="spr_column spr_col">
+                                            $html.= '<div class="spr_column spr_col-4">
                                                 <div class="spr_column-inner left_column">
                                                     <div class="spr_wrapper">
                                                         <div class="input_container">';
@@ -1509,6 +1594,13 @@ class ADNI_Sell {
                                                 </div>
                                             </div>'; 
                                             // end .spr_column
+
+                                            $html.= ADNI_Templates::spr_column(array(
+                                                'col' => 'spr_col-8',
+                                                'title' => '',
+                                                'desc' => '',
+                                                'content' => $adzone['args']['description']
+                                            ));
                                             
                                             
 
@@ -1568,7 +1660,9 @@ class ADNI_Sell {
                                             
                                                 // PAYMENT OPTIONS
                                                 $html.= '<div class="clearFix"></div>';
-                                                $html.= '<div class="sep_line" style="margin:0 0 15px 0;"><span><strong>'.__('Payment Option','adn').'</strong></span></div>';
+
+                                                $payment_options_html = '';
+                                                $payment_options_html.= '<div class="sep_line" style="margin:0 0 15px 0;"><span><strong>'.__('Payment Option','adn').'</strong></span></div>';
                                             
                                                 $active_payment = 0;
                                                 if( !empty($sell_settings['payment']))
@@ -1576,29 +1670,35 @@ class ADNI_Sell {
                                                     $i = 0;
                                                     foreach( $sell_settings['payment'] as $key => $payment)
                                                     {
-                                                        if( $payment['active'] )
+                                                        $form_item = ADNI_Sell::sell_payment_option_forms($sell_settings, $key);
+
+                                                        if( $payment['active'] && $key !== 'woocommerce' )
                                                         {
                                                             $active_payment = 1;
                                                             $selected = !$i ? ' selected' : '';
-                                                            $html.= '<div class="spr_column spr_col-1">';
-                                                                $html.= '<div class="spr_column-inner left_column">
+                                                            $payment_options_html.= '<div class="spr_column spr_col-1">';
+                                                                $payment_options_html.= '<div class="spr_column-inner left_column">
                                                                     <div class="spr_wrapper">
                                                                         <div class="input_container">';
 
-                                                                            $html.= '<a class="payment_btn ttip'.$selected.'" title="'.$payment['title'].'" data-opt="'.$key.'">';
-                                                                                $html.= $payment['logo'];
-                                                                            $html.= '</a>';
+                                                                            $payment_options_html.= '<a class="payment_btn ttip'.$selected.'" title="'.$form_item['title'].'" data-opt="'.$key.'">';
+                                                                                $payment_options_html.= $form_item['logo'];
+                                                                            $payment_options_html.= '</a>';
 
-                                                                            $html.= '<span class="description bottom">'.__('','adn').'</span>';
-                                                                        $html.= '</div>
+                                                                            $payment_options_html.= '<span class="description bottom">'.__('','adn').'</span>';
+                                                                        $payment_options_html.= '</div>
                                                                     </div>
                                                                 </div>';
-                                                            $html.= '</div>'; 
+                                                            $payment_options_html.= '</div>'; 
                                                             // end .spr_column 
+
                                                             $i++;
                                                         }
                                                     }
                                                 }
+
+                                                $html.= apply_filters('ADNI_sell_payment_options', $payment_options_html, $sell_settings);
+                                                $active_payment = apply_filters('ADNI_sell_active_payment', $active_payment, $key);
 
                                                 $html.= !$active_payment ? '<div class="clearFix"></div><div class="input_container"><p>'.__('Sorry, no payment options are currently available. Please contact the website administration.','adn').'</p></div>' : '';
                                                 
@@ -1850,7 +1950,7 @@ class ADNI_Sell {
         
         if( $payment === 'paypal')
         {
-            echo self::paypal($ipn_data);
+            $h.= self::paypal($ipn_data);
         }
         if( $payment === 'bank-transfer')
         {
@@ -1868,8 +1968,9 @@ class ADNI_Sell {
                         </div>
                     </div>';
             $h.= '</div>';
-            echo $h;
         }
+
+        echo do_action('ADNI_sell_send_payment', $h, $ipn_data, $payment);
 
         exit;
     }
@@ -1892,6 +1993,7 @@ class ADNI_Sell {
         if( !empty($data))
 		{
             $all_ok = 0;
+            $pay_arr = array();
 
             if($provider === 'paypal')
             {
@@ -1899,20 +2001,36 @@ class ADNI_Sell {
                 $adning_paypal_ipn->log_add('received : ' . print_r($data, true));
 
                 $args = json_decode(json_encode(json_decode(stripslashes(urldecode($data['custom'])))), true);
-
                 $adning_paypal_ipn->log_add('custom : ' . print_r($args, true));
 
                 // Fully paid
 			    if( $data['payment_amount'] >= $args['price'] )
 			    {
+                    $pay_arr = array(
+                        'type' => $args['type'],
+                        'adzone_id' => $args['aid'],
+                        'banner_id' => $args['bid'],
+                        'order_id' => $args['order_id'],
+                        'price' => $args['price'],
+                        'email' => $args['email'],
+                        'transaction' => $data['txn_id'],
+                        'am_paid' => $data['payment_amount'],
+                        'trans_date' => current_time('timestamp')
+                    );
                     $all_ok = 1;
                 }
             }
+            else
+            {
+                $pay_arr = apply_filters('ADNI_sell_receive_payment', $data, $pay_arr, $provider);
+                $all_ok = array_key_exists('all_ok', $pay_arr) ? $pay_arr['all_ok'] : 0;
+            }
+
 
             // Payment successfull, create data
-            if( $all_ok )
+            if( $all_ok && !empty($pay_arr) )
             {
-                $adzone = ADNI_CPT::load_post($args['aid'], array('post_type' => ADNI_CPT::$adzone_cpt, 'filter' => 0));
+                $adzone = ADNI_CPT::load_post($pay_arr['adzone_id'], array('post_type' => ADNI_CPT::$adzone_cpt, 'filter' => 0));
                 $adzone_info = self::adzone_details($adzone);
                 $order_status = $adzone_info['review'] ? 'draft' : 'active';
             
@@ -1920,16 +2038,16 @@ class ADNI_Sell {
                 $wpdb->query("UPDATE " . $wpdb->prefix . "adning_sell  
                     SET 
                         status = '".$order_status."',
-                        transaction = '".$data['txn_id']."',
-                        trans_date = '".current_time('timestamp')."',
-                        am_paid = '".$data['payment_amount']."'
-                    WHERE id = '".$args['order_id']."' 
+                        transaction = '".$pay_arr['transaction']."',
+                        trans_date = '".$pay_arr['trans_date']."',
+                        am_paid = '".$pay_arr['am_paid']."'
+                    WHERE id = '".$pay_arr['order_id']."' 
                 ");
 
                 // if renewing
-                if( $args['type'] === 'renew' )
+                if( $pay_arr['type'] === 'renew' )
                 {
-                    self::renew_contract_activation($adzone, $args);
+                    self::renew_contract_activation($adzone, $pay_arr);
                 }
             }
         }
@@ -1945,13 +2063,13 @@ class ADNI_Sell {
 	 */
     public static function renew_contract_activation($adzone = array(), $args = array())
     {
-        $banner = ADNI_CPT::load_post($args['bid'], array('post_type' => ADNI_CPT::$banner_cpt, 'filter' => 0));
+        $banner = ADNI_CPT::load_post($args['banner_id'], array('post_type' => ADNI_CPT::$banner_cpt, 'filter' => 0));
         //$b_args = ADNI_Main::parse_args(array('status' => 'active'), $banner['args']);
         $banner['args']['status'] = 'active';
-        $b_args = ADNI_Multi::update_post_meta($args['bid'], '_adning_args', $banner['args']);
+        $b_args = ADNI_Multi::update_post_meta($args['banner_id'], '_adning_args', $banner['args']);
 
-        ADNI_CPT::add_banner_to_adzone($args['aid'], $args['bid']);
-        ADNI_CPT::add_adzone_to_banner($args['aid'], $args['bid']);
+        ADNI_CPT::add_banner_to_adzone($args['adzone_id'], $args['banner_id']);
+        ADNI_CPT::add_adzone_to_banner($args['adzone_id'], $args['banner_id']);
     }
 
 
@@ -1964,6 +2082,15 @@ class ADNI_Sell {
         $orders = self::load_order(array('query' => "WHERE status = 'draft'"));
 
         return count($orders);
+    }
+
+    /**
+     * Pending order notifications count balloon, 
+     * for Filter ADNI_noti_balloon
+     */
+    public static function count_order_notifications($count)
+    {
+        return $count + self::pending_order_count();
     }
 
 

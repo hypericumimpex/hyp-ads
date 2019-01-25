@@ -15,7 +15,8 @@ class ADNI_Ajax {
 		
 		$_dn_ajax_actions = array(
 			'adblocker_detected',
-			'display_filter_load_posts'
+			'display_filter_load_posts',
+			'ajax_install_plugin'
 		);
 
 
@@ -83,6 +84,34 @@ class ADNI_Ajax {
 		
 		echo json_encode($response);
 		exit;
+	}
+
+
+
+
+	public static function ajax_install_plugin() 
+	{
+		if ( ! current_user_can( 'install_plugins' ) || ! isset( $_POST['plugin'] ) || ! $_POST['plugin'] ) 
+		{
+		  	wp_send_json_error( array( 'message' => 'No plugin specified' ) );
+		}
+	
+		if ( ! isset( $_POST['package'] ) || ! $_POST['package'] ) {
+		  	wp_send_json_error( array( 'message' => 'No package provided' ) );
+		}
+	
+		$install = ADNI_Main::install_plugin( array(
+		  	'plugin'   => $_POST['plugin'],
+			'package'  => $_POST['package'],
+			'activate' => true
+		) );
+	
+		if ( is_wp_error( $install ) ) 
+		{
+		  	wp_send_json_error( array( 'message' => $install->get_error_message() ) );
+		}
+	
+		wp_send_json_success( array( 'plugin' => $_POST['plugin'] ) );
 	}
 
 }

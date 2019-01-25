@@ -65,6 +65,7 @@
             if( click_url.right === ''){
                 _obj.find('.skin_bg_right').css({cursor:'default'});
             }
+            _obj.find('.skin_bg_top').on('click', function(){ click_url.top !== '' ? window.open(click_url.top) : ''; });
             _obj.find('.skin_bg_left').on('click', function(){ click_url.left !== '' ? window.open(click_url.left) : ''; });
             _obj.find('.skin_bg_right').on('click', function(){ click_url.right !== '' ? window.open(click_url.right) : ''; });
             
@@ -85,6 +86,7 @@
 
                 if( settings.bg_pos === 'absolute'){
                     var outerHeight = _obj.is( "body" ) ? $(document).outerHeight() : _obj.outerHeight();
+                    console.log(_obj.height());
                     console.log(outerHeight);
 
                     if( settings.bg_image !== ''){
@@ -112,7 +114,9 @@
                 _obj.find('.skin_bg_right').css({width:(width-mainbodyWidth)/2+"px"});
             }
             
-            resize_bg();
+            $(document).ready(function(){
+                resize_bg();
+            });
             window.onresize = resize_bg;
         });
     };

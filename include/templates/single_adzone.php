@@ -236,27 +236,6 @@ if( !empty( $adzone['post'] ))
                                     ))
                                 ));
                                 echo $h;
-                                /*
-                                <div class="spr_column spr_col-2">
-                                    <div class="spr_column-inner">
-                                        <div class="spr_wrapper">
-                                            <div class="input_container">
-                                                <h3 class="title"><?php _e('','adn'); ?></h3>
-                                                <div class="input_container_inner">
-                                                    <label class="switch switch-slide small input_h ttip" title="<?php _e('Responsive adzone.','adn'); ?>">
-                                                        <input class="switch-input" type="checkbox" id="ADNI_responsive" name="responsive" value="1" <?php checked( $adzone['args']['responsive'], 1 ); ?> />
-                                                        <span class="switch-label" data-on="<?php _e('On','adn'); ?>" data-off="<?php _e('Off','adn'); ?>"></span> 
-                                                        <span class="switch-handle"></span>
-                                                    </label>
-                                                </div>
-                                                <span class="description bottom"><?php _e('Responsive','adn'); ?></span>
-                                            </div>
-                                            <!-- end .input_container -->
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- end .spr_column -->
-                                */
                                 ?>
                                 
                                 
@@ -271,32 +250,32 @@ if( !empty( $adzone['post'] ))
                                                 'title' => '',
                                                 'desc' => __('width.','adn'),
                                                 'content' => ADNI_Templates::inpt_cont(array(
-                                                        'type' => 'text',
-                                                        'width' => '100%',
-                                                        'class' => '_ning_custom_size',
-                                                        'name' => 'size_w',
-                                                        'id' => 'ADNI_size_w',
-                                                        'value' => $adzone['args']['size_w'],
-                                                        'placeholder' => '',
-                                                        'icon' => 'arrows-h',
-                                                        'show_icon' => 1
-                                                    ))
+                                                    'type' => 'text',
+                                                    'width' => '100%',
+                                                    'class' => '_ning_custom_size',
+                                                    'name' => 'size_w',
+                                                    'id' => 'ADNI_size_w',
+                                                    'value' => $adzone['args']['size_w'],
+                                                    'placeholder' => '',
+                                                    'icon' => 'arrows-h',
+                                                    'show_icon' => 1
+                                                ))
                                             ));
                                             $h.= ADNI_Templates::spr_column(array(
                                                 'col' => 'spr_col-6',
                                                 'title' => '',
                                                 'desc' => __('height.','adn'),
                                                 'content' => ADNI_Templates::inpt_cont(array(
-                                                        'type' => 'text',
-                                                        'width' => '100%',
-                                                        'class' => '_ning_custom_size',
-                                                        'name' => 'size_h',
-                                                        'id' => 'ADNI_size_h',
-                                                        'value' => $adzone['args']['size_h'],
-                                                        'placeholder' => '',
-                                                        'icon' => 'arrows-v',
-                                                        'show_icon' => 1
-                                                    ))
+                                                    'type' => 'text',
+                                                    'width' => '100%',
+                                                    'class' => '_ning_custom_size',
+                                                    'name' => 'size_h',
+                                                    'id' => 'ADNI_size_h',
+                                                    'value' => $adzone['args']['size_h'],
+                                                    'placeholder' => '',
+                                                    'icon' => 'arrows-v',
+                                                    'show_icon' => 1
+                                                ))
                                             ));
                                             echo $h;
                                             ?>
@@ -359,7 +338,7 @@ if( !empty( $adzone['post'] ))
                                                                         echo '<optgroup label="'.__('Linked Banners','adn').'">';
                                                                         foreach( $adzone['args']['linked_banners'] as $banner_id)
                                                                         {
-                                                                            echo '<option value="'.$banner_id.'" selected>'.get_the_title($banner_id).'</option>';
+                                                                            echo '<option value="'.$banner_id.'" selected>'.get_the_title($banner_id).' - #'.$banner_id.'</option>';
                                                                         }
                                                                         echo '</optgroup>';
                                                                     }
@@ -370,7 +349,7 @@ if( !empty( $adzone['post'] ))
                                                                         {
                                                                             foreach( $fitting_banners as $banner)
                                                                             {
-                                                                                echo '<option value="'.$banner->ID.'">'.$banner->post_title.'</option>';
+                                                                                echo '<option value="'.$banner->ID.'">'.$banner->post_title.' - #'.$banner->ID.'</option>';
                                                                             }
                                                                         }
                                                                         else
@@ -386,7 +365,7 @@ if( !empty( $adzone['post'] ))
                                                                             
                                                                             foreach( $not_fitting_banners as $banner)
                                                                             {
-                                                                                echo '<option value="'.$banner->ID.'">'.$banner->post_title.'</option>';
+                                                                                echo '<option value="'.$banner->ID.'">'.$banner->post_title.' - #'.$banner->ID.'</option>';
                                                                             }
                                                                         }
                                                                         else
@@ -412,12 +391,12 @@ if( !empty( $adzone['post'] ))
                                             <div class="spr_column"> <!-- spr_col-4 -->
                                                <div class="spr_column-inner">
                                                     <div class="spr_wrapper">
-                                                        <div class="sep_line" style="margin:0 0 25px 0;"><span><strong><?php _e('Order and Loading settings','adn'); ?></strong></span></div>
+                                                        <div class="sep_line" style="margin:25px 0 25px 0;"><span><strong><?php _e('Order and Loading settings','adn'); ?></strong></span></div>
                                                         
                                                         <?php
                                                         $h = '';
                                                         $h.= ADNI_Templates::spr_column(array(
-                                                            'col' => 'spr_col-3',
+                                                            'col' => 'spr_col-4',
                                                             'title' => __('Random Order','adn'),
                                                             'desc' => __('Load banners in random order.','adn'),
                                                             'content' => ADNI_Templates::switch_btn(array(
@@ -431,8 +410,8 @@ if( !empty( $adzone['post'] ))
                                                             ))
                                                         ));
                                                         $h.= ADNI_Templates::spr_column(array(
-                                                            'col' => 'spr_col-3',
-                                                            'title' => __('Load one banner','adn'),
+                                                            'col' => 'spr_col-4',
+                                                            'title' => __('Single banner','adn'),
                                                             'desc' => __('Load one banner at the time (no transition, one banner on page load).','adn'),
                                                             'content' => ADNI_Templates::switch_btn(array(
                                                                 'name' => 'load_single',
@@ -444,10 +423,26 @@ if( !empty( $adzone['post'] ))
                                                                 'chk-high' => 1
                                                             ))
                                                         ));
+                                                        $h.= ADNI_Templates::spr_column(array(
+                                                            'col' => 'spr_col-4',
+                                                            'title' => __('Allow scrolling','adn'),
+                                                            'desc' => __('Allow users to (touch) scroll true the ads.','adn'),
+                                                            'content' => ADNI_Templates::switch_btn(array(
+                                                                'name' => 'touch_scroll',
+                                                                'checked' => $adzone['args']['touch_scroll'],
+                                                                'value' => 1,
+                                                                'hidden_input' => 1,
+                                                                'chk-on' => __('Yes','adn'),
+                                                                'chk-off' => __('No','adn'),
+                                                                'chk-high' => 1
+                                                            ))
+                                                        ));
                                                         echo $h;
                                                         ?>
+
+                                                        <div class="clearFix"></div>
                                                         
-                                                        <div class="spr_column spr_col-3">
+                                                        <div class="spr_column spr_col-4">
                                                             <div class="spr_column-inner">
                                                                 <div class="spr_wrapper">
                                                                     <div class="input_container">
@@ -464,7 +459,7 @@ if( !empty( $adzone['post'] ))
                                                             </div>
                                                         </div>
 
-                                                        <div class="spr_column spr_col-3">
+                                                        <div class="spr_column spr_col-4">
                                                             <div class="spr_column-inner">
                                                                 <div class="spr_wrapper">
 
@@ -488,6 +483,7 @@ if( !empty( $adzone['post'] ))
 
 
                                                         <div class="clearFix"></div>
+                                                        <div class="sep_line" style="margin:25px 0 25px 0;"><span><strong><?php _e('AD Grid settings','adn'); ?></strong></span></div>
                                                         
                                                         <?php
                                                         $h = '';
@@ -553,6 +549,7 @@ if( !empty( $adzone['post'] ))
                                                             </div>
                                                         </div>
 
+                                                        <div class="clearFix"></div>
                                                         
 
                                                     </div>

@@ -60,12 +60,13 @@ class ADNI_Templates {
 			'page' => 'dashboard',
 			'title' => 'Adning Premium Advertising',
 			'desc' => '⚡ ' . __('Welcome! You are using the most powerful Advertising plugin for Wordpress. Let\'s get started!','adn'),
-			'tabs' => 1
+			'tabs' => 1,
+			'errors' => array()
 		);
 		$args = wp_parse_args($args, $defaults);
 
 		//$activation = get_option('adning_activation', array());
-		$activation = true;
+		$activation = ADNI_Multi::get_option('adning_activation', array());
 
 		$html = '';
 		$html.= '<div class="imc-heading-section adning-header">';
@@ -78,6 +79,18 @@ class ADNI_Templates {
 				$html.= '</div>';
 			$html.= '</div>';
 		$html.= '</div>';
+
+		// Error messages
+		if(!empty($args['errors']))
+        {
+			$html.= '<div class="_ning_notices">';
+                foreach($args['errors'] as $err)
+                {
+					$type = array_key_exists('type', $err) ? '<strong>'.ucfirst($err['type']).':</strong> ' : '';
+                    $html.= '<div class="error_msg">'.$type.$err['msg'].'</div>';
+                }
+			$html.= '</div>';
+		}
 
 		// Menu options
 		if( $args['tabs'])
@@ -123,7 +136,7 @@ class ADNI_Templates {
 		$h = '';
 		$tab = $args['tab'];
 		//$activation = get_option('adning_activation', array());
-		$activation = true;
+		$activation = ADNI_Multi::get_option('adning_activation', array());
 
 		// Menu options
 		$m_new = $tab == 'new' ? ' nav-tab-active' : '';
@@ -168,7 +181,6 @@ class ADNI_Templates {
 		if( empty($banner) )
 			return '';
 		
-		
 		// if args stats is empty it has to overwrite the single banner stats.
 		$save_stats = empty($args['stats']) ? 0 : $banner['args']['enable_stats'];
 
@@ -197,9 +209,9 @@ class ADNI_Templates {
 		$banner_h = is_numeric($b['size_h']) ? $b['size_h'].'px' : 'inherit';
 		$banner_h = !$b['responsive'] ? $banner_h : 'inherit';
 		
-		$url = $b['banner_link_masking'] && !empty($url) ? ADNI_Main::link_masking($id,$args['in_adzone']) : $url;
+		$url = $b['banner_link_masking'] && !empty($url) ? ADNI_Main::link_masking(array('id' => $id, 'adzone_id' => $args['in_adzone'])) : $url;
 		$nofollow = $b['banner_no_follow'] ? ' rel="nofollow"' : '';
-		$responsive_class = $b['responsive'] ? ' responsive' : '';
+		$responsive_class = $b['responsive'] && !$args['in_adzone'] ? ' responsive' : '';
 		$scale_class = $b['banner_scale'] ? ' scale' : '';
 		$inner_size = $b['banner_scale'] ? 'width:'.$banner_w.';height:'.$b['size_h'].'px;' : '';
 		$animation = !empty($args['animation']) ? ' data-animation="'.$args['animation'].'"' : '';
@@ -213,17 +225,17 @@ class ADNI_Templates {
 		$ning_outer_class = !$args['in_adzone'] ? ' _ning_outer' : '';
 		$align_class = ' _align_'.$b['align'];
 		$clearfix_div = !$b['wrap_text'] ? '<div class="clear"></div>' : '';
+
+		$strack_btn = !empty($url) && $save_stats ? ' strack_bnr' : '';
 		
 		// Banner content
-		//$html.= '<div class="_ning_outer _ning_cont _ning_hidden'.$responsive_class.$scale_class.'" data-size="'.$b['size'].'"'.$animation.' style="max-width:'.$banner_w.'; width:100%; max-height:'.$b['size_h'].'px; height: '.$b['size_h'].'px;">';
-		$html.= '<div class="_ning_cont strack_bnr _ning_hidden'.$ning_outer_class.$align_class.$responsive_class.$scale_class.$has_label.$has_border.'" data-size="'.$b['size'].'"'.$animation.' data-bid="'.$id.'" data-aid="'.$args['in_adzone'].'" style="max-width:'.$banner_w.'; width:100%;height:'.$banner_h.';'.$border_color.'">'; // height:inherit
+		$html.= '<div class="_ning_cont'.$strack_btn.' _ning_hidden'.$ning_outer_class.$align_class.$responsive_class.$scale_class.$has_label.$has_border.'" data-size="'.$b['size'].'"'.$animation.' data-bid="'.$id.'" data-aid="'.$args['in_adzone'].'" style="max-width:'.$banner_w.'; width:100%;height:'.$banner_h.';'.$border_color.'">'; // height:inherit
 			$html.= !$args['in_adzone'] ? '<div class="_ning_label'.$label_pos.'" style="'.$label_color.'">'.$label.'</div>' : '';
 			$html.= '<div class="_ning_inner" style="'.$inner_size.'">';
 				// Banner_url
 				$html.= !empty($url) && $args['add_url'] ? '<a href="'.$url.'" class="strack_cli _ning_link" target="'.$b['banner_target'].'"'.$nofollow.'></a>' : '';
-				//$html.= !empty($url) && $args['add_url'] ? '<a href="'.$url.'" class="strack_cli" target="'.$b['banner_target'].'"'.$nofollow.'>' : '';
-					$html.= ADNI_Multi::do_shortcode($content);
-				//$html.= !empty($url) && $args['add_url'] ? '</a>' : '';
+				// Banner content
+				$html.= ADNI_Multi::do_shortcode($content);
 			$html.= '</div>';
 		$html.= '</div>';
 		$html.= $clearfix_div;
@@ -297,23 +309,7 @@ class ADNI_Templates {
 			
 			if( empty($adzone_content))
 				return '';
-			
-			// if args stats is empty it has to overwrite the single adonze stats.
-			//$save_stats = empty($args['stats']) ? 0 : $adzone['args']['enable_stats'];
-
-			// Filter -------------------------------------------------------
-			/*if( $save_stats )
-			{
-				if(!is_admin())
-				{
-					apply_filters('adning_save_stats', array(
-						'type' => 'impression',
-						'adzone_id' => $id
-					));
-				}
-			}*/
-
-			
+		
 			//echo '<pre>'.print_r($a, true).'</pre>';
 			$rand_id = $id.'_'.rand(); // To fix conflicts with same adzones on one page.
 			$label = $a['cont_label'];
@@ -322,6 +318,7 @@ class ADNI_Templates {
 			$has_label = !empty($label) ? ' has_label' : '';
 			$has_border = !empty($a['cont_border']) ? ' has_border' : '';
 			$border_color = !empty($a['cont_border_color']) ? ' background:'.$a['cont_border_color'].';' : '';
+			//$responsive_class = $a['responsive'] ? ' responsive' : '';
 
 			$align_class = ' _align_'.$a['align'];
 			$clearfix_div = !$a['wrap_text'] ? '<div class="clear"></div>' : '';
@@ -351,37 +348,49 @@ class ADNI_Templates {
 					// Hide empty adzones.
 					//$html.= 'if( !$("#_ning_zone_'.$rand_id.'").find(".slide").length ){ $("#_ning_zone_'.$rand_id.'").closest("._ning_outer").hide(); }';
 					
-					if( !empty( $a['linked_banners'] ) && !$a['load_single'] && !$a['load_grid'] )
+					if( !$a['load_grid'] )
 					{
-						$html.= 'var _SlideshowTransitions_'.$rand_id.' = ['.$a['adzone_transition'].'];';
+						// Create options object
 						$html.= 'var options_'.$rand_id.' = {';
-							$html.= '$AutoPlay:1,';
 							$html.= '$ArrowKeyNavigation:false,';
 							$html.= '$DragOrientation:0,';
-							$html.= '$SlideshowOptions:{';
+						$html.= '};';
+
+
+						if( !empty( $a['linked_banners'] ) && !$a['load_single'] )
+						{
+							$html.= 'var _SlideshowTransitions_'.$rand_id.' = ['.$a['adzone_transition'].'];';
+							
+							// Extend options object
+							$html.= 'options_'.$rand_id.'.$AutoPlay = 1;';
+							$html.= 'options_'.$rand_id.'.$ArrowKeyNavigation = false;';
+							$html.= 'options_'.$rand_id.'.$DragOrientation = '.$a['touch_scroll'].';';
+							$html.= 'options_'.$rand_id.'.$SlideshowOptions = {';
 								$html.= '$Class:$JssorSlideshowRunner$,';
 								$html.= '$Transitions:_SlideshowTransitions_'.$rand_id.',';
 								$html.= '$TransitionsOrder:1,';
 								$html.= '$ShowLink:true';
-							$html.= '}';
-						$html.= '};';
-						$html.= 'var _ning_slider_'.$rand_id.' = new $JssorSlider$(\'_ning_zone_'.$rand_id.'\', options_'.$rand_id.');';
-								
-						/*$html.= 'function SliderPositionChangeEventHandler(position, fromPosition, virtualPosition, virtualFromPosition)
-						{
-							console.log("changing position "+position);
-							var imc_id = $(".slide_"+position).find("._dn_cont").data("id");
-							console.log(imc_id);
-							//window["bnr_"+imc_id+"_in_animation"]();
+							$html.= '};';
 							
-							//continuously fires while carousel sliding
-							//position: current position of the carousel
-							//fromPosition: previous position of the carousel
-							//virtualPosition: current virtual position of the carousel
-							//virtualFromPosition: previous virtual position of the carousel
+
+							/*$html.= 'function SliderPositionChangeEventHandler(position, fromPosition, virtualPosition, virtualFromPosition)
+							{
+								console.log("changing position "+position);
+								var imc_id = $(".slide_"+position).find("._dn_cont").data("id");
+								console.log(imc_id);
+								//window["bnr_"+imc_id+"_in_animation"]();
+								
+								//continuously fires while carousel sliding
+								//position: current position of the carousel
+								//fromPosition: previous position of the carousel
+								//virtualPosition: current virtual position of the carousel
+								//virtualFromPosition: previous virtual position of the carousel
+							}
+							_ning_slider.$On($JssorSlider$.$EVT_POSITION_CHANGE, SliderPositionChangeEventHandler);';
+							*/
 						}
-						_ning_slider.$On($JssorSlider$.$EVT_POSITION_CHANGE, SliderPositionChangeEventHandler);';
-						*/
+						
+						$html.= 'var _ning_slider_'.$rand_id.' = new $JssorSlider$(\'_ning_zone_'.$rand_id.'\', options_'.$rand_id.');';
 					}
 
 
@@ -389,6 +398,7 @@ class ADNI_Templates {
 					$html.= 'ScaleSlider();';
 					$html.= 'function ScaleSlider() {';
 						$html.= 'var parentWidth = $(\'#_ning_zone_'.$rand_id.'\').parent().width();';
+						//$html.= 'console.log("'.$rand_id.': "+ parentWidth);';
 						$html.= 'if(parentWidth){';
 							$html.= 'if( typeof _ning_slider_'.$rand_id.' !== "undefined" ){';
 								$html.= '_ning_slider_'.$rand_id.'.$ScaleWidth(parentWidth);';
@@ -396,7 +406,8 @@ class ADNI_Templates {
 						$html.= '}else{';
 							$html.= 'window.setTimeout(ScaleSlider, 30);';
 						$html.= '}';
-						
+						 
+						// Run ningResponsive() to make sure banners are visible in admin area.
 						$html.= '$("._ning_cont").ningResponsive();';
 					$html.= '}';
 												
@@ -431,6 +442,7 @@ class ADNI_Templates {
 			if( $a['random_order'] )
 			{
 				shuffle($a['linked_banners']);
+				// TODO: random by weight. check function ADNI_Main::random_weight();
 			}
 			// Check if only a single banner has to be loaded.
 			if( $a['load_single'] )
@@ -523,6 +535,7 @@ class ADNI_Templates {
 		$defaults = array(
 			'col' => '', // spr_col-6
 			'class' => '',
+			'style' => '',
 			'title' => '',
 			'content' => '',
 			'desc' => ''
@@ -531,9 +544,10 @@ class ADNI_Templates {
 
 		$col = !empty($args['col']) ? ' '.$args['col'] : '';
 		$class = !empty($args['class']) ? ' '.$args['class'] : '';
+		$style = !empty($args['style']) ? ' style="'.$args['style'].'"' : '';
 
 		$h = '';
-		$h.= '<div class="spr_column'.$col.$class.'">';
+		$h.= '<div class="spr_column'.$col.$class.'"'.$style.'>';
 			$h.= '<div class="input_container">';
 				$h.= '<h3 class="title">'.$args['title'].'</h3>';
 				$h.= '<div class="input_container_inner">';
@@ -972,23 +986,41 @@ class ADNI_Templates {
 															$h.= '<p>'.__('','adn').'</p>';
 
 															$after_x_p = '';
+															$after_x_p_repeat ='';
 															if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
 															{
-																$after_x_p = array_key_exists('inside_content', $auto_pos[$id]) ? $auto_pos[$id]['inside_content']['after_x_p'] : '';
+																$inside_content = array_key_exists('inside_content', $auto_pos[$id]) ? $auto_pos[$id]['inside_content'] : array();
+																$inside_content = ADNI_Main::parse_args($inside_content, array('after_x_p' => '', 'after_x_p_repeat' => 0, 'after_x_post' => '', 'after_x_post_repeat' => 0));
+																$after_x_p = $inside_content['after_x_p'];
+																$after_x_p_repeat = $inside_content['after_x_p_repeat'];
 															}
-															$h.= ADNI_Templates::spr_column(array(
-																'col' => 'spr_col',
-																'title' => __('Insert after X Paragraphs (int)','adn'),
+															$h.= self::spr_column(array(
+																'col' => 'spr_col-6',
+																'title' => __('After x Paragraphs','adn'),
 																'desc' => __('Select after how many paragraphs the ad should show.','adn'),
-																'content' => ADNI_Templates::inpt_cont(array(
+																'content' => self::inpt_cont(array(
 																	'type' => 'text',
 																	'width' => '100%',
 																	//'name' => 'position_after_x_p',
 																	'name' => 'pos[inside_content][after_x_p]',
 																	'value' => $after_x_p,
-																	'placeholder' => '',
+																	'placeholder' => '2',
 																	'icon' => 'pencil',
 																	'show_icon' => 1
+																))
+															));
+															$h.= self::spr_column(array(
+																'col' => 'spr_col-6',
+																'title' => __('Repeat','adn'),
+																'desc' => __('Repeat AD after every x paragraphs.','adn'),
+																'content' => self::switch_btn(array(
+																	'name' => 'pos[inside_content][after_x_p_repeat]',
+																	'checked' => $after_x_p_repeat,
+																	'value' => 1,
+																	'hidden_input' => 1,
+																	'chk-on' => __('Yes','adn'),
+																	'chk-off' => __('No','adn'),
+																	'chk-high' => 1
 																))
 															));
 
@@ -1011,12 +1043,14 @@ class ADNI_Templates {
 															$h.= '<p>'.__('','adn').'</p>';
 
 															$after_x_post = '';
+															$after_x_post_repeat = '';
 															if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
 															{
-																$after_x_post = array_key_exists('inside_content', $auto_pos[$id]) ? $auto_pos[$id]['inside_content']['after_x_post'] : '';
+																$after_x_post = $inside_content['after_x_post'];
+																$after_x_post_repeat = $inside_content['after_x_post_repeat'];
 															}
 															$h.= ADNI_Templates::spr_column(array(
-																'col' => 'spr_col',
+																'col' => 'spr_col-6',
 																'title' => __('In Loop','adn'),
 																'desc' => __('Select after how many posts the ad should show.','adn'),
 																'content' => ADNI_Templates::inpt_cont(array(
@@ -1027,6 +1061,20 @@ class ADNI_Templates {
 																	'placeholder' => '',
 																	'icon' => 'pencil',
 																	'show_icon' => 1
+																))
+															));
+															$h.= self::spr_column(array(
+																'col' => 'spr_col-6',
+																'title' => __('Repeat','adn'),
+																'desc' => __('Repeat AD after every x posts.','adn'),
+																'content' => self::switch_btn(array(
+																	'name' => 'pos[inside_content][after_x_post_repeat]',
+																	'checked' => $after_x_post_repeat,
+																	'value' => 1,
+																	'hidden_input' => 1,
+																	'chk-on' => __('Yes','adn'),
+																	'chk-off' => __('No','adn'),
+																	'chk-high' => 1
 																))
 															));
 
@@ -1594,7 +1642,7 @@ class ADNI_Templates {
 								$h.= '<span class="description bottom">'.__('Embed code.','adn').'</span>';
 							$h.= '</div>';
 							$h.= '<div class="export_switch_box iframe_code_container">';
-								$code = '<div style="max-width:'.$b['size_w'].'px; width:100%; height:'.$b['size_h'].'px;"><iframe src="'.get_bloginfo('url').'?_dnid='.$id.'" border="0" scrolling="no" allowtransparency="true" style="width:1px;min-width:100%;*width:100%;height:100%;border:0;"></iframe></div>';
+								$code = '<div style="max-width:'.$b['size_w'].'px; width:100%; height:'.$b['size_h'].'px;"><iframe src="'.get_bloginfo('url').'?_dnid='.$id.'&t='.current_time('timestamp').'" border="0" scrolling="no" allowtransparency="true" style="width:1px;min-width:100%;*width:100%;height:100%;border:0;"></iframe></div>';
 								$h.= '<textarea class="export_embed_code" style="min-height:120px;font-size:11px;">'.$code.'</textarea>';
 								$h.= '<span class="description bottom">'.__('Iframe code.','adn').'</span>';
 							$h.= '</div>';
@@ -1727,187 +1775,199 @@ class ADNI_Templates {
 								</p>
 							</div>';
 
-							// Loop true all available post types
-							foreach( $settings['positioning']['post_types'] as $post_type )
+							if( !empty( $settings['positioning']['post_types'] ))
 							{
-								// Show / Hide for Post type
-								$h.= '<div class="clear" style="border-bottom: solid 1px #efefef;margin-bottom: 20px;">
-									<div class="input_container">
-										<h3 class="title">'.sprintf(__('For %s','adn'), $post_type).'</h3>
-									</div>';
-
-									$show_hide = array_key_exists($post_type, $adzone['args']['display_filter']['post_types']) ? $adzone['args']['display_filter']['post_types'][$post_type]['show_hide'] : 1;
-									$h.= ADNI_Templates::spr_column(array(
-										'col' => 'spr_col-6',
-										'title' => '',
-										'desc' => sprintf(__('Show or Hide the banner for the selected %s.','adn'), $post_type),
-										'content' => ADNI_Templates::switch_btn(array(
-											'name' => 'display_filter[post_types]['.$post_type.'][show_hide]',
-											'checked' => $show_hide,
-											'value' => 1,
-											'hidden_input' => 1,
-											'chk-on' => __('Show','adn'),
-											'chk-off' => __('Hide','adn'),
-											'chk-high' => 1
-										))
-									));
-									/*<div class="spr_column spr_col-6">
-										<div class="input_container">';
-											
-											$show_hide = array_key_exists($post_type, $adzone['args']['display_filter']['post_types']) ? $adzone['args']['display_filter']['post_types'][$post_type]['show_hide'] : 0;
-											$h.= '<label class="switch switch-slide small input_h ttip" title="'.__('Show/Hide.','adn').'">
-												<input class="switch-input" type="checkbox" name="display_filter[post_types]['.$post_type.'][show_hide]" value="1" '.checked($show_hide,1,false).' />
-												<span class="switch-label" data-on="'.__('Show','adn').'" data-off="'.__('Hide','adn').'"></span> 
-												<span class="switch-handle"></span>
-											</label>';
-
-											$h.= '<span class="description bottom">'.sprintf(__('Show or Hide the banner for the selected %s.','adn'), $post_type).'</span>
-										</div>
-									</div>
-									<!-- end .spr_column -->
-									*/
-
-									$h.= '<div class="spr_column spr_col-6">
+								// Loop true all available post types
+								foreach( $settings['positioning']['post_types'] as $post_type )
+								{
+									// Show / Hide for Post type
+									$h.= '<div class="clear" style="border-bottom: solid 1px #efefef;margin-bottom: 20px;">
 										<div class="input_container">
-											<div class="custom_box option_inside_content">
-												<h3 class="title"></h3>
-												<div class="input_container_inner ning_chosen_select">';
-													
-													$h.= '<select name="display_filter[post_types]['.$post_type.'][ids][]" data-placeholder="'.sprintf(__('Start typing to select a %s', 'adn'), $post_type).'" data-ptype="'.$post_type.'" style="width:100%;" class="chosen-select ning_chosen_posttype_select" multiple>';
-														$h.= '<option value=""></option>';
-														
-														//$posts = $adzone['args']['display_filter']['posts'];
-														$posts = '';
-														if( array_key_exists('post_types', $adzone['args']['display_filter']) )
-														{
-															$posts = array_key_exists($post_type, $adzone['args']['display_filter']['post_types']) ? $adzone['args']['display_filter']['post_types'][$post_type]['ids'] : '';
-														}
-														// Load selected posts
-														if(!empty($posts))
-														{
-															foreach($posts as $post_id)
-															{
-																$h.= '<option class="opt_'.$post_id.'" value="'.$post_id.'" selected>'.get_the_title($post_id).' - (ID:'.$post_id.')</option>';
-															}
-														}
-														/*$all_posts = get_posts(array(
-															'posts_per_page'   => -1,
-															'post_status'      => 'publish',
-															'post_type'        => $post_type
-														));*/
-														/*$all_posts = $GLOBALS[ 'wpdb' ]->get_results( "SELECT ID, post_title FROM ".$GLOBALS[ 'wpdb' ]->prefix."posts WHERE post_status = 'publish' AND post_type='".$post_type."'" );
-										
-														foreach($all_posts as $i => $post)
-														{
-															$selected = !empty($posts) && is_array($posts) ? in_array($post->ID, $posts) ? 'selected' : '' : '';
-															$h.= '<option value="'.$post->ID.'" '.$selected.'>'.$post->post_title.' - (ID:'.$post->ID.')</option>';
-														}*/
-													$h.= '</select>';
+											<h3 class="title">'.sprintf(__('For %s','adn'), $post_type).'</h3>
+										</div>';
 
-												$h.= '</div>
+										$show_hide = array_key_exists($post_type, $adzone['args']['display_filter']['post_types']) ? $adzone['args']['display_filter']['post_types'][$post_type]['show_hide'] : 1;
+										$h.= ADNI_Templates::spr_column(array(
+											'col' => 'spr_col-6',
+											'title' => '',
+											'desc' => sprintf(__('Show or Hide the banner for the selected %s.','adn'), $post_type),
+											'content' => ADNI_Templates::switch_btn(array(
+												'name' => 'display_filter[post_types]['.$post_type.'][show_hide]',
+												'checked' => $show_hide,
+												'value' => 1,
+												'hidden_input' => 1,
+												'chk-on' => __('Show','adn'),
+												'chk-off' => __('Hide','adn'),
+												'chk-high' => 1
+											))
+										));
+										/*<div class="spr_column spr_col-6">
+											<div class="input_container">';
+												
+												$show_hide = array_key_exists($post_type, $adzone['args']['display_filter']['post_types']) ? $adzone['args']['display_filter']['post_types'][$post_type]['show_hide'] : 0;
+												$h.= '<label class="switch switch-slide small input_h ttip" title="'.__('Show/Hide.','adn').'">
+													<input class="switch-input" type="checkbox" name="display_filter[post_types]['.$post_type.'][show_hide]" value="1" '.checked($show_hide,1,false).' />
+													<span class="switch-label" data-on="'.__('Show','adn').'" data-off="'.__('Hide','adn').'"></span> 
+													<span class="switch-handle"></span>
+												</label>';
+
+												$h.= '<span class="description bottom">'.sprintf(__('Show or Hide the banner for the selected %s.','adn'), $post_type).'</span>
 											</div>
 										</div>
-									</div>
-									<!-- end .spr_column -->';
+										<!-- end .spr_column -->
+										*/
 
-
-									$h.= '<div class="taxonomies clearFix" style="width:100%;box-sizing: border-box;padding-left: 30px;">';
-
-									$taxonomies = get_object_taxonomies( $post_type );
-									//$h.= '<pre>'.print_r($taxonomies, true).'</pre>';
-									if(!empty($taxonomies))
-									{
-										foreach($taxonomies as $taxonomy)
-										{
-											$terms = get_terms( $taxonomy );
-											if( !empty($terms))
-											{
-												$tax_arr = array_key_exists($post_type, $adzone['args']['display_filter']['post_types']) ? $adzone['args']['display_filter']['post_types'][$post_type] : array();
-												$tax_arr = array_key_exists('taxonomies', $tax_arr) ? $adzone['args']['display_filter']['post_types'][$post_type]['taxonomies'] : array();
-												$tax_arr = array_key_exists($taxonomy, $tax_arr) ? $tax_arr[$taxonomy] : array();
-
-												//$h.= '<pre>'.print_r($terms, true).'</pre>';
-												$h.= '<div class="clear">
-													<div class="input_container">
-														<h3 class="title">'.sprintf(__('For %s','adn'), $taxonomy).'</h3>
-													</div>';
-
-													$show_hide = array_key_exists('show_hide', $tax_arr) ? $tax_arr['show_hide'] : 0;
-													$h.= ADNI_Templates::spr_column(array(
-														'col' => 'spr_col-6',
-														'title' => '',
-														'desc' => sprintf(__('Show or Hide the banner for the selected %s.','adn'),$taxonomy),
-														'content' => ADNI_Templates::switch_btn(array(
-															'name' => 'display_filter[post_types]['.$post_type.'][taxonomies]['.$taxonomy.'][show_hide]',
-															'checked' => $show_hide,
-															'value' => 1,
-															'hidden_input' => 1,
-															'chk-on' => __('Show','adn'),
-															'chk-off' => __('Hide','adn'),
-															'chk-high' => 1
-														))
-													));
-															//$show_hid
-													/*<div class="spr_column spr_col-6">
-														<div class="input_container">';
+										$h.= '<div class="spr_column spr_col-6">
+											<div class="input_container">
+												<div class="custom_box option_inside_content">
+													<h3 class="title"></h3>
+													<div class="input_container_inner ning_chosen_select">';
+														
+														$h.= '<select name="display_filter[post_types]['.$post_type.'][ids][]" data-placeholder="'.sprintf(__('Start typing to select a %s', 'adn'), $post_type).'" data-ptype="'.$post_type.'" style="width:100%;" class="chosen-select ning_chosen_posttype_select" multiple>';
+															$h.= '<option value=""></option>';
 															
-															e = array_key_exists('tags', $adzone['args']['display_filter']) ? $adzone['args']['display_filter']['tags']['show_hide'] : 0;
-															$h.= '<label class="switch switch-slide small input_h ttip" title="'.__('Show/Hide.','adn').'">
-																<input class="switch-input" type="checkbox" name="display_filter[post_types]['.$post_type.'][taxonomies]['.$taxonomy.'][show_hide]" value="1" '.checked($show_hide,1,false).' />
-																<span class="switch-label" data-on="'.__('Show','adn').'" data-off="'.__('Hide','adn').'"></span> 
-																<span class="switch-handle"></span>
-															</label>';
+															//$posts = $adzone['args']['display_filter']['posts'];
+															$posts = '';
+															if( array_key_exists('post_types', $adzone['args']['display_filter']) )
+															{
+																$posts = array_key_exists($post_type, $adzone['args']['display_filter']['post_types']) ? $adzone['args']['display_filter']['post_types'][$post_type]['ids'] : '';
+															}
+															// Load selected posts
+															if(!empty($posts))
+															{
+																foreach($posts as $post_id)
+																{
+																	$h.= '<option class="opt_'.$post_id.'" value="'.$post_id.'" selected>'.get_the_title($post_id).' - (ID:'.$post_id.')</option>';
+																}
+															}
+															/*$all_posts = get_posts(array(
+																'posts_per_page'   => -1,
+																'post_status'      => 'publish',
+																'post_type'        => $post_type
+															));*/
+															/*$all_posts = $GLOBALS[ 'wpdb' ]->get_results( "SELECT ID, post_title FROM ".$GLOBALS[ 'wpdb' ]->prefix."posts WHERE post_status = 'publish' AND post_type='".$post_type."'" );
+											
+															foreach($all_posts as $i => $post)
+															{
+																$selected = !empty($posts) && is_array($posts) ? in_array($post->ID, $posts) ? 'selected' : '' : '';
+																$h.= '<option value="'.$post->ID.'" '.$selected.'>'.$post->post_title.' - (ID:'.$post->ID.')</option>';
+															}*/
+														$h.= '</select>';
 
-															$h.= '<span class="description bottom">'.sprintf(__('Show or Hide the banner for the selected %s.','adn'),$taxonomy).'</span>
-														</div>
-													</div>
-													<!-- end .spr_column -->*/
+													$h.= '</div>
+												</div>
+											</div>
+										</div>
+										<!-- end .spr_column -->';
 
-													$h.= '<div class="spr_column spr_col-6">
+
+										$h.= '<div class="taxonomies clearFix" style="width:100%;box-sizing: border-box;padding-left: 30px;">';
+
+										$taxonomies = get_object_taxonomies( $post_type );
+										//$h.= '<pre>'.print_r($taxonomies, true).'</pre>';
+										if(!empty($taxonomies))
+										{
+											foreach($taxonomies as $taxonomy)
+											{
+												$terms = get_terms( $taxonomy );
+												if( !empty($terms))
+												{
+													$tax_arr = array_key_exists($post_type, $adzone['args']['display_filter']['post_types']) ? $adzone['args']['display_filter']['post_types'][$post_type] : array();
+													$tax_arr = array_key_exists('taxonomies', $tax_arr) ? $adzone['args']['display_filter']['post_types'][$post_type]['taxonomies'] : array();
+													$tax_arr = array_key_exists($taxonomy, $tax_arr) ? $tax_arr[$taxonomy] : array();
+
+													//$h.= '<pre>'.print_r($terms, true).'</pre>';
+													$h.= '<div class="clear">
 														<div class="input_container">
-															<div class="custom_box option_inside_content">
-																<h3 class="title"></h3>
-																<div class="input_container_inner ning_chosen_select">';
-																	
-																	$h.= '<select name="display_filter[post_types]['.$post_type.'][taxonomies]['.$taxonomy.'][ids][]" data-placeholder="'.sprintf(__('Start typing to select a %s', 'adn'),$taxonomy).'" data-ttype="'.$taxonomy.'" style="width:100%;" class="chosen-select ning_chosen_taxonomy_select" multiple>';
-																		$h.= '<option value=""></option>';
-																		
-																		$tags = array_key_exists('ids', $tax_arr) ? $tax_arr['ids'] : '';
-																		//$allowed_terms = apply_filters( 'adning_hide_terms', $terms);
-																		if( !empty( $tags ))
-																		{
-																			foreach($tags as $tag)
-																			{
-																				$term = get_term( $tag, $taxonomy );
-																				$h.= '<option class="opt_'.$term->term_id.'" value="'.$term->term_id.'" selected>'.$term->name.' - (ID:'.$term->term_id.')</option>';
-																			}
-																		}
-																		
-																		/*foreach($terms as $term)
-																		{
-																			//if(in_array($term->taxonomy, $allowed_terms))
-																			//{
-																				$selected = !empty($tags) && is_array($tags) ? in_array($term->term_id, $tags) ? 'selected' : '' : '';
-																				$h.= '<option value="'.$term->term_id.'" '.$selected.'>'.$term->name.' - (ID:'.$term->term_id.')</option>';
-																			//}
-																		}*/
-																		
-																	$h.= '</select>';
-																	
-																$h.= '</div>
+															<h3 class="title">'.sprintf(__('For %s','adn'), $taxonomy).'</h3>
+														</div>';
+
+														$show_hide = array_key_exists('show_hide', $tax_arr) ? $tax_arr['show_hide'] : 0;
+														$h.= ADNI_Templates::spr_column(array(
+															'col' => 'spr_col-6',
+															'title' => '',
+															'desc' => sprintf(__('Show or Hide the banner for the selected %s.','adn'),$taxonomy),
+															'content' => ADNI_Templates::switch_btn(array(
+																'name' => 'display_filter[post_types]['.$post_type.'][taxonomies]['.$taxonomy.'][show_hide]',
+																'checked' => $show_hide,
+																'value' => 1,
+																'hidden_input' => 1,
+																'chk-on' => __('Show','adn'),
+																'chk-off' => __('Hide','adn'),
+																'chk-high' => 1
+															))
+														));
+																//$show_hid
+														/*<div class="spr_column spr_col-6">
+															<div class="input_container">';
+																
+																e = array_key_exists('tags', $adzone['args']['display_filter']) ? $adzone['args']['display_filter']['tags']['show_hide'] : 0;
+																$h.= '<label class="switch switch-slide small input_h ttip" title="'.__('Show/Hide.','adn').'">
+																	<input class="switch-input" type="checkbox" name="display_filter[post_types]['.$post_type.'][taxonomies]['.$taxonomy.'][show_hide]" value="1" '.checked($show_hide,1,false).' />
+																	<span class="switch-label" data-on="'.__('Show','adn').'" data-off="'.__('Hide','adn').'"></span> 
+																	<span class="switch-handle"></span>
+																</label>';
+
+																$h.= '<span class="description bottom">'.sprintf(__('Show or Hide the banner for the selected %s.','adn'),$taxonomy).'</span>
 															</div>
 														</div>
-													</div>
-													<!-- end .spr_column -->
-												</div>';
+														<!-- end .spr_column -->*/
+
+														$h.= '<div class="spr_column spr_col-6">
+															<div class="input_container">
+																<div class="custom_box option_inside_content">
+																	<h3 class="title"></h3>
+																	<div class="input_container_inner ning_chosen_select">';
+																		
+																		$h.= '<select name="display_filter[post_types]['.$post_type.'][taxonomies]['.$taxonomy.'][ids][]" data-placeholder="'.sprintf(__('Start typing to select a %s', 'adn'),$taxonomy).'" data-ttype="'.$taxonomy.'" style="width:100%;" class="chosen-select ning_chosen_taxonomy_select" multiple>';
+																			$h.= '<option value=""></option>';
+																			
+																			$tags = array_key_exists('ids', $tax_arr) ? $tax_arr['ids'] : '';
+																			//$allowed_terms = apply_filters( 'adning_hide_terms', $terms);
+																			if( !empty( $tags ))
+																			{
+																				foreach($tags as $tag)
+																				{
+																					$term = get_term( $tag, $taxonomy );
+																					$h.= '<option class="opt_'.$term->term_id.'" value="'.$term->term_id.'" selected>'.$term->name.' - (ID:'.$term->term_id.')</option>';
+																				}
+																			}
+																			
+																			/*foreach($terms as $term)
+																			{
+																				//if(in_array($term->taxonomy, $allowed_terms))
+																				//{
+																					$selected = !empty($tags) && is_array($tags) ? in_array($term->term_id, $tags) ? 'selected' : '' : '';
+																					$h.= '<option value="'.$term->term_id.'" '.$selected.'>'.$term->name.' - (ID:'.$term->term_id.')</option>';
+																				//}
+																			}*/
+																			
+																		$h.= '</select>';
+																		
+																	$h.= '</div>
+																</div>
+															</div>
+														</div>
+														<!-- end .spr_column -->
+													</div>';
+												}
+												
 											}
-											
 										}
-									}
+										$h.= '</div>';
+										// end .taxonomies
+										
 									$h.= '</div>';
-									// end .taxonomies
-									
-								$h.= '</div>';
+								}
+							}
+							else
+							{
+								$h.= ADNI_Templates::spr_column(array(
+									'col' => 'spr_col',
+									'title' => '',
+									'desc' => '',
+									'content' => sprintf(__('<strong>Note:</strong> No Post Types have been selected under <em>General Settings</em> -> <em>Placement Settings</em> -> <em>Post Types for ADS</em>. As a result ADS will not be visible on most of the pages. %s','adn'), '<div><a class="button-secondary" style="margin-top:5px;" href="admin.php?page=adning-settings#posttypes_for_ads">'.__('Select post types here','adn').'</a></div>')
+								));
 							}
 
 						$h.= '</div>
@@ -2097,7 +2157,7 @@ class ADNI_Templates {
 			
 			$h.= '<div class="option_box">
 				<div class="info_header">
-					<span class="icon"><i class="fa fa-signal" aria-hidden="true"></i></span>
+					<span class="icon"><svg viewBox="0 0 512 512" style="width:20px;"><path fill="currentColor" d="M496 384H64V80c0-8.84-7.16-16-16-16H16C7.16 64 0 71.16 0 80v336c0 17.67 14.33 32 32 32h464c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16zM464 96H345.94c-21.38 0-32.09 25.85-16.97 40.97l32.4 32.4L288 242.75l-73.37-73.37c-12.5-12.5-32.76-12.5-45.25 0l-68.69 68.69c-6.25 6.25-6.25 16.38 0 22.63l22.62 22.62c6.25 6.25 16.38 6.25 22.63 0L192 237.25l73.37 73.37c12.5 12.5 32.76 12.5 45.25 0l96-96 32.4 32.4c15.12 15.12 40.97 4.41 40.97-16.97V112c.01-8.84-7.15-16-15.99-16z" class=""></path></svg></span>
 					<span class="text">'.sprintf(__('%s Stats','adn'), ucfirst($type)).'</span>
 				</div>';
 	
@@ -2110,14 +2170,14 @@ class ADNI_Templates {
 						'class' => 'stats_box',
 						'title' => __('Impressions','adn'),
 						'desc' => __('All adzone impressions.','adn'),
-						'content' => '<center>'.$impressions.'</center>'
+						'content' => '<center>'.ADNI_Main::number_format_short($impressions).'</center>'
 					));
 					$h.= self::spr_column(array(
 						'col' => 'spr_col-6',
 						'class' => 'stats_box',
 						'title' => __('Clicks','adn'),
 						'desc' => __('All adzone clicks.','adn'),
-						'content' => '<center>'.$clicks.'</center>'
+						'content' => '<center>'.ADNI_Main::number_format_short($clicks).'</center>'
 					));
 
 					if($type === 'adzone')

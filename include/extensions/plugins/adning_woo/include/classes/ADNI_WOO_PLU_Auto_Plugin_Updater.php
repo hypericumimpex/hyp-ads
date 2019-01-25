@@ -1,7 +1,7 @@
 <?php
-if ( !class_exists('ADNING_PLU_Auto_Plugin_Updater') ):
+if ( !class_exists('ADNI_WOO_PLU_Auto_Plugin_Updater') ):
 
-class ADNING_PLU_Auto_Plugin_Updater
+class ADNI_WOO_PLU_Auto_Plugin_Updater
 {
     /**
      * The plugin current version
@@ -56,14 +56,14 @@ class ADNING_PLU_Auto_Plugin_Updater
 		$this->envato_item_id = $envato_item_id;
         list ($t1, $t2) = explode('/', $plugin_slug);
         $this->slug = str_replace('.php', '', $t2);
- 
+        
         // define the alternative API for updating checking
         add_filter('pre_set_site_transient_update_plugins', array(&$this, 'check_update'));
  
         // Define the alternative response for information checking
         add_filter('plugins_api', array(&$this, 'plu_check_info'), 10, 3);
         
-        add_action( 'in_plugin_update_message-'.$plugin_slug, array(&$this,'plu_upgrade_message_link'), 10, 2 );
+        //add_action( 'in_plugin_update_message-'.$plugin_slug, array(&$this,'plu_upgrade_message_link'), 10, 2 );
     }
  
     /**
@@ -104,25 +104,22 @@ class ADNING_PLU_Auto_Plugin_Updater
      */
     public function plu_check_info($false, $action, $arg)
     {
-        if(array_key_exists('slug', $arg))
-        {   
-            if ($arg->slug === $this->slug) {
-                $information = $this->getRemote_information();
+        if ($arg->slug === $this->slug) {
+            $information = $this->getRemote_information();
 
-                $array_pattern = array(
-                    '/^([\*\s])*([^\*]\d\.\d\.\d[^\n]*)/m',
-                    '/^\n+|^[\t\s]*\n+/m',
-                    '/\n/',
-                );
-                $array_replace = array(
-                    '<h4>$2</h4>',
-                    '</div><div>',
-                    '</div><div>',
-                );
-                $information->sections['changelog'] = '<div>' . preg_replace( $array_pattern, $array_replace, $information->sections['changelog'] ) . '</div>';
+            $array_pattern = array(
+                '/^([\*\s])*([^\*]\d\.\d\.\d[^\n]*)/m',
+                '/^\n+|^[\t\s]*\n+/m',
+                '/\n/',
+            );
+            $array_replace = array(
+                '<h4>$2</h4>',
+                '</div><div>',
+                '</div><div>',
+            );
+            $information->sections['changelog'] = '<div>' . preg_replace( $array_pattern, $array_replace, $information->sections['changelog'] ) . '</div>';
 
-                return $information;
-            }
+            return $information;
         }
 		// http://stackoverflow.com/questions/7074616/wordpress-plugin-self-hosted-update
         return $false;
@@ -193,10 +190,9 @@ class ADNING_PLU_Auto_Plugin_Updater
 	
 	public function getPackage()
     {
-		global $wp_version;
+        global $wp_version;
         
-        if( !empty($this->license))
-        {
+        //if( !empty($this->license)){
             $request_string = array(
                 'body' => array(
                     'download'        => 1,
@@ -213,8 +209,8 @@ class ADNING_PLU_Auto_Plugin_Updater
                 //return unserialize($request['body']);
                 return $request['body'];
             }
-        }
-        return false;
+        //}
+        //return false;
     }
 
 
