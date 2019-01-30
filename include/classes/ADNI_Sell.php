@@ -632,142 +632,153 @@ class ADNI_Sell {
         //$h.= '<pre class="clearFix">'.print_r($args, true).'</pre>';
         $h.= '<div id="sell_adzone_settings" class="spr_column-inner left_column clearFix">
 			<div class="spr_wrapper">
-				<div class="option_box">
+				<div class="option_box closed">
 					<div class="info_header">
 						<span class="nr"><svg viewBox="0 0 288 512" style="height:20px;"><path fill="currentColor" d="M209.2 233.4l-108-31.6C88.7 198.2 80 186.5 80 173.5c0-16.3 13.2-29.5 29.5-29.5h66.3c12.2 0 24.2 3.7 34.2 10.5 6.1 4.1 14.3 3.1 19.5-2l34.8-34c7.1-6.9 6.1-18.4-1.8-24.5C238 74.8 207.4 64.1 176 64V16c0-8.8-7.2-16-16-16h-32c-8.8 0-16 7.2-16 16v48h-2.5C45.8 64-5.4 118.7.5 183.6c4.2 46.1 39.4 83.6 83.8 96.6l102.5 30c12.5 3.7 21.2 15.3 21.2 28.3 0 16.3-13.2 29.5-29.5 29.5h-66.3C100 368 88 364.3 78 357.5c-6.1-4.1-14.3-3.1-19.5 2l-34.8 34c-7.1 6.9-6.1 18.4 1.8 24.5 24.5 19.2 55.1 29.9 86.5 30v48c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16v-48.2c46.6-.9 90.3-28.6 105.7-72.7 21.5-61.6-14.6-124.8-72.5-141.7z"></path></svg></span>
-						<span class="text">'.__('Sell Ad spots','adn').'</span>
-						<input type="submit" value="'.__('Save Adzone','adn').'" class="button-primary" name="save_adzone" style="width:auto;float:right;margin:8px;">
+                        <span class="text">'.__('Sell Ad spots','adn').'</span>
+                        <span class="fa tog ttip" title="'.__('Toggle box','adn').'"></span>
 					</div>';
 					// <!-- end .info_header -->
                     
-                    if( !empty($id) )
-                    {
-                        $h.= '<div class="spr_column">
-                            <div class="spr_column-inner">
-                                <div class="spr_wrapper">
-                                    <div class="input_container">
-                                        <p>
-                                            '.__('','adn').'
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>';
-
-                        $sell_ad_spots = array_key_exists('enable',$args['sell']) ? $args['sell']['enable'] : 0;
-                        $sell_ad_spots = $sell_ad_spots === '' ? 0 : $sell_ad_spots;
-                        $h.= ADNI_Templates::switch_btn(array(
-                            'title' => __('Sell AD Spots','adn'),
-                            'id' => 'sellAdSpots',
-                            'name' => 'sell[enable]',
-                            'checked' => $sell_ad_spots,
-                            'value' => 1,
-                            'chk-on' => __('YES','adn'),
-                            'chk-off' => __('NO','adn'),
-                            'chk-high' => 1,
-                            'column' => array(
-                                'size' => 'col-3',
-                                'desc' => __('Sell available ad spots in this adzone.','adn'),
-                            )
-                        ));
-
-
-                        //$h.= '<div class="clearFix"></div>';
-                        $contract = $args['sell']['contract'];
-                        $contracts = self::contract_options();
-                        $ctr_line = '';
-                        foreach($contracts as $contr)
+                    $h.= '<div class="settings_box_content hidden">';
+                        if( !empty($id) )
                         {
-                            $name = self::contract(array('contract' => $contr));
-                            $ctr_line.= '<option value="'.$contr.'" '.selected( $contract, $contr, false ).'>'.sprintf(__('Pay per %s','adn'),$name['single']).'</option>';
-                        }
-                        
-                        $h.= ADNI_Templates::spr_column(array(
-                            'col' => 'spr_col-3',
-                            'title' => __('Contract Type','adn'),
-                            'desc' => __('Select a contract type.','adn'),
-                            'content' => '<select name="sell[contract]" class="">'.$ctr_line.'</select>'
-                            //'content' => '<select name="sell[contract]" class=""><option value="ppc" '.selected( $contract, 'ppc', false ).'>'.__('Pay per click','adn').'</option><option value="ppv" '.selected( $contract, 'ppv', false ).'>'.__('Pay per view','adn').'</option><option value="ppd" '.selected( $contract, 'ppd', false ).'>'.__('Pay per day','adn').'</option></select>'
-                        ));
-
-                        $h.= ADNI_Templates::spr_column(array(
-                            'col' => 'spr_col-3',
-                            'title' => __('Contract Duration','adn'),
-                            'desc' => __('Select the duration amount (int value) for the contract.','adn'),
-                            'content' => ADNI_Templates::inpt_cont(array(
-                                    'type' => 'text',
-                                    'show_icon' => 1,
-                                    'icon' => 'clock-o',
-                                    'width' => '100%',
-                                    'name' => 'sell[contract_duration]',
-                                    'value' => $args['sell']['contract_duration'],
-                                    'placeholder' => ''
-                                ))
-                        ));
-
-                        $sell_approve_manually = array_key_exists('approve_manually',$args['sell']) ? $args['sell']['approve_manually'] : 0;
-                        $sell_approve_manually = $sell_approve_manually === '' ? 0 : $sell_approve_manually;
-                        $h.= ADNI_Templates::switch_btn(array(
-                            'title' => __('Approve Manually','adn'),
-                            'id' => 'sellApproveManually',
-                            'name' => 'sell[approve_manually]',
-                            'checked' => $sell_approve_manually,
-                            'value' => 1,
-                            'chk-on' => __('YES','adn'),
-                            'chk-off' => __('NO','adn'),
-                            'chk-high' => 1,
-                            'column' => array(
-                                'size' => 'col-3',
-                                'desc' => __('Do you want each banner to be approved manually before going live?','adn'),
-                            )
-                        ));
-
-                        $h.= '<div class="clearFix"></div>';
-
-                        $h.= ADNI_Templates::spr_column(array(
-                            'col' => 'spr_col-3',
-                            'title' => __('Price','adn'),
-                            'desc' => __('Price for the selected contract duration.','adn'),
-                            'content' => ADNI_Templates::inpt_cont(array(
-                                    'type' => 'text',
-                                    'show_icon' => 1,
-                                    'icon' => 'money',
-                                    'width' => '100%',
-                                    'name' => 'sell[price]',
-                                    'value' => $args['sell']['price'],
-                                    'placeholder' => ''
-                                ))
-                        ));
-
-                        $h.= ADNI_Templates::spr_column(array(
-                            'col' => 'spr_col-3',
-                            'title' => __('Max. amount of banners','adn'),
-                            'desc' => __('The maximum amount of banners allowed in this adzone (int value). Leave empty for unlimited.','adn'),
-                            'content' => ADNI_Templates::inpt_cont(array(
-                                    'type' => 'text',
-                                    'show_icon' => 1,
-                                    'icon' => 'pencil',
-                                    'width' => '100%',
-                                    'name' => 'sell[max_banners]',
-                                    'value' => $args['sell']['max_banners'],
-                                    'placeholder' => ''
-                                ))
-                        ));
-                    }
-                    else
-                    {
-                        $h.= '<div class="spr_column">
-                            <div class="spr_column-inner">
-                                <div class="spr_wrapper">
-                                    <div class="input_container">
-                                        <p>
-                                            '.__('Please save the adzone inorder to activate these settings.','adn').'
-                                        </p>
+                            $h.= '<div class="spr_column">
+                                <div class="spr_column-inner">
+                                    <div class="spr_wrapper">
+                                        <div class="input_container">
+                                            <p>
+                                                '.__('','adn').'
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>';
-                    }
+                            </div>';
+
+                            $sell_ad_spots = array_key_exists('enable',$args['sell']) ? $args['sell']['enable'] : 0;
+                            $sell_ad_spots = $sell_ad_spots === '' ? 0 : $sell_ad_spots;
+                            $h.= ADNI_Templates::switch_btn(array(
+                                'title' => __('Sell AD Spots','adn'),
+                                'id' => 'sellAdSpots',
+                                'name' => 'sell[enable]',
+                                'checked' => $sell_ad_spots,
+                                'value' => 1,
+                                'chk-on' => __('YES','adn'),
+                                'chk-off' => __('NO','adn'),
+                                'chk-high' => 1,
+                                'column' => array(
+                                    'size' => 'col-3',
+                                    'desc' => __('Sell available ad spots in this adzone.','adn'),
+                                )
+                            ));
+
+
+                            //$h.= '<div class="clearFix"></div>';
+                            $contract = $args['sell']['contract'];
+                            $contracts = self::contract_options();
+                            $ctr_line = '';
+                            foreach($contracts as $contr)
+                            {
+                                $name = self::contract(array('contract' => $contr));
+                                $ctr_line.= '<option value="'.$contr.'" '.selected( $contract, $contr, false ).'>'.sprintf(__('Pay per %s','adn'),$name['single']).'</option>';
+                            }
+                            
+                            $h.= ADNI_Templates::spr_column(array(
+                                'col' => 'spr_col-3',
+                                'title' => __('Contract Type','adn'),
+                                'desc' => __('Select a contract type.','adn'),
+                                'content' => '<select name="sell[contract]" class="">'.$ctr_line.'</select>'
+                            ));
+
+                            $h.= ADNI_Templates::spr_column(array(
+                                'col' => 'spr_col-3',
+                                'title' => __('Contract Duration','adn'),
+                                'desc' => __('Select the duration amount (int value) for the contract.','adn'),
+                                'content' => ADNI_Templates::inpt_cont(array(
+                                        'type' => 'text',
+                                        'show_icon' => 1,
+                                        'icon' => 'clock-o',
+                                        'width' => '100%',
+                                        'name' => 'sell[contract_duration]',
+                                        'value' => $args['sell']['contract_duration'],
+                                        'placeholder' => ''
+                                    ))
+                            ));
+
+                            $sell_approve_manually = array_key_exists('approve_manually',$args['sell']) ? $args['sell']['approve_manually'] : 0;
+                            $sell_approve_manually = $sell_approve_manually === '' ? 0 : $sell_approve_manually;
+                            $h.= ADNI_Templates::switch_btn(array(
+                                'title' => __('Approve Manually','adn'),
+                                'id' => 'sellApproveManually',
+                                'name' => 'sell[approve_manually]',
+                                'checked' => $sell_approve_manually,
+                                'value' => 1,
+                                'chk-on' => __('YES','adn'),
+                                'chk-off' => __('NO','adn'),
+                                'chk-high' => 1,
+                                'column' => array(
+                                    'size' => 'col-3',
+                                    'desc' => __('Do you want each banner to be approved manually before going live?','adn'),
+                                )
+                            ));
+
+                            $h.= '<div class="clearFix"></div>';
+
+                            $h.= ADNI_Templates::spr_column(array(
+                                'col' => 'spr_col-3',
+                                'title' => __('Price','adn'),
+                                'desc' => __('Price for the selected contract duration.','adn'),
+                                'content' => ADNI_Templates::inpt_cont(array(
+                                        'type' => 'text',
+                                        'show_icon' => 1,
+                                        'icon' => 'money',
+                                        'width' => '100%',
+                                        'name' => 'sell[price]',
+                                        'value' => $args['sell']['price'],
+                                        'placeholder' => ''
+                                    ))
+                            ));
+
+                            $h.= ADNI_Templates::spr_column(array(
+                                'col' => 'spr_col-3',
+                                'title' => __('Max. amount of banners','adn'),
+                                'desc' => __('The maximum amount of banners allowed in this adzone (int value). Leave empty for unlimited.','adn'),
+                                'content' => ADNI_Templates::inpt_cont(array(
+                                        'type' => 'text',
+                                        'show_icon' => 1,
+                                        'icon' => 'pencil',
+                                        'width' => '100%',
+                                        'name' => 'sell[max_banners]',
+                                        'value' => $args['sell']['max_banners'],
+                                        'placeholder' => ''
+                                    ))
+                            ));
+                        }
+                        else
+                        {
+                            $h.= '<div class="spr_column">
+                                <div class="spr_column-inner">
+                                    <div class="spr_wrapper">
+                                        <div class="input_container">
+                                            <p>
+                                                '.__('Please save the adzone inorder to activate these settings.','adn').'
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>';
+                        }
+
+                        $h.= ADNI_Templates::spr_column(array(
+                            'col' => 'spr_col',
+                            'title' => '',
+                            'desc' => '',
+                            'content' => '<input type="submit" value="'.__('Save Adzone','adn').'" class="button-primary" name="save_adzone">'
+                        ));
+                        
+
+                    $h.= '</div>';
+                    // end .settings_box_content
 
                     
                 $h.= '</div>

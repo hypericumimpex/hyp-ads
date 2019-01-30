@@ -68,7 +68,7 @@
 		color: #FFF;
 		background-color: #dce7a4;
 		color: #FFF;
-		margin-bottom: 20px;
+		margin-bottom:20px;
 		min-height:45px;
 		position:relative;
 	}
@@ -97,6 +97,22 @@
 			line-height: 25px;
 			padding: 10px 15px;
 			display: inline-block;
+        }
+
+        .adning_cont .option_box.closed .info_header{
+            margin-bottom: 0px;
+        }
+        .adning_cont .option_box .tog{
+            float: right;
+            font-size: 24px;
+            border-left:solid 1px #F9F9F9;
+            cursor: pointer;
+        }
+        .adning_cont .option_box.closed .tog:before {
+            content: "\f107";
+        }
+        .adning_cont .option_box .tog:before {
+            content: "\f106";
         }
         
 
@@ -508,3 +524,70 @@
     margin-bottom: 0px;
     height: 61px;
 }
+
+
+
+
+
+
+
+.adning_cont .ddrop-upload{
+    min-height: 120px;
+    width:100%;
+    text-align:center;
+    cursor:pointer;
+    background-color: #ffffff;
+    background-image: linear-gradient(45deg,rgba(0,0,0,.05) 25%,transparent 0),linear-gradient(-45deg,rgba(0,0,0,.05) 25%,transparent 0),linear-gradient(45deg,transparent 75%,rgba(0,0,0,.05) 0),linear-gradient(-45deg,transparent 75%,rgba(0,0,0,.05) 0);
+    background-size: 24px 24px;
+    background-position: 0 0,0 12px,12px -12px,-12px 0;
+    border: 1px dashed rgba(136, 136, 136, 0.3);
+    padding:0 0 25px 0;
+  }
+  .adning_cont .ddrop-upload .ddrop-message-inner svg{
+    width:30px;
+  }
+  
+  .adning_cont .ddrop-upload .info_text{
+      font-size: 13px;
+      font-weight: bold;
+      color: #8e8e8e;
+  }
+  .adning_cont .ddrop-upload .info_text_sub{
+    font-weight: normal;
+    font-size: 12px;
+  }
+
+  .adning_cont .dropzone .dz-preview{
+      margin: 16px 0 0;
+  }
+  .adning_cont .dropzone .dz-message{
+      margin:0;
+  }
+  
+  .adning_cont .dz-message{
+    cursor:pointer;
+  }
+  .adning_cont .ddrop-message{
+    display:inline-block;
+    margin: 30px 0;
+    cursor:pointer;
+    color: #81aa0e;
+    background-color: #d2f910;
+    border-radius: 4px;
+    padding: 10px 20px;
+    -webkit-box-shadow: 2px 8px 17px 0 rgba(76,76,76,.05), 2px 12px 19px 0 rgba(0,0,0,.04), 2px 7px 9px 0 rgba(0,0,0,.03), 2px 6px 9px 13px rgba(252,22,0,.02);
+    box-shadow: 2px 8px 17px 0 rgba(76,76,76,.05), 2px 12px 19px 0 rgba(0,0,0,.04), 2px 7px 9px 0 rgba(0,0,0,.03), 2px 6px 9px 13px rgba(252,22,0,.02);
+  }
+    .adning_cont .ddrop-message .ddrop-message-inner{
+      font-size: 24px;
+    }
+    .adning_cont .ddrop-message svg{
+      width:30px;
+    }
+    .adning_cont .ddrop-message .message-text{
+      margin-left: 12px;
+    }
+    .adning_cont .ddrop-upload .ddrop-error-msg{
+      color: #00ffbb;
+      font-size: 15px;
+    }

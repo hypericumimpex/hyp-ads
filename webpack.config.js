@@ -12,6 +12,9 @@ module.exports = {
         ],
         '_ning_frontend_manager.bundle.js': [
             './assets/dev/js/index_frontend_manager.js'
+        ],
+        '_ning_parallax.bundle.js': [
+            './assets/dev/js/index_parallax.js'
         ]
     },
     output: {

@@ -428,8 +428,157 @@ module.exports = {
 				});
 			}
 		});
+
+
+
+		$('.tog').on('click', function(){
+			$(this).closest('.option_box').toggleClass('closed').find('.settings_box_content').toggleClass('hidden');
+		});
+
+
+
+		$('#parallax_activate_btn').on('change', function(){
+			$('.parallax_settings_container').toggleClass('hidden');
+		});
+		$('.ParallaxUploader')._ning_file_upload({
+			'banner_id': $(this).data('id'),
+			'max_upload_size': 1000,
+			'upload': {
+				'folder': 'banners/'+$(this).data('id')+'/',
+				'dir': _adn_.upload.dir,
+				'src': _adn_.upload.src
+			},
+			'allowed_file_types': ['jpg','png','gif','svg','mp4'],
+			'callback': function(obj){
+				var src = '';
+
+				var uploaded_file = JSON.parse(obj.files);
+				src = uploaded_file[0].src;
+
+				$(this).closest('.parallax_settings').find('.parallax_bg_src').val(src);
+				console.log(src);
+			}
+		});
+		/*$('.ParallaxUploader')._ning_file_uploader({
+			'banner_id': $(this).data('id'),
+			'max_upload_size': 1000,
+			'upload': {
+				'folder': 'banners/'+$(this).data('id')+'/',
+				'dir': _adn_.upload.dir,
+				'src': _adn_.upload.src
+			},
+			'allowed_file_types': ['jpg','png','gif','svg','mp4'],
+			'text': {
+				'logo': '<svg viewBox=\"0 0 640 512\" style=\"width:30px;\"><path fill=\"currentColor\" d=\"M272 64c60.28 0 111.899 37.044 133.36 89.604C419.97 137.862 440.829 128 464 128c44.183 0 80 35.817 80 80 0 18.55-6.331 35.612-16.927 49.181C572.931 264.413 608 304.109 608 352c0 53.019-42.981 96-96 96H144c-61.856 0-112-50.144-112-112 0-56.77 42.24-103.669 97.004-110.998A145.47 145.47 0 0 1 128 208c0-79.529 64.471-144 144-144m0-32c-94.444 0-171.749 74.49-175.83 168.157C39.171 220.236 0 274.272 0 336c0 79.583 64.404 144 144 144h368c70.74 0 128-57.249 128-128 0-46.976-25.815-90.781-68.262-113.208C574.558 228.898 576 218.571 576 208c0-61.898-50.092-112-112-112-16.734 0-32.898 3.631-47.981 10.785C384.386 61.786 331.688 32 272 32zm48 340V221.255l68.201 68.2c4.686 4.686 12.284 4.686 16.97 0l5.657-5.657c4.687-4.686 4.687-12.284 0-16.971l-98.343-98.343c-4.686-4.686-12.284-4.686-16.971 0l-98.343 98.343c-4.686 4.686-4.686 12.285 0 16.971l5.657 5.657c4.686 4.686 12.284 4.686 16.97 0l68.201-68.2V372c0 6.627 5.373 12 12 12h8c6.628 0 12.001-5.373 12.001-12z\"></path></svg>',
+				'upload': '<strong>Click here</strong><span class=\"box__dragndrop\"> or drag file to upload</span>.',
+				'upload_info': 'Max. size 1000 MB. Allowed files: <strong><em>JPG, PNG, GIF, SVG, MP4</em></strong>',
+			},
+			'callback': function(obj){
+				var src = '';
+
+				var uploaded_file = JSON.parse(obj.files);
+				src = uploaded_file[0].src;
+
+				$(this).closest('.parallax_settings').find('.parallax_bg_src').val(src);
+				console.log(src);
+			}
+		});*/
 	
 	});
+
+
+
+
+
+	$.fn._ning_file_upload = function(options) {
+
+		var settings = $.extend({
+			'text': {},
+			'banner_id':0,
+			'user_id': 0,
+			'result_grid': null,
+			'max_upload_size': 1000,
+			'allowed_file_types': ['jpg','png','gif','svg'],
+			'upload': {
+				'folder': 'ADN_Uploads/',
+				'dir': '',
+				'src' : ''
+			},
+			'modernizr': 0,
+			'template': 1
+		}, options );
+
+		return this.each(function(i,el){
+
+			var _obj = $(el),
+				$form = _obj,
+				html  = '',
+				afs = '';
+			
+			// Create accepted files string
+			$.each( settings.allowed_file_types, function( key, value ) {
+				var cma = !key ? '' : ',';
+				afs+= cma+'.'+value;
+			});
+
+			var afstring = afs.replace(/[.]/g, ' ');
+			console.log(afstring);
+			_obj.find('.allowed_extentions').html(afstring);
+			_obj.find('.max_filesize').html(settings.max_upload_size);
+			
+
+			// https://www.dropzonejs.com/
+			//Dropzone.autoDiscover = false;
+			$form.dropzone({ 
+				url: "/", 
+				//acceptedFiles: "image/*,.mp4",
+				acceptedFiles: afs,
+				complete: function(file) {
+					_obj.addClass('dropzone');
+					$form.find('.dz-message').hide();
+
+					var ajaxData = new FormData();
+					ajaxData.append( 'files[]', file );
+					ajaxData.append('action', '_ning_upload_image');
+					ajaxData.append('uid', settings.user_id);
+					ajaxData.append('bid', settings.banner_id);
+					ajaxData.append('max_upload_size', settings.max_upload_size);
+					ajaxData.append('allowed_file_types', settings.allowed_file_types);
+					ajaxData.append('upload', JSON.stringify(settings.upload));
+
+					console.log(file);
+					$.ajax({
+						url: 			_adn_.ajaxurl,
+						type:			'POST',
+						data: 			ajaxData,
+						dataType:		'json',
+						cache:			false,
+						contentType:	false,
+						processData:	false,
+						complete: function(){
+							//$form.removeClass( 'is-uploading' );
+							$form.find('.dz-preview').addClass('dz-complete');
+						},
+						success: function( data ){
+							console.log(data);
+							// Fire callback if provided
+							if (typeof(settings.callback) == 'function') {
+								settings.callback.call(_obj, data);
+
+								setTimeout(function(){
+									$form.find('.dz-message').show();
+									$form.find('.dz-preview').remove();
+								}, 1000);
+							}
+						}
+					});
+					
+				}
+			});
+			// end dropzonejs
+
+		});
+	};
 	
 
 }(jQuery, window));

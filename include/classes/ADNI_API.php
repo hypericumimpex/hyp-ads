@@ -30,19 +30,15 @@ class ADNI_API {
 					
 					$html.= '<script type="text/javascript" src="'.get_site_url().'/wp-includes/js/jquery/jquery.js"></script>';
 					$html.= '<script type="text/javascript" src="'.ADNI_ASSETS_URL . '/dev/js/advertising.js"></script>';
-					//$html.= '<script type="text/javascript" src="'.ADNI_ASSETS_URL. '/js/jQuery.adnplugins.js"></script>';
 					$html.= '<script type="text/javascript">
 					/* <![CDATA[ */
 					var _adn_ = {"ajaxurl":"'.ADNI_AJAXURL.'"};
 					/* ]]> */
 					</script>';
 					$html.= '<script type="text/javascript" src="'.ADNI_ASSETS_URL. '/dist/_ning.bundle.js"></script>';
-					//$html.= $type == 'adzone' ? '<script type="text/javascript" src="'.ADNI_ASSETS_URL.'/js/jssor.slider-22.2.16.min.js"></script>' : '';
-					//$html.= $type == 'adzone' ? '<script type="text/javascript" src="'.ADNI_ASSETS_URL.'/dist/js/jssor.slider.min.js"></script>' : '';
 					$html.= '<script type="text/javascript" src="'.ADNI_ASSETS_URL. '/js/embed/iframeResizer.contentWindow.min.js"></script>';
-					//$html.= '<link rel="stylesheet" href="'.ADNI_ASSETS_URL. '/css/_ning.css" type="text/css" media="all" />';
 					$html.= '<link rel="stylesheet" href="'.ADNI_ASSETS_URL. '/dist/_ning.bundle.js.css" media="all" />';
-
+					
 					// IMGMCE
 					if( class_exists('ADN_main') )
 					{

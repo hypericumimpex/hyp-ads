@@ -82,7 +82,7 @@ class ADNI_Init {
 	public static function deactivate()
 	{
 		// Deregister Adning License
-		$activation = ADNI_Multi::get_option('adning_activation', array());
+		$activation = true;
 		if( !empty($activation))
 		{
 			$resp = ADNI_Activate::deregister(array('license-key' => $activation['license-key']));
@@ -226,18 +226,24 @@ class ADNI_Init {
 	{
 		$var_array = array(
 			//'debug' => IMC_DEBUG,
-			'ajaxurl' => ADNI_AJAXURL
+			'ajaxurl' => ADNI_AJAXURL,
+			'upload' => array(
+				'dir' => ADNI_UPLOAD_DIR,
+				'src' => ADNI_UPLOAD_SRC
+			)
 		);
 
 		// Scripts
 		wp_register_script( '_ning_global', ADNI_ASSETS_URL.'/dist/_ning.bundle.js', array( 'jquery' ), ADNI_VERSION, true );
 		wp_localize_script( '_ning_global', '_adn_', $var_array );
 		wp_register_script( '_ning_admin_global', ADNI_ASSETS_URL.'/dist/_ning_admin.bundle.js', array( 'jquery' ), ADNI_VERSION, true );
+		wp_register_script( '_ning_parallax', ADNI_ASSETS_URL.'/dist/_ning_parallax.bundle.js', array( 'jquery' ), ADNI_VERSION, true );
 		
 		// styles
 		wp_register_style( '_ning_css', ADNI_ASSETS_URL. '/dist/_ning.bundle.js.css', false, ADNI_VERSION, "all" );
 		wp_register_style( '_ning_admin_css', ADNI_ASSETS_URL. '/dist/_ning_admin.bundle.js.css', false, ADNI_VERSION, "all" );
 		wp_register_style( '_ning_frontend_manager_css', ADNI_ASSETS_URL. '/dist/_ning_frontend_manager.bundle.js.css', false, ADNI_VERSION, "all" );
+		wp_register_style( '_ning_parallax_css', ADNI_ASSETS_URL. '/dist/_ning_parallax.bundle.js.css', false, ADNI_VERSION, "all" );
 		
 		ADNI_Uploader::enqueue_scripts(array('upload_folder' => 'path'));
 	}
@@ -261,7 +267,7 @@ class ADNI_Init {
 		
 		// styles
 		wp_enqueue_style( '_ning_font_awesome_css', ADNI_ASSETS_URL.'/fonts/font-awesome/css/font-awesome.min.css', false, ADNI_VERSION, 'all');
-
+		
 		self::enqueue(
 			array(
 				'files' => array(
@@ -274,6 +280,10 @@ class ADNI_Init {
 		// Extentions
 		SPR_Columns::enqueue_scripts(array('inc_url' => ADNI_INC_URL, 'version' => ADNI_VERSION));
 	}
+
+
+
+	
 	
 	
 	
@@ -331,6 +341,7 @@ class ADNI_Init {
 				self::enqueue(
 					array(
 						'files' => array(
+							array('file' => 'wp-block-library', 'type' => 'style'), // for Gutenberg
 							array('file' => '_ning_css', 'type' => 'style'),
 							array('file' => '_ning_admin_css', 'type' => 'style'),
 							array('file' => '_ning_global', 'type' => 'script'),
@@ -471,7 +482,7 @@ class ADNI_Init {
 	{
 		//set_site_transient('update_plugins', null); // Just for testing to see if the available plugin update gets shown. IF THIS IS ON ACTUALL PLUGIN UPDATES MAY NOT WORK: WP error: Plugin update failed.
 		//$activation = get_option('adning_activation', array());
-		$activation = ADNI_Multi::get_option('adning_activation', array());
+		$activation = true;
 		$license_key = !empty($activation) ? $activation['license-key'] : '';
 
 		require( ADNI_CLASSES_DIR.'/ADNING_PLU_Auto_Plugin_Updater.php');

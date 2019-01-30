@@ -218,7 +218,7 @@ class ADNI_Uploader {
 				$upload_success = true;
 			}
 
-			echo json_encode(array("unzip" => $unzip_error, "upload" => $upload, "success" => $upload_success, "files" => json_encode($uploaded_files), "error" => $upload_error));
+			echo json_encode(array("chk" => $_FILES['files'], "unzip" => $unzip_error, "upload" => $upload, "success" => $upload_success, "files" => json_encode($uploaded_files), "error" => $upload_error));
 		}else{
 			echo 'no files found.';
 		}

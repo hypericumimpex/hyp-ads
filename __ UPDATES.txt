@@ -1,7 +1,20 @@
+ADNING V1.2.2
+——————————————————————————————————
+* Added parallax fallback background option.
+* Added option to create banners using the default Wordpress post editor, Gutenberg or any page builder.
+* Improved banner uploader.
+
+
+ADNING V1.2.1
+——————————————————————————————————
+* Added parallax effect options for banners and adzones.
+* Updated new coloringPick version.
+
+
 ADNING V1.2.0
 ——————————————————————————————————
 * Added automatic add-on installation functions.
-* Added option to allow scrolling true adzone ads.
+* Added option to allow scrolling thru adzone ads.
 * Improved responsive design for adzones.
 * Improved collecting stats to prevent caching issues.
 * Improved parse args function for deprecated PHP each function.

@@ -452,17 +452,21 @@ class ADNI_Filters {
         foreach($auto_pos as $key => $arr)
         {
             $pos = key($arr);
+            /*$banner_content = self::create_content(array(
+                'id' => $key,
+                'pos' => $pos,
+                'pos_arr' => $arr[$pos]
+            ));*/
+
             if($pos === 'above_content')
             {
-                //$above_content.= '[adning id="'.$key.'" no_iframe="1"]';
-                $above_content.= ADNI_Shortcodes::sc_adning(array('id' => $key));
+                $above_content.= '[adning id="'.$key.'" no_iframe="1"]';
+                //$above_content.= $banner_content; //ADNI_Shortcodes::sc_adning(array('id' => $key));
             }
             if($pos === 'inside_content')
             {
                 if ( is_singular() && !is_admin() )  // is_single() is not for pages!
                 {
-                    //$after_x_p = array_key_exists('after_x_p', $arr[$pos]) ? $arr[$pos]['after_x_p'] : 2;
-                    //$after_x_p = !empty($arr[$pos]['after_x_p']) ? $arr[$pos]['after_x_p'] : 2;
                     if( !empty($arr[$pos]['after_x_p']) )
                     {
                         $repeat = array_key_exists('after_x_p_repeat', $arr[$pos]) ? $arr[$pos]['after_x_p_repeat'] : 0;
@@ -868,6 +872,104 @@ class ADNI_Filters {
 
         return $active;
     }
+
+
+
+
+
+
+    /**
+     * Create banner content for filters.
+     */
+    /*public static function create_content( $args = array() ) 
+    {
+        $defaults = array(
+            'id' => 0,
+            'pos' => '',
+            'pos_arr' => array()
+        );
+        $args = ADNI_Main::parse_args($args, $defaults);
+
+        if(!empty($args['pos_arr']))
+        {
+            if($args['pos'] === 'inside_content')
+            {
+                // Parallax
+                if( array_key_exists('parallax', $args['pos_arr']) )
+                {
+                    $para_active = $args['pos_arr']['parallax']['active'];
+
+                    if( $para_active )
+                    {
+                        ADNI_Init::enqueue(
+                            array(
+                                'files' => array(
+                                    array('file' => '_ning_parallax_css', 'type' => 'style'),
+                                    array('file' => '_ning_parallax', 'type' => 'script')
+                                )
+                            )
+                        );
+
+                        $url = '';
+                        $b = ADNI_Multi::get_post_meta($args['id'], '_adning_args', array());
+                        if($b['type'] === 'banner')
+                        {
+                            $url = !empty($b['banner_url']) ? $b['banner_url'] : '';
+                            $url = $b['banner_link_masking'] && !empty($url) ? ADNI_Main::link_masking(array('id' => $id)) : $url;
+                        }
+
+                        $href = !empty($url) ? ' href="'.$url.'"' : '';
+
+                        $para_overflow = !$args['pos_arr']['parallax']['overflow'] ? ' overflow_hidden' : '';
+                        $para_y = $args['pos_arr']['parallax']['y'] !== '' ? $args['pos_arr']['parallax']['y'] : -100;
+                        $para_x = $args['pos_arr']['parallax']['x'] !== '' ? $args['pos_arr']['parallax']['x'] : 0;
+                        $para_bg = $args['pos_arr']['parallax']['bg'];
+                        $para_bg_color = !empty($args['pos_arr']['parallax']['bg_color']) ? 'background:'.$args['pos_arr']['parallax']['bg_color'].';' : '';
+                        $para_bg_speed = $args['pos_arr']['parallax']['bg_speed'] !== '' ? $args['pos_arr']['parallax']['bg_speed'] : 0.5;
+                        $para_bg_only = $args['pos_arr']['parallax']['bg_only'];
+
+                        // Check for video bg
+                        if(!empty($para_bg))
+                        {
+                            $ext = pathinfo($para_bg, PATHINFO_EXTENSION);
+                            $video_data = '';
+                            if(\strpos($para_bg, 'https://www.youtube.com/watch') !== false)
+                            {
+                                $video_data = ' data-jarallax-video="'.$para_bg.'"';
+                                $para_bg = '';
+                            }
+                            elseif(\strpos($para_bg, 'https://vimeo.com') !== false)
+                            {
+                                $video_data = ' data-jarallax-video="'.$para_bg.'"';
+                                $para_bg = '';
+                            }
+                            elseif($ext === 'mp4')
+                            {
+                                $video_data = ' data-jarallax-video="mp4:'.$para_bg.'"';
+                                $para_bg = '';
+                            }
+                        }
+                        
+
+                        $c = '';
+                        $c.= '<a'.$href.' data-jarallax data-speed="'.$para_bg_speed.'"'.$video_data.' class="_ning_parallax_container _ning_parallax_'.$args['id'].$para_overflow.'" style="min-height:'.$b['size_h'].'px;'.$para_bg_color.'">';
+                            $c.= !empty($para_bg) ? '<img class="jarallax-img" src="'.$para_bg.'" alt="">' : '';
+                            if( !$para_bg_only )
+                            {
+                                $c.= '<div data-jarallax-element="'.$para_y.' '.$para_x.'">';
+                                    $c.= '[adning id="'.$args['id'].'" no_iframe="1"]';
+                                $c.= '</div>';
+                            }
+                        $c.= '</a>';
+                        return $c;
+                    }
+                }
+            }
+        }
+
+        return '[adning id="'.$args['id'].'" no_iframe="1"]';
+    }
+    */
 
 }
 

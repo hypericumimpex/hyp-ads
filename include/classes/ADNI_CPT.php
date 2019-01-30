@@ -22,10 +22,12 @@ class ADNI_CPT {
 		add_filter( 'admin_url', array(__CLASS__,'change_add_new_link_for_banners'), 10, 2 );
 		add_filter( 'admin_url', array(__CLASS__,'change_add_new_link_for_adzones'), 10, 2 );
 		add_filter( 'admin_url', array(__CLASS__,'change_add_new_link_for_campaigns'), 10, 2 );
+		add_action( 'save_post', array(__CLASS__, 'save_post') );
 		add_action( 'wp_trash_post', array(__CLASS__,'trash_post'));
 		add_action( 'before_delete_post', array(__CLASS__,'delete_post'));
 	}
 	
+	// $post['banner_content'] = !empty($banner_post['post']->post_content) ? $banner_post['post']->post_content : $b['banner_content'];
 
 
 
@@ -72,6 +74,32 @@ class ADNI_CPT {
 		}
 	}
 
+
+
+	/**
+	 * Save Post, when banner gets saved from the WP Editor (gutenberg)
+	 */
+	public static function save_post( $post_id )
+	{
+		if ( wp_is_post_revision( $post_id ) ) {
+			return;
+		}
+
+		$post_type = get_post_type( $post_id );
+		if( strtolower($post_type) === strtolower(self::$banner_cpt) )
+		{
+			//$content_post = get_post($my_postid);
+			$content = get_post_field('post_content', $post_id);
+			//$content = $content_post->post_content;
+			$content = apply_filters('the_content', $content);
+			$content = str_replace(']]>', ']]&gt;', $content);
+
+			$b_args = get_post_meta($post_id, '_adning_args', array());
+			$b_args = !empty($b_args) ? $b_args[0] : $b_args;
+			
+			update_post_meta($post_id, '_adning_args', ADNI_Main::parse_args(array('banner_content' => $content), $b_args));
+		}
+	}
 
 
 	
@@ -212,7 +240,7 @@ class ADNI_CPT {
 				'delete_post' => 'delete_'.self::$banner_cpt,
 				'read_post' => 'read_'.self::$banner_cpt,
 			),
-			'supports'           => apply_filters( 'ADNI_banners_cpt_supports', array('title') ), //$supports = array('title','editor','author','thumbnail','excerpt','comments','revisions', 'custom-fields');
+			'supports'           => apply_filters( 'ADNI_banners_cpt_supports', array('title','editor') ), //$supports = array('title','editor','author','thumbnail','excerpt','comments','revisions', 'custom-fields');
 			'taxonomies'         => array() // 'post_tag', 'category'
 		);
 		$cpts[1] = array(
@@ -288,14 +316,15 @@ class ADNI_CPT {
 				'publicly_queryable'  => true, // false
 				'query_var'			  => true,
 				'capability_type' 	  => $cpt['capability_type'],
-				'capabilities'      => $cpt['capabilities'],
-				'map_meta_cap'      => true,
+				'capabilities'        => $cpt['capabilities'],
+				'map_meta_cap'        => true,
 				'exclude_from_search' => true,
-				'has_archive' 		    => false,
+				'has_archive' 		  => false,
 				'hierarchical' 		  => false,
 				'rewrite' 			  => array('slug' => $cpt['name_clean'], 'with_front' => false ),
 				'supports' 			  => $supports,
 				'show_in_menu'        => $cpt['show_in_menu'],
+				'show_in_rest'        => true,
 				'taxonomies'		  => $taxonomies
 			 );
 			 register_post_type($cpt['name_clean'], $post_type_args);
@@ -303,9 +332,23 @@ class ADNI_CPT {
 			 // Extra Filters
 			 add_filter('manage_edit-'.strtolower($cpt['name_clean']).'_columns', array(__CLASS__, $cpt['name_clean'].'_columns'));
 			 add_action('manage_posts_custom_column',  array(__CLASS__, $cpt['name_clean'].'_show_columns'));
+			 
+			if($cpt['name_clean'] === 'ADNI_banners')
+			{
+				add_filter('add_meta_boxes', array(__CLASS__, $cpt['name_clean'].'_hide_meta_boxes'));
+			}
 		}
 	}
 	
+
+	
+	public static function ADNI_banners_hide_meta_boxes() {
+		//remove_meta_box('postexcerpt', 'ADNI_banners', 'normal');
+		remove_meta_box('trackbacksdiv', 'ADNI_banners', 'normal');
+		remove_meta_box('commentstatusdiv', 'ADNI_banners', 'normal');
+		remove_meta_box('commentsdiv', 'ADNI_banners', 'normal');
+		//remove_meta_box('revisionsdiv', 'ADNI_banners', 'normal');
+	}
 	
 	
 	/*
@@ -812,6 +855,7 @@ class ADNI_CPT {
 			'bg_takeover_top_skin_url' => '',
 			'bg_takeover_left_skin_url' => '',
 			'bg_takeover_right_skin_url' => '',
+			'display' => array(),
 			'display_filter' => array(
 				'show_hide' => 0,
 				'show_desktop' => 1,
@@ -869,6 +913,7 @@ class ADNI_CPT {
 			'cont_label' => '',
 			'cont_label_pos' => 'left',
 			'cont_label_color' => '',
+			'display' => array(),
 			'display_filter' => array(
 				'show_hide' => 0,
 				'show_desktop' => 1,

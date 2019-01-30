@@ -1,5 +1,6 @@
 import '../css/_ning_admin.css';
 import '../css/_ning_uploader.css';
+import '../css/dropzone.css';
 import '../../packages/coloring_pick/jquery.coloring-pick.min.js.css';
 import '../../../include/widgets/chosen/chosen.css';
 import '../../../include/widgets/checkbox/checkbox.css';
@@ -7,6 +8,7 @@ import '../../../include/widgets/checkbox/checkbox.css';
 
 import Adning_global from './_ning_admin.js';
 import './_ning_uploader.js';
+import 'dropzone';
 import '../../packages/coloring_pick/jquery.coloring-pick.min.js';
 import '../../../include/widgets/tooltipster/tooltipster.bundle.min.js';
 import '../../../include/widgets/chosen/chosen.jquery.min.js';

@@ -17,7 +17,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
 
 if( isset($_GET['deregister_plugin']))
 {
-    $activation = ADNI_Multi::get_option('adning_activation', array());
+    $activation = true;
     if( !empty($activation))
     {
         $resp = ADNI_Activate::deregister(array('license-key' => $activation['license-key']));
@@ -26,7 +26,7 @@ if( isset($_GET['deregister_plugin']))
 }
 
 //$activation = get_option('adning_activation', array());
-$activation = ADNI_Multi::get_option('adning_activation', array());
+$activation = true;
 $active_support = ADNI_Activate::check_support();
 ?>
 
@@ -41,7 +41,7 @@ $active_support = ADNI_Activate::check_support();
         <?php echo ADNI_Templates::main_admin_header(array(
             'page' => 'updates',
             'title' => 'Adning Product License',
-            'desc' => '⚡ ' . __('In order to receive all benefits of Adning you need to activate your copy. By activating your Adning license you will unlock premium options like automatic plugin updates and official support.','adn')
+            'desc' => '⚡ ' . __('In order to receive all benefits of Adning you need to activate your copy. By activating your Adning license you will unlock premium options like automatic plugin updates, install add-ons and official support.','adn')
         )); ?>
 
 		<div class="container">
@@ -62,7 +62,7 @@ $active_support = ADNI_Activate::check_support();
 			
 			
             <div class="spr_row">  
-                <div class="spr_column spr_hidden" data-animation="bounce">
+                <div class="spr_column">
                     <div class="spr_column-inner left_column">
                         <div class="spr_wrapper">
                             <div> <!-- class="option_box" -->
@@ -103,7 +103,7 @@ $active_support = ADNI_Activate::check_support();
                                                 echo $h;
                                                 ?>
                                                 <a href="admin.php?page=adning-updates&deregister_plugin=1" class="button button-primary button-updater" style="font-size: 14px;height: 46px;line-height: 44px;padding: 0 36px;margin-bottom:10px;">  
-                                                    <?php echo sprintf(__('Deactivate %s','adn'), 'imgMCE'); ?>
+                                                    <?php echo sprintf(__('Deactivate %s','adn'), 'Adning'); ?>
                                                 </a>
                                                 <?php
                                             }

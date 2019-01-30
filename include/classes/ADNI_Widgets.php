@@ -44,7 +44,7 @@ class ADNI_Widgets extends WP_Widget
 	
 	function update($new_instance,$old_instance) {
 		$instance = $old_instance;
-		$instance['title'] = strip_tags($new_instance['title']);
+		//$instance['title'] = strip_tags($new_instance['title']);
 		$instance['banner_id'] = $new_instance['banner_id'];
 		$instance['adzone_id'] = $new_instance['adzone_id'];
 		$instance['pas_shortcode'] = $new_instance['pas_shortcode'];
