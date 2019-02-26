@@ -35,7 +35,10 @@ class ADNI_Updates {
 
         $last_update = ADNI_Multi::get_option( '_adning_latest_update', 1 );
 
-
+        if( ADNI_VERSION >= '1.2.3' && $last_update < '1.2.3' )
+        {
+            
+        }
         if( ADNI_VERSION >= '1.1.7' && $last_update < '1.1.7' )
         {
             $auto_pos = ADNI_Main::auto_positioning();
@@ -109,7 +112,7 @@ class ADNI_Updates {
 
 
         // Check license
-        $activation = true;
+        $activation = ADNI_Multi::get_option('adning_activation', array());
         if( !empty($activation))
         {
             $resp = ADNI_Activate::check(array(

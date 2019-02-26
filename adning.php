@@ -3,21 +3,19 @@
  * Plugin Name: HYP Ads
  * Plugin URI: https://github.com/hypericumimpex/hyp-ads/
  * Description: Ads Component
- * Version: 1.2.2
+ * Version: 1.3
  * Author: Romeo C.
  * Author URI: https://github.com/hypericumimpex/
  * Requires at least: 4.6.1
  * Tested up to: 5.0.3
- *
  * Text Domain: adn
  * Domain Path: /localization/
  *
  */
-
- // Exit if accessed directly
+// Exit if accessed directly
 if ( ! defined( "ABSPATH" ) ) exit;
 // Current plugin version
-if ( ! defined( "ADNI_VERSION" ) ) define( "ADNI_VERSION", "1.2.2" );
+if ( ! defined( "ADNI_VERSION" ) ) define( "ADNI_VERSION", "1.3.0" );
 
 
 if ( ! class_exists( "ADNI_Adning" ) ) : 
@@ -74,13 +72,19 @@ class ADNI_Adning {
 		define( 'ADNI_GDPR_COOKIE', '_mjs__ning_gdpr_approve' );
 
 		$upload = wp_upload_dir();
-		define( 'ADNI_UPLOAD_FOLDER', 'adning/');
+		define( 'ADNI_UPLOAD_FOLDER', 'angwp/');
 		define( 'ADNI_UPLOAD_DIR', $upload['basedir'].'/'.ADNI_UPLOAD_FOLDER);
 		define( 'ADNI_UPLOAD_SRC', $upload['baseurl'].'/'.ADNI_UPLOAD_FOLDER);
 		
     }
 	
-	public static function load_textdomain() {
+
+	/**
+	 * Plugin Translation
+	 * https://developer.wordpress.org/themes/functionality/internationalization/
+	*/ 
+	public static function load_textdomain() 
+	{
 		load_plugin_textdomain( 'adn', false, plugin_basename( dirname( __FILE__ ) ) . '/localization' );
 	}
 	

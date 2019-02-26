@@ -6,17 +6,22 @@ if ( ! class_exists( 'ADNI_Filters' ) ) :
 class ADNI_Filters {
 
     static $post_count = 0;
+    public static $collect_js = array();
+    public static $collect_css = array();
 	
 	public function __construct() 
 	{
         // Actions --------------------------------------------------------
         add_action( 'wp_head', array( __CLASS__, 'inject_header' ), 20 );
         add_action( 'adning_head', array( __CLASS__, 'debug_marker' ), 2 );
-        add_action( 'wp_footer', array( __CLASS__, 'inject_footer' ), 20 );
+        add_action( 'wp_footer', array( __CLASS__, 'inject_footer' ), PHP_INT_MAX );
+        add_action( 'admin_footer', array( __CLASS__, 'output_collect_footer' ), PHP_INT_MAX );
         add_action( 'loop_start', array( __CLASS__, 'loop_start') );
+        
         
         // Filters --------------------------------------------------------
         add_filter( 'the_content', array(__CLASS__, 'content_filter'));
+        add_filter( 'adning_api_footer', array( __CLASS__, 'output_collect_footer' ), PHP_INT_MAX, 2 );
     }
 
 
@@ -177,6 +182,14 @@ class ADNI_Filters {
             if( !is_object($post) || !array_key_exists('ID',$post) )
                 return $ad;
 
+            // Post specific
+            $post_meta = get_post_meta( $post->ID, '_ning_settings', array() );
+            if(!empty($post_meta))
+            {
+                if(!$post_meta[0]['allow_ads'])
+                    return;
+            }
+
             if( array_key_exists('post_types', $display) && !empty($display['post_types']) )
             {
                 $post_type = get_post_type($post->ID);
@@ -259,6 +272,19 @@ class ADNI_Filters {
         $set_arr = ADNI_Main::settings();
         $settings = $set_arr['settings'];
 
+        // Enable AdSense Auto Ads
+        if( !empty($settings['adsense_pubid']) && $settings['adsense_auto_ads'])
+        {
+            $g = '<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+            <script>
+                (adsbygoogle = window.adsbygoogle || []).push({
+                    google_ad_client: "ca-'.$settings['adsense_pubid'].'",
+                    enable_page_level_ads: true
+                });
+            </script>';
+            echo $g;
+        }
+
         /*
 		 * Action: 'adning_head' - Allow other plugins to output inside the Adning section in the head section.
 		*/
@@ -315,19 +341,96 @@ class ADNI_Filters {
                         $css.= !empty($arr[$pos]['shadow_color']) ? '"box-shadow":"'.$arr[$pos]['shadow_color'].' 0px 5px 20px 0px"' : '"box-shadow":"none"';
                         
                         $h.= '<div id="mdl-elmt-'.$key.'"><div class="mdl_content">'.ADNI_Multi::do_shortcode('[adning id="'.$key.'"]').'</div></div>';
-                        $h.= '<script>';
-                            $h.= 'if( jQuery("#mdl-elmt-'.$key.'").find(".mdl_content").html() !== "" ){';
-                                $h.= 'jQuery("#mdl-elmt-'.$key.'").modalJS({';
-                                    $h.= 'width:"'.$arr[$pos]['width'].'",';
-                                    $h.= 'height:"'.$arr[$pos]['height'].'",';
-                                    $h.= !empty( $arr[$pos]['bg_color'] ) ? 'bg_color:"'.$arr[$pos]['bg_color'].'",' : '';
-                                    $h.= !empty( $arr[$pos]['overlay_color'] ) ? 'overlay_color:"'.$arr[$pos]['overlay_color'].'",' : '';
-                                    $h.= !empty($css) ? 'css:{'.$css.'},' : '';
-                                    $h.= !empty($arr[$pos]['cookie_value']) ? 'cookie: {"expires":"'.$arr[$pos]['cookie_value'].'","type":"'.$arr[$pos]['cookie_type'].'"}' : '';
-                                    $h.= !empty( $arr[$pos]['custom_json'] ) ? stripslashes($arr[$pos]['custom_json']) : '';
-                                $h.= '});';
-                            $h.= '}';
-                        $h.= '</script>';
+                        
+                        $position = '';
+                        $popup_display = array_key_exists('display', $arr[$pos]) ? $arr[$pos]['display'] : 'mc_popup';
+                        if( $popup_display === 'tl_popup')
+                        {
+                            $position = 'position:["left","top"]';
+                        }
+                        elseif( $popup_display === 'tc_popup')
+                        {
+                            $position = 'position:["center","top"]';
+                        }
+                        elseif( $popup_display === 'tr_popup')
+                        {
+                            $position = 'position:["right","top"]';
+                        }
+                        elseif( $popup_display === 'ml_popup')
+                        {
+                            $position = 'position:["left",""]';
+                        }
+                        elseif( $popup_display === 'mc_popup')
+                        {
+                            $position = 'position:["",""]';
+                        }
+                        elseif( $popup_display === 'mr_popup')
+                        {
+                            $position = 'position:["right",""]';
+                        }
+                        elseif( $popup_display === 'bl_popup')
+                        {
+                            $position = 'position:["left","bottom"]';
+                        }
+                        elseif( $popup_display === 'bc_popup')
+                        {
+                            $position = 'position:["","bottom"]';
+                        }
+                        elseif( $popup_display === 'br_popup')
+                        {
+                            $position = 'position:["right","bottom"]';
+                        }
+                        $popup_disable_window_scroll = array_key_exists('disable_ws', $arr[$pos]) ? $arr[$pos]['disable_ws'] : 0;
+                        
+                        // Triggers
+                        $trigger = '';
+                        $is_exit_popup = array_key_exists('trigger', $arr[$pos]) ? $arr[$pos]['trigger']['exit'] : 0;
+                        $is_scroll_popup = array_key_exists('trigger', $arr[$pos]) ? $arr[$pos]['trigger']['scroll'] : 0;
+                        $is_delay_popup = array_key_exists('trigger', $arr[$pos]) ? $arr[$pos]['trigger']['delay'] : 0;
+                        //$is_inactive_popup = array_key_exists('trigger', $arr[$pos]) ? $arr[$pos]['trigger']['inactive'] : 0;
+                        if($is_exit_popup)
+                        {
+                            $trigger = 'trigger:{"event":"exit"}';
+                        }
+                        elseif($is_scroll_popup)
+                        {
+                            $trigger = "trigger:{'event':'scroll','target':'".$arr[$pos]['trigger']['args']['scroll']['target']."','value':'".$arr[$pos]['trigger']['args']['scroll']['value']."'}";
+                        }
+                        elseif($is_delay_popup)
+                        {
+                            $trigger = "trigger:{'event':'delay',target:'".$arr[$pos]['trigger']['args']['delay']['target']."'}";
+                        }
+                        /*elseif($is_inactive_popup)
+                        {
+                            $trigger = "trigger:{'event':'inactive',target:'".$arr[$pos]['trigger']['args']['inactive']['target']."'}";
+                        }*/
+
+                        // Animations
+                        $popup_animate_in = array_key_exists('animate_in', $arr[$pos]) ? $arr[$pos]['animate_in'] : 'tada';
+                        $popup_animate_out = array_key_exists('animate_out', $arr[$pos]) ? $arr[$pos]['animate_out'] : 'tada';
+                        
+                        
+                        $js = '';
+                        $js.= '<script>';
+                            $js.= 'if( jQuery("#mdl-elmt-'.$key.'").find(".mdl_content").html() !== "" ){';
+                                $js.= 'jQuery("#mdl-elmt-'.$key.'").modalJS({';
+                                    $js.= 'width:"'.$arr[$pos]['width'].'",';
+                                    $js.= 'height:"'.$arr[$pos]['height'].'",';
+                                    $js.= !empty( $arr[$pos]['bg_color'] ) ? 'bg_color:"'.$arr[$pos]['bg_color'].'",' : '';
+                                    $js.= !empty( $arr[$pos]['overlay_color'] ) ? 'overlay_color:"'.$arr[$pos]['overlay_color'].'",' : '';
+                                    $js.= !empty($css) ? 'css:{'.$css.'},' : '';
+                                    $js.= !empty($arr[$pos]['cookie_value']) ? 'cookie: {"expires":"'.$arr[$pos]['cookie_value'].'","type":"'.$arr[$pos]['cookie_type'].'"},' : '';
+                                    $js.= !empty($trigger) ? $trigger.',' : '';
+                                    $js.= 'animatedIn:"'.$popup_animate_in.'",';
+                                    $js.= 'animatedOut:"'.$popup_animate_out.'",';
+                                    $js.= $position.',';
+                                    $js.= 'disable_window_scroll:'.$popup_disable_window_scroll.',';
+                                    $js.= !empty( $arr[$pos]['custom_json'] ) ? stripslashes($arr[$pos]['custom_json']) : '';
+                                $js.= '});';
+                            $js.= '}';
+                        $js.= '</script>';
+
+                        self::$collect_js['mdl-elmt-'.$key] = $js;
                     }
                 }
 
@@ -338,7 +441,8 @@ class ADNI_Filters {
                     if( self::show_hide(array('args' => $b)) )
                     {
                         $h.= '<div id="crp-elmt-'.$key.'">'.ADNI_Multi::do_shortcode('[adning id="'.$key.'"]').'</div>';
-                        $h.= '<script>jQuery("#crp-elmt-'.$key.'").cornerPeel({cornerAnimate:0});</script>';
+                        //$h.= '<script>jQuery("#crp-elmt-'.$key.'").cornerPeel({cornerAnimate:0});</script>';
+                        self::$collect_js['crp-elmt-'.$key] = '<script>jQuery("#crp-elmt-'.$key.'").cornerPeel({cornerAnimate:0});</script>';
                     }
                 }
 
@@ -354,9 +458,9 @@ class ADNI_Filters {
                         $left_url = $b['banner_link_masking'] ? ADNI_Main::link_masking(array('id' => $key, 'bg_ad' => 'left' )) : $b['bg_takeover_left_skin_url'];
                         $right_url = $b['banner_link_masking'] ? ADNI_Main::link_masking(array('id' => $key, 'bg_ad' => 'right' )) : $b['bg_takeover_right_skin_url'];
 
-
-                        $h.= '<script>';
-                            $h.= "jQuery('".$bg_container."').bgTakeover({
+                        $js = '';
+                        $js.= '<script>';
+                            $js.= "jQuery('".$bg_container."').bgTakeover({
                                 bg_image: '".$b['bg_takeover_src']."',
                                 bg_color: '".$b['bg_takeover_bg_color']."',
                                 content_bg_color: '".$b['bg_takeover_content_bg_color']."',
@@ -369,14 +473,9 @@ class ADNI_Filters {
                                     'right': '".$right_url."'
                                 }
                             });";
-                        $h.= '</script>';
-                        /*
-                        click_url: {
-                            'top': '".$b['bg_takeover_top_skin_url']."',
-                            'left': '".$b['bg_takeover_left_skin_url']."',
-                            'right': '".$b['bg_takeover_right_skin_url']."'
-                        }
-                        */
+                        $js.= '</script>';
+
+                        self::$collect_js['bg_takeover_'.$key] = $js;
                     }
                 }
 
@@ -389,44 +488,82 @@ class ADNI_Filters {
                         if( !empty($arr[$pos]['element']))
                         {
                             $h.= '<div id="inject-elmt-'.$key.'">'.ADNI_Multi::do_shortcode('[adning id="'.$key.'"]').'</div>';
-                            $h.= '<script>';
-                                $h.= 'var ins_where = "'.$arr[$pos]['where'].'";';
-                                $h.= 'var ins_element = "'.$arr[$pos]['element'].'";';
+                            $js = '';
+                            $js.= '<script>';
+                                $js.= 'var ins_where = "'.$arr[$pos]['where'].'";';
+                                $js.= 'var ins_element = "'.$arr[$pos]['element'].'";';
 
                                 // Make sure element exists.
-                                $h.= "jQuery(document).ready(function($){";
-                                    $h.= 'if( jQuery(ins_element).length ){';
-                                        $h.= 'jQuery("#inject-elmt-'.$key.'").modalJS({';
-                                            $h.= 'type: "inline",';
-                                            $h.= 'insert: {"target":ins_element,"where":ins_where}';
-                                        $h.= '});';
-                                    $h.= '}else{
+                                $js.= "jQuery(document).ready(function($){";
+                                    $js.= 'if( jQuery(ins_element).length ){';
+                                        $js.= 'jQuery("#inject-elmt-'.$key.'").modalJS({';
+                                            $js.= 'type: "inline",';
+                                            $js.= 'insert: {"target":ins_element,"where":ins_where}';
+                                        $js.= '});';
+                                        /*$js.= 'setTimeout(function(){';
+                                            $js.= 'jQuery("#inject-elmt-'.$key.'").find("._ning_cont").ningResponsive();';
+                                        $js.= '}, 100);';*/
+                                    $js.= '}else{
                                         jQuery("#inject-elmt-'.$key.'").remove();
                                     }';
-                                $h.= '});';
+                                $js.= '});';
+                            $js.= '</script>';
 
-                                /*$h.= "jQuery(document).ready(function($){
-                                    if( ins_element !== '' ){
-                                        var where = ins_where !== '' ? ins_where : 'after';
-                                        if( where === 'before'){
-                                            $(ins_element).before( $('#inject-elmt-'+$key) );
-                                        }else{
-                                            $(ins_element).after( $('#inject-elmt-'+$key) );
-                                        }
-                                    }
-                                });";*/
-                            $h.= '</script>';
+                            self::$collect_js['inject-elmt-'.$key] = $js;
                         }
                     }
                 }
             }
         }
 
-        echo $h;
+        self::output_collect_footer($h);
     }
 
 
 
+
+    public static function output_collect_footer($h = '', $echo = true)
+    {
+        // OUTPUT
+        $output = '';
+        $marker = '<!-- Ads on this site are served by Adning v' . ADNI_VERSION . ' - adning.com -->';
+		$output.= "\n${marker}\n";
+        $output.= $h;
+
+        /**
+         * Add collected javascript to footer
+         */
+        $js = '';
+		if(!empty(self::$collect_js))
+		{
+			foreach(self::$collect_js as $js)
+			{
+				$output.= $js;
+			}
+        }
+        $css = '';
+		if(!empty(self::$collect_css))
+		{
+            $output.= '<style>';
+			foreach(self::$collect_css as $css)
+			{
+				$output.= $css;
+            }
+            $output.= '</style>';
+		}
+        $output.= '<!-- / '."Adning. -->\n\n";
+
+        if( $echo )
+        {
+            echo $output;
+        }
+        else
+        {
+            return $output;
+        }
+    }
+
+    
 
     
 
@@ -872,104 +1009,6 @@ class ADNI_Filters {
 
         return $active;
     }
-
-
-
-
-
-
-    /**
-     * Create banner content for filters.
-     */
-    /*public static function create_content( $args = array() ) 
-    {
-        $defaults = array(
-            'id' => 0,
-            'pos' => '',
-            'pos_arr' => array()
-        );
-        $args = ADNI_Main::parse_args($args, $defaults);
-
-        if(!empty($args['pos_arr']))
-        {
-            if($args['pos'] === 'inside_content')
-            {
-                // Parallax
-                if( array_key_exists('parallax', $args['pos_arr']) )
-                {
-                    $para_active = $args['pos_arr']['parallax']['active'];
-
-                    if( $para_active )
-                    {
-                        ADNI_Init::enqueue(
-                            array(
-                                'files' => array(
-                                    array('file' => '_ning_parallax_css', 'type' => 'style'),
-                                    array('file' => '_ning_parallax', 'type' => 'script')
-                                )
-                            )
-                        );
-
-                        $url = '';
-                        $b = ADNI_Multi::get_post_meta($args['id'], '_adning_args', array());
-                        if($b['type'] === 'banner')
-                        {
-                            $url = !empty($b['banner_url']) ? $b['banner_url'] : '';
-                            $url = $b['banner_link_masking'] && !empty($url) ? ADNI_Main::link_masking(array('id' => $id)) : $url;
-                        }
-
-                        $href = !empty($url) ? ' href="'.$url.'"' : '';
-
-                        $para_overflow = !$args['pos_arr']['parallax']['overflow'] ? ' overflow_hidden' : '';
-                        $para_y = $args['pos_arr']['parallax']['y'] !== '' ? $args['pos_arr']['parallax']['y'] : -100;
-                        $para_x = $args['pos_arr']['parallax']['x'] !== '' ? $args['pos_arr']['parallax']['x'] : 0;
-                        $para_bg = $args['pos_arr']['parallax']['bg'];
-                        $para_bg_color = !empty($args['pos_arr']['parallax']['bg_color']) ? 'background:'.$args['pos_arr']['parallax']['bg_color'].';' : '';
-                        $para_bg_speed = $args['pos_arr']['parallax']['bg_speed'] !== '' ? $args['pos_arr']['parallax']['bg_speed'] : 0.5;
-                        $para_bg_only = $args['pos_arr']['parallax']['bg_only'];
-
-                        // Check for video bg
-                        if(!empty($para_bg))
-                        {
-                            $ext = pathinfo($para_bg, PATHINFO_EXTENSION);
-                            $video_data = '';
-                            if(\strpos($para_bg, 'https://www.youtube.com/watch') !== false)
-                            {
-                                $video_data = ' data-jarallax-video="'.$para_bg.'"';
-                                $para_bg = '';
-                            }
-                            elseif(\strpos($para_bg, 'https://vimeo.com') !== false)
-                            {
-                                $video_data = ' data-jarallax-video="'.$para_bg.'"';
-                                $para_bg = '';
-                            }
-                            elseif($ext === 'mp4')
-                            {
-                                $video_data = ' data-jarallax-video="mp4:'.$para_bg.'"';
-                                $para_bg = '';
-                            }
-                        }
-                        
-
-                        $c = '';
-                        $c.= '<a'.$href.' data-jarallax data-speed="'.$para_bg_speed.'"'.$video_data.' class="_ning_parallax_container _ning_parallax_'.$args['id'].$para_overflow.'" style="min-height:'.$b['size_h'].'px;'.$para_bg_color.'">';
-                            $c.= !empty($para_bg) ? '<img class="jarallax-img" src="'.$para_bg.'" alt="">' : '';
-                            if( !$para_bg_only )
-                            {
-                                $c.= '<div data-jarallax-element="'.$para_y.' '.$para_x.'">';
-                                    $c.= '[adning id="'.$args['id'].'" no_iframe="1"]';
-                                $c.= '</div>';
-                            }
-                        $c.= '</a>';
-                        return $c;
-                    }
-                }
-            }
-        }
-
-        return '[adning id="'.$args['id'].'" no_iframe="1"]';
-    }
-    */
 
 }
 

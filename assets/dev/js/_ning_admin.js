@@ -172,6 +172,62 @@ var Adning_global = {
 			default:
 				console.log('who knows which filetype this is...');
 		}
+	},
+
+
+	load_code_editor: function(){
+
+		$('.code_editor').each(function(index, item){
+
+			if( $(item).parent().find('.CodeMirror').length || $(item).parents('.closed').length )
+				return;
+
+
+			var height = typeof $(item).data("height") !== 'undefined' ? $(item).data("height") : '150px';
+			
+			var editor = _ning_codemirror.fromTextArea($(item)[0], {
+				lineNumbers : true,
+				mode: $(item).data("lang"),
+				theme: "github",
+			});
+			editor.setSize("100%",height);
+	
+			if( $(item).attr('id') === 'banner_content' ){
+				editor.on("change", function() {
+					//console.log('Codemirror change');
+					var render_preview = $('#dont_render_preview_code').prop("checked");
+					if( render_preview ){
+						$("._ning_cont").find('._ning_inner').html( editor.getValue() );
+					}
+				});
+			}
+	  	});
+
+		/*var code_editors = document.querySelectorAll(".code_editor");
+	
+		for (var i = 0; i < code_editors.length; i++){
+			console.log('kak');
+			console.log(this);
+			
+			var height = code_editors[i].getAttribute("data-height") !== null ? code_editors[i].getAttribute("data-height") : '150px';
+			
+			var editor = _ning_codemirror.fromTextArea(code_editors[i], {
+				lineNumbers : true,
+				mode: code_editors[i].getAttribute("data-lang"),
+				theme: "github",
+			});
+			editor.setSize("100%",height);
+	
+			if( code_editors[i].getAttribute('id') === 'banner_content' ){
+				editor.on("change", function() {
+					//console.log('Codemirror change');
+					var render_preview = $('#dont_render_preview_code').prop("checked");
+					if( render_preview ){
+						$("._ning_cont").find('._ning_inner').html( editor.getValue() );
+					}
+				});
+			}
+		}*/
 	}
 };
 
@@ -274,6 +330,28 @@ module.exports = {
 			}
 			console.log(pos);
 			$('.adning_auto_position').val(pos);
+		});
+
+
+		$('.pop_box').on('click', function(){
+			var pos = $(this).data('pos'),
+				has_custom = $(this).data('custom');
+
+			$('.pop_box').removeClass('selected');
+			if( pos !== ''){
+				$(this).addClass('selected');
+			}
+
+			/*if( has_custom ){
+				$('.custom_placement_settings_cont').show();
+				$('.custom_placement_settings_cont').find('.custom_box').hide();
+				$('.custom_placement_settings_cont').find('.option_'+pos).show();
+			}else{
+				$('.custom_placement_settings_cont').hide();
+				$('.custom_placement_settings_cont').find('.custom_box').hide();
+			}*/
+			console.log(pos);
+			$('.popup_display_type').val(pos);
 		});
 
 
@@ -433,6 +511,11 @@ module.exports = {
 
 		$('.tog').on('click', function(){
 			$(this).closest('.option_box').toggleClass('closed').find('.settings_box_content').toggleClass('hidden');
+			window.Adning_global.load_code_editor();
+		});
+		$('.togg').on('click', function(){
+			$(this).closest('.adn_settings_cont').toggleClass('closed').find('.set_box_content').toggleClass('hidden');
+			window.Adning_global.load_code_editor();
 		});
 
 
@@ -444,7 +527,7 @@ module.exports = {
 			'banner_id': $(this).data('id'),
 			'max_upload_size': 1000,
 			'upload': {
-				'folder': 'banners/'+$(this).data('id')+'/',
+				'folder': 'items/'+$(this).data('id')+'/',
 				'dir': _adn_.upload.dir,
 				'src': _adn_.upload.src
 			},

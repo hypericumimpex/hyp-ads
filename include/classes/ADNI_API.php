@@ -47,7 +47,8 @@ class ADNI_API {
 						var _dn_ = {"debug":"'.IMC_DEBUG.'","ajaxurl":"'.IMC_AJAXURL.'","siteurl":"'.IMC_SITEURL.'","assets_url":"'.IMC_ASSETS_URL.'","assets_dir":"'.IMC_ASSETS_DIR.'","inc_url":"'.IMC_INC_URL.'","inc_dir":"'.IMC_INC_DIR.'","inc_dir_base":"'.ADN_Main::base_url(IMC_INC_DIR).'","upload_folder":"'.IMC_UPLOAD_FOLDER.'","upload_path":"'.IMC_UPLOAD_DIR.'","upload_src":"'.IMC_UPLOAD_SRC.'"};
 						/* ]]> */
 						</script>';
-						$html.= '<script type="text/javascript" src="'.IMC_ASSETS_URL.'js/'.ADN_main::file_loc(array('name' => 'imgmce_image')).'.js"></script>';
+						$html.= '<script type="text/javascript" src="'.IMC_ASSETS_URL.'dist/_imc.bundle.js"></script>';
+						//$html.= '<script type="text/javascript" src="'.IMC_ASSETS_URL.'js/'.ADN_main::file_loc(array('name' => 'imgmce_image')).'.js"></script>';
 					}
 					
 					$html.= '<style type="text/css">body{ margin:0; padding:0; '.$custom_css.' }</style>';
@@ -55,6 +56,8 @@ class ADNI_API {
 				$html.= '</head>';
 				$html.= '<body>';
 					$html.= ADNI_Multi::do_shortcode('[ADNI_'.$type.' id="'.$_GET['_dnid'].'" filter="0"]');
+					$html.= apply_filters( 'adning_api_footer', '', false );
+					$html.= apply_filters( 'imgmce_api_footer', '', false );
 				$html.= '</body>';
 			$html.= '</html>';
 			
@@ -218,8 +221,6 @@ class ADNI_API {
 				
 				$html.= '}';
 			$html.= '}';
-			
-			
 			
 			
 			echo $html;

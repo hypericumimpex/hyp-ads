@@ -17,7 +17,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
 
 if( isset($_GET['deregister_plugin']))
 {
-    $activation = true;
+    $activation = ADNI_Multi::get_option('adning_activation', array());
     if( !empty($activation))
     {
         $resp = ADNI_Activate::deregister(array('license-key' => $activation['license-key']));
@@ -26,7 +26,7 @@ if( isset($_GET['deregister_plugin']))
 }
 
 //$activation = get_option('adning_activation', array());
-$activation = true;
+$activation = ADNI_Multi::get_option('adning_activation', array());
 $active_support = ADNI_Activate::check_support();
 ?>
 
@@ -96,13 +96,15 @@ $active_support = ADNI_Activate::check_support();
                                             else
                                             {
                                                 $h = '';
-                                                $h.= '<h2>'.__('Plugin Activated','adn').'</h2>';
+                                                $h.= '<h2>'.__('Plugin Activated By <label style="color:red">CodeXinh.Com</label>','adn').'</h2>';
                                                 $h.= '<ul>';
                                                     $h.= '<li>'.__('Support','adn').': '.$active_support['code'].'</li>';
                                                 $h.= '</ul>';
                                                 echo $h;
+
+                                                $deactivate_url = esc_url( wp_nonce_url( self_admin_url('admin.php?page=adning-updates&deregister_plugin=1')));
                                                 ?>
-                                                <a href="admin.php?page=adning-updates&deregister_plugin=1" class="button button-primary button-updater" style="font-size: 14px;height: 46px;line-height: 44px;padding: 0 36px;margin-bottom:10px;">  
+                                                <a href="<?php echo $deactivate_url; ?>" class="button button-primary button-updater" style="font-size: 14px;height: 46px;line-height: 44px;padding: 0 36px;margin-bottom:10px;">  
                                                     <?php echo sprintf(__('Deactivate %s','adn'), 'Adning'); ?>
                                                 </a>
                                                 <?php

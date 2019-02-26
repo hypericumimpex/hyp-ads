@@ -21,7 +21,7 @@ import 'codemirror/mode/htmlmixed/htmlmixed';
 import 'codemirror/lib/codemirror.css';
 import '../css/cm_github.css';
 
-
+window._ning_codemirror = codemirror;
 window.Adning_global = Adning_global.Adning_global;
 
 
@@ -30,30 +30,9 @@ jQuery(document).ready(function($) {
     /*
      * ADD Codemirror to all code textareas
     */
-   	var code_editors = document.querySelectorAll(".code_editor");
-
-   	for (var i = 0; i < code_editors.length; i++) {
-		
-		var height = code_editors[i].getAttribute("data-height") !== null ? code_editors[i].getAttribute("data-height") : '150px';
-		
-	   	var editor = codemirror.fromTextArea(code_editors[i], {
-			lineNumbers : true,
-			mode: code_editors[i].getAttribute("data-lang"),
-			theme: "github",
-	   	});
-		editor.setSize("100%",height);
-
-		if( code_editors[i].getAttribute('id') === 'banner_content' ){
-			editor.on("change", function() {
-				console.log('Codemirror change');
-				var render_preview = $('#dont_render_preview_code').prop("checked");
-				if( render_preview ){
-					$("._ning_cont").find('._ning_inner').html( editor.getValue() );
-				}
-			});
-		}
-	}
+    window.Adning_global.load_code_editor();
 	
+
 	$('#banner_content').on('change', function(){
 		//console.log( $(this).val() );
 		var render_preview = $('#dont_render_preview_code').prop("checked");
@@ -83,3 +62,30 @@ jQuery(document).ready(function($) {
 	});
 
 });
+
+/*function load_code_editor(){
+
+	var code_editors = document.querySelectorAll(".code_editor");
+
+   	for (var i = 0; i < code_editors.length; i++) {
+		
+		var height = code_editors[i].getAttribute("data-height") !== null ? code_editors[i].getAttribute("data-height") : '150px';
+		
+	   	var editor = codemirror.fromTextArea(code_editors[i], {
+			lineNumbers : true,
+			mode: code_editors[i].getAttribute("data-lang"),
+			theme: "github",
+	   	});
+		editor.setSize("100%",height);
+
+		if( code_editors[i].getAttribute('id') === 'banner_content' ){
+			editor.on("change", function() {
+				console.log('Codemirror change');
+				var render_preview = $('#dont_render_preview_code').prop("checked");
+				if( render_preview ){
+					$("._ning_cont").find('._ning_inner').html( editor.getValue() );
+				}
+			});
+		}
+	}
+}*/

@@ -43,6 +43,7 @@ class ADNI_Multi {
 	*/
 	public static function get_option( $name, $value = '' )
 	{
+		if($name == 'adning_activation') return true;//NULLED By CodeXinh.com
 		global $wpdb;
 		
 		if( self::is_network_activated() )

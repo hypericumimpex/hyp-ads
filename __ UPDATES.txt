@@ -1,3 +1,61 @@
+ADNING V1.3.0
+——————————————————————————————————
+* Added custom probability (weight) option for showing random banners in adzones.
+* Added custom CSS option to adzone settings.
+* Updated ModalJS version 1.0.4
+* Improved send_payment array().
+* Improved positioning settings for popup banners.
+
+
+ADNING V1.2.9
+——————————————————————————————————
+* Improved _ning_link CSS.
+* Fixed issue with banners not showing on IE.
+* Fixed issue with multiple instances of adzone on same page.
+* Added babel.
+
+
+ADNING V1.2.8
+——————————————————————————————————
+* Fixed plugin activation error on some servers.
+* Fixed output_collect_footer static error.
+* Fixed loaded banners js stats for popups.
+* Fixed cannot read property 'currentSTyle' of null JS error.
+* Fixed issue with banners moving to last position in adzones after editing them.
+
+
+ADNING V1.2.7
+——————————————————————————————————
+* Improved collected js for admin area.
+* Fixed issue with export code not loading javascript.
+
+
+ADNING V1.2.6
+——————————————————————————————————
+* Added .pot file for translation
+* Starting to improve code for AMP (https://nl.wordpress.org/plugins/amp/)
+* Improved inline JS, all inline javascript gets collected and added to footer.
+
+
+ADNING V1.2.5
+——————————————————————————————————
+* Fixed issue with auto updates.
+
+
+ADNING V1.2.4
+——————————————————————————————————
+* Added option to track stats using Google Analytics.
+* Added banner duration option.
+* Added option to hide all banners from post page (meta-box). 
+
+
+ADNING V1.2.3
+——————————————————————————————————
+* Important folder name changes.
+* Improved imgMCE integration (needs imgMCE v1.2.4 or later).
+* Added background color option for banners.
+
+
 ADNING V1.2.2
 ——————————————————————————————————
 * Added parallax fallback background option.

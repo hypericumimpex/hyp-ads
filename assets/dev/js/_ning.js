@@ -1,3 +1,9 @@
+/*window.console = window.console || {log:function(){}};
+if (typeof console === "undefined"){
+	console={};
+	console.log = function(){};
+}*/
+
 /**
  *  _NING GLOBAL FUNCTIONS
  */
@@ -37,9 +43,11 @@ var _ning_global = {
 			}).done(function( obj ) {
 			   
 				// nothing gets returned.
-				msg = JSON.parse( obj );
+				if( obj !== ''){
+					msg = JSON.parse( obj );
 				
-				if( msg.alert ){ alert(msg.alert); }
+					if( msg.alert ){ alert(msg.alert); }
+				}
 			});
 		}
     }, 500);

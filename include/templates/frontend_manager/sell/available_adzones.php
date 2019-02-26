@@ -7,8 +7,6 @@ $h = '';
 
 $h.= '<div class="adning_cont adning_available_adzones">
 	<div class="wrap">';
-
-        
        
         if( isset($_GET['adzone']) && !empty($_GET['adzone']) )
         {

@@ -74,161 +74,183 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                                 <div class="spr_wrapper">
                                     <div class="option_box">
                                         <div class="info_header">
-                                            <span class="nr">1</span>
+                                            <span class="nr">
+                                            <svg viewBox="0 0 512 512"><path fill="currentColor" d="M256 8C119.034 8 8 119.033 8 256s111.034 248 248 248 248-111.034 248-248S392.967 8 256 8zm130.108 117.892c65.448 65.448 70 165.481 20.677 235.637L150.47 105.216c70.204-49.356 170.226-44.735 235.638 20.676zM125.892 386.108c-65.448-65.448-70-165.481-20.677-235.637L361.53 406.784c-70.203 49.356-170.226 44.736-235.638-20.676z"></path></svg>
+                                            </span>
                                             <span class="text"><?php _e('Disable AD Settings','adn'); ?></span>
-                                            <input type="submit" value="<?php _e('Save Changes','adn'); ?>" class="button-primary" name="submit_btn" style="width:auto;float:right;margin:8px;">
+                                            <span class="fa tog"></span>
+                                            <!--<input type="submit" value="<?php _e('Save Changes','adn'); ?>" class="button-primary" name="submit_btn" style="width:auto;float:right;margin:8px;">-->
                                         </div>
-                                        <div class="input_container">
-                                            <div class="input_container_inner">
-                                                <?php
-                                                $html = '';
-                                                $html.= '<div class="adn_settings_cont">';
-                                                    $html.= '<h4>'.__('Disable Ads','adn').'</h4>';
-                                                    $html.= '<div class="adn_settings_cont_inner clear">';
-                                                        $html.= '<p>'.__('','adn').'</p>';
-                                                        
-                                                        $html.= ADNI_Templates::switch_btn(array(
-                                                            'title' => __('Disable All Ads','adn'),
-                                                            'id' => 'disable_all_ads',
-                                                            'name' => 'disable[all_ads]',
-                                                            'checked' => $settings['disable']['all_ads'],
-                                                            'value' => 1,
-                                                            'hidden_input' => 1,
-                                                            'chk-on' => __('Yes','adn'),
-                                                            'chk-off' => __('No','adn'),
-                                                            'column' => array(
-                                                                'size' => 'col-6',
-                                                                'desc' => __('This will disable all ads on the website.','adn'),
-                                                            )
-                                                        ));
-                                                        
-                                                        
-                                                        $html.= ADNI_Templates::spr_column(array(
-                                                            'col' => 'spr_col-6',
-                                                            'title' => __('Hide ads for logged-in users.','adn'),
-                                                            'desc' => __('Select the lowest role a user must have in order to not see any ads.','adn'),
-                                                            'content' => '<select name="disable[user_role_ads]" class=""><option value="" '.selected( $settings['disable']['user_role_ads'], '', false ).'>'.__('Show ads to everyone','adn').'</option>'.ADNI_Main::dropdown_roles($settings['disable']['user_role_ads']).'</select>'
-                                                        ));
-                                                        
-                                                        
-                                                    $html.= '</div>';
-                                                $html.= '</div>';
-
-                                                $html.= '<div class="adn_settings_cont">';
-                                                    $html.= '<h4>'.__('GDPR - Disable Ads till content is approved','adn').'</h4>';
-                                                    $html.= '<div class="adn_settings_cont_inner clear">';
-                                                        $html.= '<p>'.__('Disable all Ads until the "content cookie" is approved. You can use the build in cookie message or use a third party option, in that case you can provide the cookie name in value here.','adn').'</p>';
-                                                        
-                                                        $html.= ADNI_Templates::switch_btn(array(
-                                                            'title' => __('Disable all Ads until the "content cookie" is approved.','adn'),
-                                                            'id' => 'disable_till_approved',
-                                                            'name' => 'gdpr[disable_till_approved]',
-                                                            'checked' => $settings['gdpr']['disable_till_approved'],
-                                                            'value' => 1,
-                                                            'hidden_input' => 1,
-                                                            'chk-on' => __('Yes','adn'),
-                                                            'chk-off' => __('No','adn'),
-                                                            'column' => array(
-                                                                'size' => 'col',
-                                                                'desc' => __('','adn'),
-                                                            )
-                                                        ));
-
-
-                                                        $html.= ADNI_Templates::spr_column(array(
-                                                            'col' => 'spr_col-6',
-                                                            'title' => __('Cookie name','adn'),
-                                                            'desc' => __('The name of the cookie that needs to be available.','adn'),
-                                                            'content' => ADNI_Templates::inpt_cont(array(
-                                                                    'type' => 'text',
-                                                                    'width' => '100%',
-                                                                    'name' => 'gdpr[cookie_name]',
-                                                                    'value' => $settings['gdpr']['cookie_name'],
-                                                                    'placeholder' => '',
-                                                                    'icon' => 'pencil',
-                                                                    'show_icon' => 1
-                                                                ))
-                                                        ));
-
-                                                        $html.= ADNI_Templates::spr_column(array(
-                                                            'col' => 'spr_col-6',
-                                                            'title' => __('Cookie value','adn'),
-                                                            'desc' => __('The required value of the cookie.','adn'),
-                                                            'content' => ADNI_Templates::inpt_cont(array(
-                                                                    'type' => 'text',
-                                                                    'width' => '100%',
-                                                                    'name' => 'gdpr[cookie_value]',
-                                                                    'value' => $settings['gdpr']['cookie_value'],
-                                                                    'placeholder' => '',
-                                                                    'icon' => 'pencil',
-                                                                    'show_icon' => 1
-                                                                ))
-                                                        ));
-                                                        
+                                        <div class="settings_box_content">
+                                            <div class="input_container">
+                                                <div class="input_container_inner">
+                                                    <?php
+                                                    $html = '';
+                                                    $html.= '<div class="adn_settings_cont">';
+                                                        $html.= '<h4>'.__('Disable Ads','adn').' <span class="fa togg"></span></h4>';
+                                                        $html.= '<div class="set_box_content">';
+                                                            $html.= '<div class="adn_settings_cont_inner clear">';
+                                                                $html.= '<p>'.__('','adn').'</p>';
+                                                                
+                                                                $html.= ADNI_Templates::switch_btn(array(
+                                                                    'title' => __('Disable All Ads','adn'),
+                                                                    'id' => 'disable_all_ads',
+                                                                    'name' => 'disable[all_ads]',
+                                                                    'checked' => $settings['disable']['all_ads'],
+                                                                    'value' => 1,
+                                                                    'hidden_input' => 1,
+                                                                    'chk-on' => __('Yes','adn'),
+                                                                    'chk-off' => __('No','adn'),
+                                                                    'column' => array(
+                                                                        'size' => 'col-6',
+                                                                        'desc' => __('This will disable all ads on the website.','adn'),
+                                                                    )
+                                                                ));
+                                                                
+                                                                
+                                                                $html.= ADNI_Templates::spr_column(array(
+                                                                    'col' => 'spr_col-6',
+                                                                    'title' => __('Hide ads for logged-in users.','adn'),
+                                                                    'desc' => __('Select the lowest role a user must have in order to not see any ads.','adn'),
+                                                                    'content' => '<select name="disable[user_role_ads]" class=""><option value="" '.selected( $settings['disable']['user_role_ads'], '', false ).'>'.__('Show ads to everyone','adn').'</option>'.ADNI_Main::dropdown_roles($settings['disable']['user_role_ads']).'</select>'
+                                                                ));
+                                                                
+                                                                
+                                                            $html.= '</div>';
+                                                        $html.= '</div>';
+                                                        // end .set_box_content
                                                     $html.= '</div>';
 
-                                                    $html.= '<div class="adn_settings_cont_inner clear">';
+                                                    $html.= '<div class="adn_settings_cont closed">';
+                                                        $html.= '<h4>'.__('GDPR - Disable Ads till content is approved','adn').'<span class="fa togg"></span></h4>';
                                                         
-                                                        $html.= ADNI_Templates::switch_btn(array(
-                                                            'title' => __('Show build-in gdpr cookie message.','adn'),
-                                                            'id' => 'show_cookie_message',
-                                                            'name' => 'gdpr[show_cookie_message]',
-                                                            'checked' => $settings['gdpr']['show_cookie_message'],
-                                                            'value' => 1,
-                                                            'hidden_input' => 1,
-                                                            'chk-on' => __('Yes','adn'),
-                                                            'chk-off' => __('No','adn'),
-                                                            'column' => array(
-                                                                'size' => 'col-6',
-                                                                'desc' => __('This will show a gdpr cookie message modal on your website.','adn'),
-                                                            )
-                                                        ));
+                                                        $html.= '<div class="set_box_content hidden">';
+                                                            $html.= '<div class="adn_settings_cont_inner clear">';
+                                                                $html.= '<p>'.__('Disable all Ads until the "content cookie" is approved. You can use the build in cookie message or use a third party option, in that case you can provide the cookie name in value here.','adn').'</p>';
+                                                                
+                                                                $html.= ADNI_Templates::switch_btn(array(
+                                                                    'title' => __('Disable all Ads until the "content cookie" is approved.','adn'),
+                                                                    'id' => 'disable_till_approved',
+                                                                    'name' => 'gdpr[disable_till_approved]',
+                                                                    'checked' => $settings['gdpr']['disable_till_approved'],
+                                                                    'value' => 1,
+                                                                    'hidden_input' => 1,
+                                                                    'chk-on' => __('Yes','adn'),
+                                                                    'chk-off' => __('No','adn'),
+                                                                    'column' => array(
+                                                                        'size' => 'col',
+                                                                        'desc' => __('','adn'),
+                                                                    )
+                                                                ));
 
-                                                        $html.= ADNI_Templates::spr_column(array(
-                                                            'col' => 'spr_col-6',
-                                                            'title' => __('Button Text','adn'),
-                                                            'desc' => __('The "Approve" button text for the GDPR cookie message.','adn'),
-                                                            'content' => ADNI_Templates::inpt_cont(array(
+
+                                                                $html.= ADNI_Templates::spr_column(array(
+                                                                    'col' => 'spr_col-6',
+                                                                    'title' => __('Cookie name','adn'),
+                                                                    'desc' => __('The name of the cookie that needs to be available.','adn'),
+                                                                    'content' => ADNI_Templates::inpt_cont(array(
+                                                                            'type' => 'text',
+                                                                            'width' => '100%',
+                                                                            'name' => 'gdpr[cookie_name]',
+                                                                            'value' => $settings['gdpr']['cookie_name'],
+                                                                            'placeholder' => '',
+                                                                            'icon' => 'pencil',
+                                                                            'show_icon' => 1
+                                                                        ))
+                                                                ));
+
+                                                                $html.= ADNI_Templates::spr_column(array(
+                                                                    'col' => 'spr_col-6',
+                                                                    'title' => __('Cookie value','adn'),
+                                                                    'desc' => __('The required value of the cookie.','adn'),
+                                                                    'content' => ADNI_Templates::inpt_cont(array(
+                                                                            'type' => 'text',
+                                                                            'width' => '100%',
+                                                                            'name' => 'gdpr[cookie_value]',
+                                                                            'value' => $settings['gdpr']['cookie_value'],
+                                                                            'placeholder' => '',
+                                                                            'icon' => 'pencil',
+                                                                            'show_icon' => 1
+                                                                        ))
+                                                                ));
+                                                                
+                                                            $html.= '</div>';
+
+                                                            $html.= '<div class="adn_settings_cont_inner clear">';
+                                                                
+                                                                $html.= ADNI_Templates::switch_btn(array(
+                                                                    'title' => __('Show build-in gdpr cookie message.','adn'),
+                                                                    'id' => 'show_cookie_message',
+                                                                    'name' => 'gdpr[show_cookie_message]',
+                                                                    'checked' => $settings['gdpr']['show_cookie_message'],
+                                                                    'value' => 1,
+                                                                    'hidden_input' => 1,
+                                                                    'chk-on' => __('Yes','adn'),
+                                                                    'chk-off' => __('No','adn'),
+                                                                    'column' => array(
+                                                                        'size' => 'col-6',
+                                                                        'desc' => __('This will show a gdpr cookie message modal on your website.','adn'),
+                                                                    )
+                                                                ));
+
+                                                                $html.= ADNI_Templates::spr_column(array(
+                                                                    'col' => 'spr_col-6',
+                                                                    'title' => __('Button Text','adn'),
+                                                                    'desc' => __('The "Approve" button text for the GDPR cookie message.','adn'),
+                                                                    'content' => ADNI_Templates::inpt_cont(array(
+                                                                            'type' => 'text',
+                                                                            'width' => '100%',
+                                                                            'name' => 'gdpr[cookie_message_approve_btn]',
+                                                                            'value' => $settings['gdpr']['cookie_message_approve_btn'],
+                                                                            'show_icon' => 1,
+                                                                            'icon' => 'pencil',
+                                                                            'placeholder' => __('I Accept Cookies','adn')
+                                                                        ))
+                                                                ));
+
+                                                                $html.= ADNI_Templates::textarea_cont(array(
+                                                                    'title' => __('Message Text','adn'),
+                                                                    'name' => 'gdpr[cookie_message_text]',
+                                                                    'value' => stripslashes($settings['gdpr']['cookie_message_text']),
+                                                                    'placeholder' => __('We use cookies to offer you a better browsing experience. If you continue to use this site, you consent to our use of cookies.','adn'),
+                                                                    'desc_pos' => 'bottom',
+                                                                    'desc' => __('The text to show in the GDPR cookie message.','adn')
+                                                                ));
+
+                                                                $html.= ADNI_Templates::inpt_cont(array(
+                                                                    'title' => __('Page button','adn'),
+                                                                    'desc' => __('(Optional) The URL to a page you want to add in the GDPR cookie message.','adn'),
                                                                     'type' => 'text',
                                                                     'width' => '100%',
-                                                                    'name' => 'gdpr[cookie_message_approve_btn]',
-                                                                    'value' => $settings['gdpr']['cookie_message_approve_btn'],
+                                                                    'name' => 'gdpr[cookie_message_page_url]',
+                                                                    'value' => $settings['gdpr']['cookie_message_page_url'],
                                                                     'show_icon' => 1,
-                                                                    'icon' => 'pencil',
-                                                                    'placeholder' => __('I Accept Cookies','adn')
-                                                                ))
-                                                        ));
-
-                                                        $html.= ADNI_Templates::textarea_cont(array(
-                                                            'title' => __('Message Text','adn'),
-                                                            'name' => 'gdpr[cookie_message_text]',
-                                                            'value' => stripslashes($settings['gdpr']['cookie_message_text']),
-                                                            'placeholder' => __('We use cookies to offer you a better browsing experience. If you continue to use this site, you consent to our use of cookies.','adn'),
-                                                            'desc_pos' => 'bottom',
-                                                            'desc' => __('The text to show in the GDPR cookie message.','adn')
-                                                        ));
-
-                                                        $html.= ADNI_Templates::inpt_cont(array(
-                                                            'title' => __('Page button','adn'),
-                                                            'desc' => __('(Optional) The URL to a page you want to add in the GDPR cookie message.','adn'),
-                                                            'type' => 'text',
-                                                            'width' => '100%',
-                                                            'name' => 'gdpr[cookie_message_page_url]',
-                                                            'value' => $settings['gdpr']['cookie_message_page_url'],
-                                                            'show_icon' => 1,
-                                                            'icon' => 'link',
-                                                            'placeholder' => ''
-                                                        ));
-                                                      
+                                                                    'icon' => 'link',
+                                                                    'placeholder' => ''
+                                                                ));
+                                                            
+                                                            $html.= '</div>';
+                                                        $html.= '</div>';
+                                                        // end .set_box_content
                                                     $html.= '</div>';
-                                                $html.= '</div>';
 
-                                                echo $html;
-                                                ?>
+                                                    echo $html;
+                                                    ?>
+                                                </div>
+                                                <span class="description bottom"><?php _e('','adn'); ?></span>
                                             </div>
-                                            <span class="description bottom"><?php _e('','adn'); ?></span>
+                                            <!-- end .input_container -->
+
+                                        <?php
+                                        echo ADNI_Templates::spr_column(array(
+                                            'col' => 'spr_col',
+                                            'title' => '',
+                                            'desc' => '',
+                                            'content' => '<input type="submit" value="'.esc_attr__('Save Changes','adn').'" class="button-primary" name="submit_btn">'
+                                        ));
+                                        ?>
                                         </div>
-                                        <!-- end .input_container -->
+                                        <!-- end .settings_box_content -->
                                     </div>
                                 </div>
                             </div>
@@ -238,75 +260,95 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                         <div class="spr_column spr_col">
                         <div class="spr_column-inner left_column">
                             <div class="spr_wrapper">
-                                <div class="option_box">
+                                <div class="option_box closed">
                                     <div class="info_header">
-                                        <span class="nr">2</span>
+                                        <span class="nr">
+                                        <svg viewBox="0 0 512 512"><path fill="currentColor" d="M500 224h-30.364C455.724 130.325 381.675 56.276 288 42.364V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v30.364C130.325 56.276 56.276 130.325 42.364 224H12c-6.627 0-12 5.373-12 12v40c0 6.627 5.373 12 12 12h30.364C56.276 381.675 130.325 455.724 224 469.636V500c0 6.627 5.373 12 12 12h40c6.627 0 12-5.373 12-12v-30.364C381.675 455.724 455.724 381.675 469.636 288H500c6.627 0 12-5.373 12-12v-40c0-6.627-5.373-12-12-12zM288 404.634V364c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v40.634C165.826 392.232 119.783 346.243 107.366 288H148c6.627 0 12-5.373 12-12v-40c0-6.627-5.373-12-12-12h-40.634C119.768 165.826 165.757 119.783 224 107.366V148c0 6.627 5.373 12 12 12h40c6.627 0 12-5.373 12-12v-40.634C346.174 119.768 392.217 165.757 404.634 224H364c-6.627 0-12 5.373-12 12v40c0 6.627 5.373 12 12 12h40.634C392.232 346.174 346.243 392.217 288 404.634zM288 256c0 17.673-14.327 32-32 32s-32-14.327-32-32c0-17.673 14.327-32 32-32s32 14.327 32 32z"></path></svg>
+                                        </span>
                                         <span class="text"><?php _e('Placement Settings','adn'); ?></span>
-                                        <input type="submit" value="<?php _e('Save Changes','adn'); ?>" class="button-primary" name="submit_btn" style="width:auto;float:right;margin:8px;">
+                                        <span class="fa tog"></span>
                                     </div>
-                                    <div class="input_container">
-                                        <div class="input_container_inner">
-                                            <?php
-                                            $html = '';
-                                            $html.= '<div class="adn_settings_cont">';
-                                                $html.= '<h4>'.__('Content Ads','adn').'</h4>';
-                                                $html.= '<div class="adn_settings_cont_inner clear">';
-                                                    $html.= '<p>'.__('Content Ads are ads that get added into the post content (Above content, Inside content, Below content).','adn').'</p>';
-                                                
-                                                    $html.= ADNI_Templates::switch_btn(array(
-                                                        'title' => __('Disable Non-singular Ads','adn'),
-                                                        'id' => 'disable_non_singular_ads',
-                                                        'name' => 'disable[non_singular_ads]',
-                                                        'checked' => $settings['disable']['non_singular_ads'],
-                                                        'value' => 1,
-                                                        'hidden_input' => 1,
-                                                        'chk-on' => __('Yes','adn'),
-                                                        'chk-off' => __('No','adn'),
-                                                        'column' => array(
-                                                            'size' => 'col-6',
-                                                            'desc' => __('This will disable all "content" ads on non-singular pages (categories, tags, authors,...)','adn'),
-                                                        )
-                                                    ));
+                                    <div class="settings_box_content hidden">
+                                        <div class="input_container">
+                                            <div class="input_container_inner">
+                                                <?php
+                                                $html = '';
+                                                $html.= '<div class="adn_settings_cont closed">';
+                                                    $html.= '<h4>'.__('Content Ads','adn').' <span class="fa togg"></span></h4>';
+                                                    $html.= '<div class="set_box_content hidden">';
+                                                        $html.= '<div class="adn_settings_cont_inner clear">';
+                                                            $html.= '<p>'.__('Content Ads are ads that get added into the post content (Above content, Inside content, Below content).','adn').'</p>';
+                                                        
+                                                            $html.= ADNI_Templates::switch_btn(array(
+                                                                'title' => __('Disable Non-singular Ads','adn'),
+                                                                'id' => 'disable_non_singular_ads',
+                                                                'name' => 'disable[non_singular_ads]',
+                                                                'checked' => $settings['disable']['non_singular_ads'],
+                                                                'value' => 1,
+                                                                'hidden_input' => 1,
+                                                                'chk-on' => __('Yes','adn'),
+                                                                'chk-off' => __('No','adn'),
+                                                                'column' => array(
+                                                                    'size' => 'col-6',
+                                                                    'desc' => __('This will disable all "content" ads on non-singular pages (categories, tags, authors,...)','adn'),
+                                                                )
+                                                            ));
+                                                        $html.= '</div>';
+                                                    $html.= '</div>';
+                                                    // end .set_box_content
                                                 $html.= '</div>';
-                                            $html.= '</div>';
-                                                    
-                                            
-                                            $html.= '<div class="adn_settings_cont">';
-                                                $html.= '<h4 id="posttypes_for_ads">'.__('Post Types for ADS','adn').'</h4>';
-                                                $html.= '<div class="adn_settings_cont_inner clear">';
-                                                    $html.= '<p>'.__('Select the post types where "Auto Positioning" for Ads should be available.','adn').'</p>';
+                                                        
                                                 
-                                                    // Post types
-                                                    $post_types = get_post_types();
-                                                    if( !empty($post_types ))
-                                                    {
-                                                        foreach( $post_types as $post_type )
-                                                        {
-                                                            $exclude = array('attachment', 'revision', 'nav_menu_item', 'adni_banners', 'adni_adzones', 'adni_campaigns');
-                                                            if( !in_array( $post_type, $exclude))
+                                                $html.= '<div class="adn_settings_cont">';
+                                                    $html.= '<h4 id="posttypes_for_ads">'.__('Post Types for ADS','adn').' <span class="fa togg"></span></h4>';
+                                                    $html.= '<div class="set_box_content">';
+                                                        $html.= '<div class="adn_settings_cont_inner clear">';
+                                                            $html.= '<p>'.__('Select the post types where "Auto Positioning" for Ads should be available.','adn').'</p>';
+                                                        
+                                                            // Post types
+                                                            $post_types = get_post_types();
+                                                            if( !empty($post_types ))
                                                             {
-                                                                $html.= ADNI_Templates::checkbox(array(
-                                                                    'title' => $post_type,
-                                                                    //'tooltip' => __('Run plugin in debug mode.','adn'),
-                                                                    'checked' => in_array($post_type, $settings['positioning']['post_types']) ? 1 : 0,
-                                                                    'value' => $post_type,
-                                                                    'hidden_input' => 0,
-                                                                    'name' => 'positioning[post_types][]',
-                                                                    'class' => 'option_checkbox'
-                                                                ));
-                                                                
+                                                                foreach( $post_types as $post_type )
+                                                                {
+                                                                    $exclude = array('attachment', 'revision', 'nav_menu_item', 'adni_banners', 'adni_adzones', 'adni_campaigns');
+                                                                    if( !in_array( $post_type, $exclude))
+                                                                    {
+                                                                        $html.= ADNI_Templates::checkbox(array(
+                                                                            'title' => $post_type,
+                                                                            //'tooltip' => __('Run plugin in debug mode.','adn'),
+                                                                            'checked' => in_array($post_type, $settings['positioning']['post_types']) ? 1 : 0,
+                                                                            'value' => $post_type,
+                                                                            'hidden_input' => 0,
+                                                                            'name' => 'positioning[post_types][]',
+                                                                            'class' => 'option_checkbox'
+                                                                        ));
+                                                                        
+                                                                    }
+                                                                }
                                                             }
-                                                        }
-                                                    }
+                                                        $html.= '</div>';
+                                                    $html.= '</div>';
                                                 $html.= '</div>';
-                                            $html.= '</div>';
 
-                                            echo $html;
-                                            ?>
+                                                echo $html;
+                                                ?>
+                                            </div>
+                                            <span class="description bottom"><?php _e('','adn'); ?></span>
+
                                         </div>
-                                        <span class="description bottom"><?php _e('','adn'); ?></span>
+                                        <!-- end .input_container -->
+                                        
+                                        <?php
+                                        echo ADNI_Templates::spr_column(array(
+                                            'col' => 'spr_col',
+                                            'title' => '',
+                                            'desc' => '',
+                                            'content' => '<input type="submit" value="'.esc_attr__('Save Changes','adn').'" class="button-primary" name="submit_btn">'
+                                        ));
+                                        ?>
                                     </div>
-                                    <!-- end .input_container -->
+                                    <!-- end .settings_box_content -->
                                 </div>
                             </div>
                         </div>
@@ -316,39 +358,96 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                         <div class="spr_column spr_col">
                             <div class="spr_column-inner left_column">
                                 <div class="spr_wrapper">
-                                    <div class="option_box">
-                                        <div class="info_header">
-                                            <span class="nr">3</span>
-                                            <span class="text"><?php _e('Google AdSense Settings','adn'); ?></span>
+                                    <div class="option_box closed">
+                                        <div id="google-settings" class="info_header">
+                                            <span class="nr">
+                                                <svg viewBox="0 0 488 512" style="width:20px;"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path></svg>
+                                            </span>
+                                            <span class="text"><?php _e('Google Settings','adn'); ?></span>
+                                            <span class="fa tog"></span>
                                         </div>
-                                        <div class="input_container">
-                                            <div class="input_container_inner">
-                                                <?php
-                                                $html = '';
-                                                // ADSENSE
-                                                $html.= '<div class="adn_settings_cont">';
-                                                    $html.= '<h4>'.__('Google AdSense','adn').'</h4>';
-                                                    $html.= '<div class="adn_settings_cont_inner">';
+                                        <div class="settings_box_content hidden">
+                                            <div class="input_container">
+                                                <div class="input_container_inner">
+                                                    <?php
+                                                    $html = '';
+                                                    // ANALYTICS
+                                                    $html.= '<div class="adn_settings_cont closed">';
+                                                        $html.= '<h4>'.__('Google Analytics','adn').' <span class="fa togg"></span></h4>';
                                                         
-                                                        $html.= ADNI_Templates::inpt_cont(array(
-                                                            'type' => 'text',
-                                                            'width' => '100%',
-                                                            'title' => 'Pub ID',
-                                                            'desc' => 'Add your Google AdSense publisher ID',
-                                                            'name' => 'adsense_pubid',
-                                                            'value' => $settings['adsense_pubid'],
-                                                            'placeholder' => 'pub-xxxxxxxxxxxxxx',
-                                                            'desc_pos' => 'bottom'
-                                                        ));
+                                                        $html.= '<div class="set_box_content hidden">';
+                                                            $html.= '<div class="adn_settings_cont_inner">';
+                                                                
+                                                                $html.= ADNI_Templates::inpt_cont(array(
+                                                                    'type' => 'text',
+                                                                    'width' => '100%',
+                                                                    'title' => 'Tracking ID',
+                                                                    'desc' => 'Add your Google Analytics Tracking ID to start tracking impressions and clicks using Google Analytics.',
+                                                                    'name' => 'ga_tracking_id',
+                                                                    'value' => $settings['ga_tracking_id'],
+                                                                    'placeholder' => 'UA-xxxxxxxx-xx',
+                                                                    'desc_pos' => 'bottom'
+                                                                ));
+                                                            $html.= '</div>';
+                                                        $html.= '</div>';
                                                     $html.= '</div>';
-                                                $html.= '</div>';
 
-                                                echo $html;
-                                                ?>
+                                                    // ADSENSE
+                                                    $html.= '<div class="adn_settings_cont closed">';
+                                                        $html.= '<h4>'.__('Google AdSense','adn').' <span class="fa togg"></span></h4>';
+                                                        
+                                                        $html.= '<div class="set_box_content hidden">';
+                                                            $html.= '<div class="adn_settings_cont_inner">';
+                                                                
+                                                                $html.= ADNI_Templates::inpt_cont(array(
+                                                                    'type' => 'text',
+                                                                    'width' => '100%',
+                                                                    'title' => 'Pub ID',
+                                                                    'desc' => __('Add your Google AdSense publisher ID','adn'),
+                                                                    'name' => 'adsense_pubid',
+                                                                    'value' => $settings['adsense_pubid'],
+                                                                    'placeholder' => 'pub-xxxxxxxxxxxxxx',
+                                                                    'desc_pos' => 'bottom'
+                                                                ));
+
+                                                                $html.= ADNI_Templates::switch_btn(array(
+                                                                    'title' => __('Enable Auto Ads.','adn'),
+                                                                    'name' => 'adsense_auto_ads',
+                                                                    'checked' => $settings['adsense_auto_ads'],
+                                                                    'value' => 1,
+                                                                    'hidden_input' => 1,
+                                                                    'chk-on' => __('Yes','adn'),
+                                                                    'chk-off' => __('No','adn'),
+                                                                    'column' => array(
+                                                                        'size' => 'col-6',
+                                                                        'desc' => __('Enable Google AdSense to add advertisements to your website automatically.','adn'),
+                                                                    )
+                                                                ));
+
+                                                                $html.= '<div class="clearFix"></div>';
+                                                            $html.= '</div>';
+                                                        $html.= '</div>';
+                                                    $html.= '</div>';
+
+                                                    echo $html;
+                                                    ?>
+                                                </div>
+                                                <span class="description bottom"><?php _e('','adn'); ?></span>
+
+                                                <div class="clearFix"></div>
                                             </div>
-                                            <span class="description bottom"><?php _e('','adn'); ?></span>
+                                            <!-- end .input_container -->
+
+                                            <?php
+                                            echo ADNI_Templates::spr_column(array(
+                                                'col' => 'spr_col',
+                                                'title' => '',
+                                                'desc' => '',
+                                                'content' => '<input type="submit" value="'.esc_attr__('Save Changes','adn').'" class="button-primary" name="submit_btn">'
+                                            ));
+                                            ?>
                                         </div>
-                                        <!-- end .input_container -->
+                                        <!-- end .settings_box_content -->
                                     </div>
                                 </div>
                             </div>
@@ -359,56 +458,77 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                         <div class="spr_column spr_col">
                             <div class="spr_column-inner left_column">
                                 <div class="spr_wrapper">
-                                    <div class="option_box">
+                                    <div class="option_box closed">
                                         <div class="info_header">
-                                            <span class="nr">5</span>
+                                            <span class="nr">
+                                            <svg viewBox="0 0 512 512"><path fill="currentColor" d="M466.5 83.7l-192-80a48.15 48.15 0 0 0-36.9 0l-192 80C27.7 91.1 16 108.6 16 128c0 198.5 114.5 335.7 221.5 380.3 11.8 4.9 25.1 4.9 36.9 0C360.1 472.6 496 349.3 496 128c0-19.4-11.7-36.9-29.5-44.3zM256.1 446.3l-.1-381 175.9 73.3c-3.3 151.4-82.1 261.1-175.8 307.7z"></path></svg>
+                                            </span>
                                             <span class="text"><?php _e('AD Blocker Settings','adn'); ?></span>
+                                            <span class="fa tog"></span>
                                         </div>
-                                        <div class="input_container">
-                                            <div class="input_container_inner">
-                                                <?php
-                                                $html = '';
-                                                // ADSENSE
-                                                $html.= '<div class="adn_settings_cont">';
-                                                    $html.= '<h4>'.__('Enable AD Blocker detection','adn').'</h4>';
-                                                    $html.= '<div class="adn_settings_cont_inner">';
+                                        <div class="settings_box_content hidden">
+                                            <div class="input_container">
+                                                <div class="input_container_inner">
+                                                    <?php
+                                                    $html = '';
+                                                    // ADSENSE
+                                                    $html.= '<div class="adn_settings_cont">';
+                                                        $html.= '<h4>'.__('Enable AD Blocker detection','adn').' <span class="fa togg"></span></h4>';
                                                         
-                                                        $html.= ADNI_Templates::switch_btn(array(
-                                                            'title' => __('Check for active ad blockers.','adn'),
-                                                            'name' => 'adblock_detect',
-                                                            'checked' => $settings['adblock_detect'],
-                                                            'value' => 1,
-                                                            'hidden_input' => 1,
-                                                            'chk-on' => __('Yes','adn'),
-                                                            'chk-off' => __('No','adn')
-                                                        ));
+                                                        $html.= '<div class="set_box_content">';
+                                                            $html.= '<div class="adn_settings_cont_inner">';
+                                                                
+                                                                $html.= ADNI_Templates::switch_btn(array(
+                                                                    'title' => __('Check for active ad blockers.','adn'),
+                                                                    'name' => 'adblock_detect',
+                                                                    'checked' => $settings['adblock_detect'],
+                                                                    'value' => 1,
+                                                                    'hidden_input' => 1,
+                                                                    'chk-on' => __('Yes','adn'),
+                                                                    'chk-off' => __('No','adn')
+                                                                ));
 
-                                                        $html.= '<span class="description bottom">'.__('Detect when a visitor has an ab blocker enabled.','adn').'</span>';
-                                                        
+                                                                $html.= '<span class="description bottom">'.__('Detect when a visitor has an ab blocker enabled.','adn').'</span>';
+                                                                
+                                                            $html.= '</div>';
+                                                        $html.= '</div>';
                                                     $html.= '</div>';
-                                                $html.= '</div>';
 
-                                                
-                                                $html.= '<div class="adn_settings_cont">';
-                                                    $html.= '<h4>'.__('AD Blocker detection message','adn').'</h4>';
-                                                    $html.= '<div class="adn_settings_cont_inner">';
+                                                    
+                                                    $html.= '<div class="adn_settings_cont">';
+                                                        $html.= '<h4>'.__('AD Blocker detection message','adn').' <span class="fa togg"></span></h4>';
                                                         
-                                                        $html.= ADNI_Templates::textarea_cont(array(
-                                                            'title' => __('Message Text','adn'),
-                                                            'name' => 'adblock_message',
-                                                            'value' => stripslashes($settings['adblock_message']),
-                                                            'placeholder' => __('You are using AD Blocker!.','adn'),
-                                                            'desc_pos' => 'bottom',
-                                                            'desc' => __('Message to show when an ad blocker is detected.','adn')
-                                                        ));
+                                                        $html.= '<div class="set_box_content">';
+                                                            $html.= '<div class="adn_settings_cont_inner">';
+                                                                
+                                                                $html.= ADNI_Templates::textarea_cont(array(
+                                                                    'title' => __('Message Text','adn'),
+                                                                    'name' => 'adblock_message',
+                                                                    'value' => stripslashes($settings['adblock_message']),
+                                                                    'placeholder' => __('You are using AD Blocker!.','adn'),
+                                                                    'desc_pos' => 'bottom',
+                                                                    'desc' => __('Message to show when an ad blocker is detected.','adn')
+                                                                ));
+                                                            $html.= '</div>';
+                                                        $html.= '</div>';
                                                     $html.= '</div>';
-                                                $html.= '</div>';
-                                                echo $html;
-                                                ?>
+                                                    echo $html;
+                                                    ?>
+                                                </div>
+                                                <span class="description bottom"><?php _e('','adn'); ?></span>
                                             </div>
-                                            <span class="description bottom"><?php _e('','adn'); ?></span>
+                                            <!-- end .input_container -->
+
+                                            <?php
+                                            echo ADNI_Templates::spr_column(array(
+                                                'col' => 'spr_col',
+                                                'title' => '',
+                                                'desc' => '',
+                                                'content' => '<input type="submit" value="'.esc_attr__('Save Changes','adn').'" class="button-primary" name="submit_btn">'
+                                            ));
+                                            ?>
                                         </div>
-                                        <!-- end .input_container -->
+                                        <!-- end .settings_box_content -->
                                     </div>
                                 </div>
                             </div>
@@ -481,7 +601,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                                                 if ( class_exists( 'ZipArchive' ) ) {
                                                     _e( '<code class="status-good">Yes</code>', 'adn' ); 
                                                 } else {
-                                                    echo sprintf( __( '<code class="status-bad">No</code> ZipArchive is required for importing/exporting objects and templates.<br><span>Please contact your hosting provider.</span>', 'adn' ));
+                                                    echo sprintf( __( '<code class="status-bad">No</code> ZipArchive is required for importing HTML5 banners.<br><span>Please contact your hosting provider.</span>', 'adn' ));
                                                 }
                                                 ?>
                                             </div>
@@ -506,47 +626,59 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                                                 ?>
                                             </div>
                                         </div>
+                                        
 
-                                        <div class="system_status">
-                                            <?php 
-                                            echo ADNI_Templates::checkbox(array(
-                                                'title' => __('Debug','adn'),
-                                                'tooltip' => __('Run plugin in debug mode.','adn'),
-                                                'checked' => array_key_exists('debug',$settings) ? $settings['debug'] : 0,
-                                                'value' => 1,
-                                                'hidden_input' => 1,
-                                                'name' => 'debug',
-                                                'class' => 'option_checkbox _debug'
-                                            ));
+                                        <div class="adn_settings_cont closed">
+                                            <h4><?php _e('Debug','adn'); ?> <span class="fa togg"></span></h4>
+                                            <div class="set_box_content hidden">
+                                                <div class="adn_settings_cont_inner clear">
+                                                    <p></p>
+                                                    <div class="system_status">
+                                                        <?php 
+                                                        echo ADNI_Templates::checkbox(array(
+                                                            'title' => __('Debug','adn'),
+                                                            'tooltip' => __('Run plugin in debug mode.','adn'),
+                                                            'checked' => array_key_exists('debug',$settings) ? $settings['debug'] : 0,
+                                                            'value' => 1,
+                                                            'hidden_input' => 1,
+                                                            'name' => 'debug',
+                                                            'class' => 'option_checkbox _debug'
+                                                        ));
 
-                                            if( $settings['debug'] )
-                                            {
-                                                $h = '';
-                                                $h.= '<div class="option_box">';
-                                                
-                                                    $h.= __('Error log:', 'adn');
-                                                    if(is_writable(ADNI_Init::$log_file))
-                                                    {
-                                                        $h.= '<code class="status-good">'.__('Yes', 'adn').'</code>';
-                                                    }
-                                                    else
-                                                    {
-                                                        $h.= sprintf(__('<code class="status-okay">%s</code> The Adning debug.log file could not be created or is not writable.','adn'), __('No','adn'));
-                                                    }
-                                                $h.= '</div>';
-                                                
-                                                // Read error log
-                                                if(file_exists(ADNI_Init::$log_file))
-                                                {
-                                                    $content = file_get_contents(ADNI_Init::$log_file);
-                                                    $h.= '<div class="option_box error_log_container">';
-                                                        $h.= '<textarea class="error_log" readonly>'.$content.'</textarea>';
-                                                    $h.= '</div>';
-                                                }
-                                                echo $h;
-                                            }
-                                            ?>
+                                                        if( $settings['debug'] )
+                                                        {
+                                                            $h = '';
+                                                            $h.= '<div class="option_box">';
+                                                            
+                                                                $h.= __('Error log:', 'adn');
+                                                                if(is_writable(ADNI_Init::$log_file))
+                                                                {
+                                                                    $h.= '<code class="status-good">'.__('Yes', 'adn').'</code>';
+                                                                }
+                                                                else
+                                                                {
+                                                                    $h.= sprintf(__('<code class="status-okay">%s</code> The Adning debug.log file could not be created or is not writable.','adn'), __('No','adn'));
+                                                                }
+                                                            $h.= '</div>';
+                                                            
+                                                            // Read error log
+                                                            if(file_exists(ADNI_Init::$log_file))
+                                                            {
+                                                                $content = file_get_contents(ADNI_Init::$log_file);
+                                                                $h.= '<div class="option_box error_log_container">';
+                                                                    $h.= '<textarea class="error_log" readonly>'.$content.'</textarea>';
+                                                                $h.= '</div>';
+                                                            }
+                                                            echo $h;
+                                                        }
+                                                        ?>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
+                                        <!-- end .adn_settings_cont -->
+
+
                                     </div>
                                 </div>
                             </div>
@@ -556,70 +688,82 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                         <div class="spr_column spr_col">
                             <div class="spr_column-inner left_column">
                                 <div class="spr_wrapper">
-                                    <div class="option_box">
+                                    <div class="option_box closed">
                                         <div class="info_header">
                                             <span class="nr">
                                             <svg viewBox="0 0 512 512" style="width: 20px;"><path fill="currentColor" d="M480 32l-64 368-223.3 80L0 400l19.6-94.8h82l-8 40.6L210 390.2l134.1-44.4 18.8-97.1H29.5l16-82h333.7l10.5-52.7H56.3l16.3-82H480z"></path></svg>
                                             </span>
                                             <span class="text"><?php _e('Website Code Injection','adn'); ?></span>
-                                            <input type="submit" value="<?php _e('Save Changes','adn'); ?>" class="button-primary" name="submit_btn" style="width:auto;float:right;margin:8px;">
+                                            <span class="fa tog"></span>
                                         </div>
-                                        <div class="input_container">
-                                            <div class="input_container_inner">
-                                                <?php
-                                                $html = '';
-                                                $html.= '<div class="adn_settings_cont">';
-                                                    $html.= '<h4>'.__('Code Placement Areas','adn').'</h4>';
-                                                    $html.= '<div class="adn_settings_cont_inner">';
-                                                        $html.= '<p>'.__('Code placement can inject scripts and styles into the header/footer area of your website. Common use cases are header/footer tags from ad networks like <em>Google DoubleClick for Publishers</em> or custom styles and scripts.','adn').'</p>';
+                                        <div class="settings_box_content hidden">
+                                            <div class="input_container">
+                                                <div class="input_container_inner">
+                                                    <?php
+                                                    $html = '';
+                                                    $html.= '<div class="adn_settings_cont">';
+                                                        $html.= '<h4>'.__('Code Placement Areas','adn').'</h4>';
+                                                        $html.= '<div class="adn_settings_cont_inner">';
+                                                            $html.= '<p>'.__('Code placement can inject scripts and styles into the header/footer area of your website. Common use cases are header/footer tags from ad networks like <em>Google DoubleClick for Publishers</em> or custom styles and scripts.','adn').'</p>';
 
-                                                        // Header area
-                                                        $html.= ADNI_Templates::textarea_cont(array(
-                                                            'title' => __('Header Area','adn'),
-                                                            'id' => 'placement_area_head',
-                                                            'class' => 'code_editor',
-                                                            'data' => 'data-lang="htmlmixed"',
-                                                            'name' => 'placement_area_head',
-                                                            'value' => stripslashes($settings['placement_area_head']),
-                                                            'desc_pos' => 'bottom',
-                                                            'desc' => sprintf(__('Add code before the closing %s tag.','adn'), htmlentities('</head>'))
-                                                        ));
-                                                        // Body area
-                                                        $html.= ADNI_Templates::textarea_cont(array(
-                                                            'title' => __('Footer Area','adn'),
-                                                            'id' => 'placement_area_body',
-                                                            'class' => 'code_editor',
-                                                            'data' => 'data-lang="htmlmixed"',
-                                                            'name' => 'placement_area_body',
-                                                            'value' => stripslashes($settings['placement_area_body']),
-                                                            'desc_pos' => 'bottom',
-                                                            'desc' => sprintf(__('Add code before the closing %s tag.','adn'), htmlentities('</body>'))
-                                                        ));
+                                                            // Header area
+                                                            $html.= ADNI_Templates::textarea_cont(array(
+                                                                'title' => __('Header Area','adn'),
+                                                                'id' => 'placement_area_head',
+                                                                'class' => 'code_editor',
+                                                                'data' => 'data-lang="htmlmixed"',
+                                                                'name' => 'placement_area_head',
+                                                                'value' => stripslashes($settings['placement_area_head']),
+                                                                'desc_pos' => 'bottom',
+                                                                'desc' => sprintf(__('Add code before the closing %s tag.','adn'), htmlentities('</head>'))
+                                                            ));
+                                                            // Body area
+                                                            $html.= ADNI_Templates::textarea_cont(array(
+                                                                'title' => __('Footer Area','adn'),
+                                                                'id' => 'placement_area_body',
+                                                                'class' => 'code_editor',
+                                                                'data' => 'data-lang="htmlmixed"',
+                                                                'name' => 'placement_area_body',
+                                                                'value' => stripslashes($settings['placement_area_body']),
+                                                                'desc_pos' => 'bottom',
+                                                                'desc' => sprintf(__('Add code before the closing %s tag.','adn'), htmlentities('</body>'))
+                                                            ));
+                                                        $html.= '</div>';
                                                     $html.= '</div>';
-                                                $html.= '</div>';
-                                                
-                                                $html.= '<div class="adn_settings_cont">';
-                                                    $html.= '<h4>'.__('Custom CSS','adn').'</h4>';
-                                                    $html.= '<div class="adn_settings_cont_inner">';
-                                                        $html.= ADNI_Templates::textarea_cont(array(
-                                                            'title' => '',
-                                                            'name' => 'custom_css',
-                                                            'class' => 'code_editor',
-                                                            'data' => 'data-lang="css"',
-                                                            'value' => stripslashes($settings['custom_css']),
-                                                            'placeholder' => '',
-                                                            'desc_pos' => 'bottom',
-                                                            'desc' => __('In case you need to add some custom CSS to your website.','adn')
-                                                        ));
+                                                    
+                                                    $html.= '<div class="adn_settings_cont">';
+                                                        $html.= '<h4>'.__('Custom CSS','adn').'</h4>';
+                                                        $html.= '<div class="adn_settings_cont_inner">';
+                                                            $html.= ADNI_Templates::textarea_cont(array(
+                                                                'title' => '',
+                                                                'name' => 'custom_css',
+                                                                'class' => 'code_editor',
+                                                                'data' => 'data-lang="css"',
+                                                                'value' => stripslashes($settings['custom_css']),
+                                                                'placeholder' => '',
+                                                                'desc_pos' => 'bottom',
+                                                                'desc' => __('In case you need to add some custom CSS to your website.','adn')
+                                                            ));
+                                                        $html.= '</div>';
                                                     $html.= '</div>';
-                                                $html.= '</div>';
 
-                                                echo $html;
-                                                ?>
+                                                    echo $html;
+                                                    ?>
+                                                </div>
+                                                <span class="description bottom"><?php _e('','adn'); ?></span>
                                             </div>
-                                            <span class="description bottom"><?php _e('','adn'); ?></span>
+                                            <!-- end .input_container -->
+
+                                            <?php
+                                            echo ADNI_Templates::spr_column(array(
+                                                'col' => 'spr_col',
+                                                'title' => '',
+                                                'desc' => '',
+                                                'content' => '<input type="submit" value="'.esc_attr__('Save Changes','adn').'" class="button-primary" name="submit_btn">'
+                                            ));
+                                            ?>
                                         </div>
-                                        <!-- end .input_container -->
+                                        <!-- end .settings_box_content -->
                                     </div>
                                 </div>
                             </div>
@@ -630,34 +774,49 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                         <div class="spr_column spr_col">
                             <div class="spr_column-inner left_column">
                                 <div class="spr_wrapper">
-                                    <div class="option_box">
+                                    <div class="option_box closed">
                                         <div class="info_header">
-                                            <span class="nr">4</span>
+                                            <span class="nr">
+                                            <svg viewBox="0 0 448 512"><path fill="currentColor" d="M32 464a48 48 0 0 0 48 48h288a48 48 0 0 0 48-48V128H32zm272-256a16 16 0 0 1 32 0v224a16 16 0 0 1-32 0zm-96 0a16 16 0 0 1 32 0v224a16 16 0 0 1-32 0zm-96 0a16 16 0 0 1 32 0v224a16 16 0 0 1-32 0zM432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16z"></path></svg>
+                                            </span>
                                             <span class="text"><?php _e('Uninstall Settings','adn'); ?></span>
+                                            <span class="fa tog"></span>
                                         </div>
-                                        <div class="input_container">
-                                            <div class="input_container_inner">
-                                                <?php
-                                                $html = '';
-                                                $html.= ADNI_Templates::switch_btn(array(
-                                                    'title' => __('Remove all Adning data when uninstalling','adn'),
-                                                    'name' => 'uninstall_remove_data',
-                                                    'checked' => $settings['uninstall_remove_data'],
-                                                    'value' => 1,
-                                                    'hidden_input' => 1,
-                                                    'chk-on' => __('Yes','adn'),
-                                                    'chk-off' => __('No','adn'),
-                                                    'column' => array(
-                                                        'size' => 'col-6',
-                                                        'desc' => __('This will remove all Adning content + settings when you remove the plugin.','adn'),
-                                                    )
-                                                ));
-                                                echo $html;
-                                                ?>
+                                        <div class="settings_box_content hidden">
+                                            <div class="input_container">
+                                                <div class="input_container_inner">
+                                                    <?php
+                                                    $html = '';
+                                                    $html.= ADNI_Templates::switch_btn(array(
+                                                        'title' => __('Remove all Adning data when uninstalling','adn'),
+                                                        'name' => 'uninstall_remove_data',
+                                                        'checked' => $settings['uninstall_remove_data'],
+                                                        'value' => 1,
+                                                        'hidden_input' => 1,
+                                                        'chk-on' => __('Yes','adn'),
+                                                        'chk-off' => __('No','adn'),
+                                                        'column' => array(
+                                                            'size' => 'col-6',
+                                                            'desc' => __('This will remove all Adning content + settings when you remove the plugin.','adn'),
+                                                        )
+                                                    ));
+                                                    echo $html;
+                                                    ?>
+                                                </div>
+                                                <span class="description bottom"><?php _e('','adn'); ?></span>
                                             </div>
-                                            <span class="description bottom"><?php _e('','adn'); ?></span>
+                                            <!-- end .input_container -->
+
+                                            <?php
+                                            echo ADNI_Templates::spr_column(array(
+                                                'col' => 'spr_col',
+                                                'title' => '',
+                                                'desc' => '',
+                                                'content' => '<input type="submit" value="'.esc_attr__('Save Changes','adn').'" class="button-primary" name="submit_btn">'
+                                            ));
+                                            ?>
                                         </div>
-                                        <!-- end .input_container -->
+                                        <!-- end .settings_box_content -->
                                     </div>
                                 </div>
                             </div>
@@ -675,7 +834,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                 </div>
                 <!-- end .spr_row -->
 
-                <input type="submit" name="submit_btn" id="submit_btn" class="button button-primary" value="<?php _e('Save Changes','adn'); ?>" style="display: inline-block;width: auto;">
+                <!--<input type="submit" name="submit_btn" id="submit_btn" class="button button-primary" value="<?php _e('Save Changes','adn'); ?>" style="display: inline-block;width: auto;">-->
             </form>
          
         </div>

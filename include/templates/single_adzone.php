@@ -71,7 +71,7 @@ if( !empty( $adzone['post'] ))
                         <div class="spr_wrapper">
                             <div class="option_box">
                                 <div class="info_header">
-                                    <span class="nr">1</span>
+                                    <span class="nr"><svg viewBox="0 0 512 512"><path fill="currentColor" d="M507.73 109.1c-2.24-9.03-13.54-12.09-20.12-5.51l-74.36 74.36-67.88-11.31-11.31-67.88 74.36-74.36c6.62-6.62 3.43-17.9-5.66-20.16-47.38-11.74-99.55.91-136.58 37.93-39.64 39.64-50.55 97.1-34.05 147.2L18.74 402.76c-24.99 24.99-24.99 65.51 0 90.5 24.99 24.99 65.51 24.99 90.5 0l213.21-213.21c50.12 16.71 107.47 5.68 147.37-34.22 37.07-37.07 49.7-89.32 37.91-136.73zM64 472c-13.25 0-24-10.75-24-24 0-13.26 10.75-24 24-24s24 10.74 24 24c0 13.25-10.75 24-24 24z"></path></svg></span>
                                     <span class="text"><?php _e('AD Zone Settings','adn'); ?></span>
                                  </div>
                                  <div class="input_container">
@@ -81,7 +81,7 @@ if( !empty( $adzone['post'] ))
                                             type="text" 
                                             class="" 
                                             name="title" 
-                                            value="<?php echo !empty($adzone['post']) ? $adzone['post']->post_title : ''; ?>" 
+                                            value="<?php echo !empty($adzone['post']) ? esc_html($adzone['post']->post_title) : ''; ?>" 
                                             placeholder="<?php _e('AD Zone Title','adn'); ?>">
                                         <i class="input_icon fa fa-pencil" aria-hidden="true"></i>
                                     </div>
@@ -92,7 +92,7 @@ if( !empty( $adzone['post'] ))
                                  <div class="input_container">
                                     <h3 class="title"><?php _e('Description','adn'); ?></h3>
                                     <div class="input_container_inner">
-                                        <textarea id="adzoneDesc" name="description" style="min-height:120px;font-size:11px;"><?php echo $adzone['args']['description']; ?></textarea>
+                                        <textarea id="adzoneDesc" name="description" style="min-height:120px;font-size:11px;"><?php echo esc_html($adzone['args']['description']); ?></textarea>
                                     </div>
                                     <span class="description bottom"><?php _e('Adzone description.','adn'); ?></span>
                                 </div>
@@ -186,7 +186,9 @@ if( !empty( $adzone['post'] ))
                          <div class="spr_wrapper">
                              <div class="option_box">
                         		<div class="info_header">
-                                    <span class="nr">2</span>
+                                    <span class="nr">
+                                    <svg viewBox="0 0 512 512"><path fill="currentColor" d="M464 0c26.51 0 48 21.49 48 48v288c0 26.51-21.49 48-48 48H176c-26.51 0-48-21.49-48-48V48c0-26.51 21.49-48 48-48h288M176 416c-44.112 0-80-35.888-80-80V128H48c-26.51 0-48 21.49-48 48v288c0 26.51 21.49 48 48 48h288c26.51 0 48-21.49 48-48v-48H176z"></path></svg>
+                                    </span>
                                     <span class="text"><?php _e('AD Zone','adn'); ?></span>
                                     <span class="fa tog ttip" title="<?php _e('Toggle box','adn'); ?>"></span>
                                     <input type="submit" value="<?php _e('Save AD Zone','adn'); ?>" class="button-primary" name="save_adzone" style="width:auto;float:right;margin:8px;">
@@ -204,11 +206,14 @@ if( !empty( $adzone['post'] ))
                                                         <div class="input_container_inner">
                                                         <select id="ADNI_size" name="size" class="">
                                                             <?php
+                                                            if(!empty(ADNI_Main::banner_sizes()))
+                                                            {
                                                                 foreach(ADNI_Main::banner_sizes() as $size)
                                                                 {
                                                                     echo '<option value="'.$size['size'].'" '.selected( $adzone['args']['size'], $size['size'] ).'>'.$size['name'].' ('.$size['size'].')</option>';
                                                                 }
-                                                                ?>
+                                                            }
+                                                            ?>
                                                         <option value="custom" <?php selected( $adzone['args']['size'], 'custom' ); ?>>Custom</option>
                                                         </select>
                                                     </div>
@@ -390,6 +395,18 @@ if( !empty( $adzone['post'] ))
                                                 </div>
                                                 <!-- end .spr_column -->
 
+                                                <?php
+                                                echo ADNI_Templates::spr_column(array(
+                                                    'col' => 'spr_col',
+                                                    'title' => '',
+                                                    'desc' => '',
+                                                    'content' => '<input type="submit" value="'.__('Save AD Zone','adn').'" class="button-primary" name="save_adzone">'
+                                                ));
+                                                ?>
+
+
+                                                <div class="clearFix"></div>
+
                                                 
                                                 <div class="spr_column"> <!-- spr_col-4 -->
                                                 <div class="spr_column-inner">
@@ -444,7 +461,66 @@ if( !empty( $adzone['post'] ))
                                                             ?>
 
                                                             <div class="clearFix"></div>
+                                                            <div class="spr_column"> <!-- spr_col-4 -->
+                                                                <div class="spr_column-inner">
+                                                                    <div class="spr_wrapper">
+                                                                        <div class="input_container">
+                                                                            <div class="adn_settings_cont closed">
+                                                                                <h4><?php _e('Banner Display Probability','adn'); ?> <span class="fa togg"></span></h4>
+                                                                                <div class="set_box_content hidden">
+                                                                                    <?php
+                                                                                    // ADNI_Main::random_weight();
+                                                                                    $h = '';
+                                                                                    $h.= ADNI_Templates::spr_column(array(
+                                                                                        'col' => 'spr_col',
+                                                                                        'title' => '',
+                                                                                        'desc' => '',
+                                                                                        'content' => '<p>'.esc_attr__('Add the percentage chance for each banner to be displayed. Default 50%. (Save adzone to update this list after linking new banners)','adn').'</p>'
+                                                                                    ));
+                                                                                    //echo '<pre>'.print_r($adzone['args'],true).'</pre>';
+                                                                                    if( !empty($adzone['args']['linked_banners']))
+                                                                                    {
+                                                                                        foreach( $adzone['args']['linked_banners'] as $banner_id)
+                                                                                        {
+                                                                                            $h.= '<div class="banner_option">';
+
+                                                                                                $h.= ADNI_Templates::spr_column(array(
+                                                                                                    'col' => 'spr_col-4',
+                                                                                                    'title' => '',
+                                                                                                    'desc' => '',
+                                                                                                    'content' => '<a href="'.esc_url( wp_nonce_url( self_admin_url('admin.php?page=adning&view=banner&id='.$banner_id))).'" target="_blank">'.get_the_title($banner_id).' <small>( #'.$banner_id.' )</small></a>'
+                                                                                                ));
+                                                                                                $h.= ADNI_Templates::spr_column(array(
+                                                                                                    'col' => 'spr_col-2',
+                                                                                                    'title' => '',
+                                                                                                    'desc' => '',
+                                                                                                    'content' => ADNI_Templates::inpt_cont(array(
+                                                                                                        'type' => 'text',
+                                                                                                        'width' => '100%',
+                                                                                                        'name' => 'probability['.$banner_id.']',
+                                                                                                        'value' => $adzone['args']['probability'][$banner_id],
+                                                                                                        'placeholder' => '50',
+                                                                                                        'icon' => 'percent',
+                                                                                                        'show_icon' => 1
+                                                                                                    ))
+                                                                                                ));
+                                                                                                $h.= '<div class="clearFix"></div>';
+                                                                                            $h.= '</div>';
+                                                                                        }
+                                                                                    }
+                                                                                    echo $h;
+                                                                                    ?>
+                                                                                </div>
+                                                                            </div>
+
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="clearFix"></div>
+
                                                             
+                                                            <div class="sep_line" style="margin:25px 0 25px 0;"><span><strong><?php _e('Transition Effects','adn'); ?></strong></span></div>
                                                             <div class="spr_column spr_col-4">
                                                                 <div class="spr_column-inner">
                                                                     <div class="spr_wrapper">
@@ -553,6 +629,16 @@ if( !empty( $adzone['post'] ))
                                                             </div>
 
                                                             <div class="clearFix"></div>
+                                                            <div class="sep_line" style="margin:25px 0 25px 0;"><span><strong><?php _e('Custom CSS','adn'); ?></strong></span></div>
+                                                            <?php
+                                                            $custom_css = !empty($adzone['args']['custom_css']) ? $adzone['args']['custom_css'] : '';
+                                                            echo ADNI_Templates::spr_column(array(
+                                                                'col' => 'spr_col',
+                                                                'title' => '',
+                                                                'desc' => sprintf(esc_attr__('Custom CSS for displaying the adzone. %s','adn'), '( adzone class <strong>.ang_zone_'.$id.'</strong> )'),
+                                                                'content' => '<textarea class="code_editor" name="custom_css" data-lang="css" style="min-height:100px;font-size: 13px;">'.$custom_css.'</textarea>'
+                                                            ));
+                                                            ?>
                                                             
 
                                                         </div>

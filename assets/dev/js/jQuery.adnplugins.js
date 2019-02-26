@@ -157,7 +157,8 @@
          var H = $(this).height(),
              r = el.getBoundingClientRect(), t=r.top+settings.padding, b=r.bottom+settings.padding;
          return cb.call(el, Math.max(0, t>0? H-t : (b<H?b:H)));  
-       } visPx();
+	   } 
+	   visPx();
        $(win).on("resize scroll", visPx);
      });
   };

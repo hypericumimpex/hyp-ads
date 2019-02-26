@@ -47,7 +47,7 @@ $settings = ADNI_Main::settings();
                         
                         <div class="option_box">
                             <div class="info_header">
-                                <span class="icon"><i class="input_icon fa fa-cog" aria-hidden="true"></i></span>
+                                <span class="nr"><i class="input_icon fa fa-cog" aria-hidden="true"></i></span>
                                 <span class="text"><?php _e('Admin Role Settings','adn'); ?></span>
                                 <input type="submit" value="<?php _e('Save Role Settings','adn'); ?>" class="button-primary" name="save_role_settings" style="width:auto;float:right;margin:8px;">
                             </div>

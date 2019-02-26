@@ -5,10 +5,12 @@ if ( ! class_exists( 'ADNI_Init' ) ) :
 
 class ADNI_Init {
 
-	static $log_file = ADNI_DIR.'debug.log';
+	static $log_file;
 	
 	public function __construct() 
 	{
+		self::$log_file = ADNI_DIR . 'debug.log';
+
 		// Run this on activation.
 		register_activation_hook( ADNI_FILE, array( __CLASS__, 'install' ) );
 		register_deactivation_hook(ADNI_FILE, array( __CLASS__, 'deactivate'));
@@ -18,6 +20,7 @@ class ADNI_Init {
 		new ADNI_Main();
 		new ADNI_Templates();
 		new ADNI_Filters();
+		new ADNI_Stats();
 		new ADNI_Shortcodes();
 		new ADNI_API();
 		new ADNI_Uploader();
@@ -26,6 +29,7 @@ class ADNI_Init {
 		new ADNI_Frontend();
 		new ADNI_Updates();
 		new ADNI_Sell();
+		new ADNI_AMP();
 		
 		
 		// Load Extensions -----------------------------------------------
@@ -82,7 +86,7 @@ class ADNI_Init {
 	public static function deactivate()
 	{
 		// Deregister Adning License
-		$activation = true;
+		$activation = ADNI_Multi::get_option('adning_activation', array());
 		if( !empty($activation))
 		{
 			$resp = ADNI_Activate::deregister(array('license-key' => $activation['license-key']));
@@ -261,6 +265,8 @@ class ADNI_Init {
 		wp_enqueue_script('jquery');
 		wp_enqueue_script('jquery-ui-core');
 		wp_enqueue_script('jquery-ui-autocomplete');
+		
+		//wp_enqueue_script('adning_dummy_modaltest', ADNI_ASSETS_URL . '/packages/modaljs/modal.js');
 
 		// Ad Block detection
 		wp_enqueue_script('adning_dummy_advertising', ADNI_ASSETS_URL . '/dev/js/advertising.js');
@@ -482,13 +488,13 @@ class ADNI_Init {
 	{
 		//set_site_transient('update_plugins', null); // Just for testing to see if the available plugin update gets shown. IF THIS IS ON ACTUALL PLUGIN UPDATES MAY NOT WORK: WP error: Plugin update failed.
 		//$activation = get_option('adning_activation', array());
-		$activation = true;
+		$activation = ADNI_Multi::get_option('adning_activation', array());
 		$license_key = !empty($activation) ? $activation['license-key'] : '';
 
 		require( ADNI_CLASSES_DIR.'/ADNING_PLU_Auto_Plugin_Updater.php');
 		$api_url = 'http://tunasite.com/updates/?plu-plugin=ajax-handler';
 		// current plugin version | remote url | Plugin Slug (plugin_directory/plugin_file.php) | users envato license key (default: '') | envato item ID (default: '')
-		new ADNING_PLU_Auto_Plugin_Updater(ADNI_VERSION, $api_url, ADNI_BASENAME.'/'.ADNI_BASENAME.'.php', $license_key, ADNI_ENVATO_ID);
+		new ADNING_PLU_Auto_Plugin_Updater(ADNI_VERSION, $api_url, plugin_basename(ADNI_FILE), $license_key, ADNI_ENVATO_ID);
 	}
 	
 }

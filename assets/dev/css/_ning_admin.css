@@ -71,7 +71,11 @@
 		margin-bottom:20px;
 		min-height:45px;
 		position:relative;
-	}
+    }
+    .adning_cont .option_box .info_header .nr svg{
+        width:20px;
+        height: 20px;
+    }
 	.info_header.white {
 		color: #565656;
 		background-color: #FFF;
@@ -102,17 +106,29 @@
         .adning_cont .option_box.closed .info_header{
             margin-bottom: 0px;
         }
-        .adning_cont .option_box .tog{
+        .adning_cont .option_box .tog,
+        .adning_cont .adn_settings_cont .togg{
             float: right;
             font-size: 24px;
             border-left:solid 1px #F9F9F9;
             cursor: pointer;
         }
-        .adning_cont .option_box.closed .tog:before {
+        .adning_cont .option_box.closed .tog:before,
+        .adning_cont .adn_settings_cont.closed .togg:before {
             content: "\f107";
         }
-        .adning_cont .option_box .tog:before {
+        .adning_cont .option_box .tog:before,
+        .adning_cont .adn_settings_cont .togg:before {
             content: "\f106";
+        }
+
+        .adning_cont .adn_settings_cont .togg{
+            float: right;
+            font-size: 18px;
+            border-left: solid 1px #dbdbdb;
+            color: #a7a7a7;
+            cursor: pointer;
+            padding: 0 0 0 9px;
         }
         
 
@@ -126,6 +142,12 @@
         .adning_cont ::-ms-input-placeholder { /* Microsoft Edge */
             color: rgb(192, 192, 192);
         }
+
+.adning_cont .ning_meta_box .option_box{
+    background-color: transparent;
+    border: none;
+}
+
 
 /**
  * Sep Line
@@ -482,8 +504,12 @@
 
 
 
-.adning_dashboard .spr_check_container input:checked ~ .checkmark{
-	background-color: #d4ff00;
+.adning_dashboard .spr_check_container input:checked ~ .checkmark,
+.adning_cont .spr_check_container input:checked ~ .checkmark{
+    background-color: #d4ff00;
+    width: 20px;
+    height: 20px;
+    border-radius: 2px;
 }
 
 
@@ -591,3 +617,30 @@
       color: #00ffbb;
       font-size: 15px;
     }
+
+
+.adning_cont ._imgMCE_btn {
+    cursor: pointer;
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    border: solid 1px #d9cb03;
+    border-radius: 3px;
+    background-color: #ececa3;
+    color: #a9a24a;
+}
+.adning_cont ._imgMCE_btn:hover {
+    color: #a9a24a;
+    background-color: #f3f38f;
+}
+.adning_cont ._imgMCE_btn .logo_holder{
+    position: absolute;
+    background-color: #e2df10;
+    padding: 6px;
+}
+.adning_cont ._imgMCE_btn .text_holder {
+    display: inline-block;
+    margin-left: 31px;
+    border-left: solid 1px #d9cb03;
+    padding: 5px;
+}

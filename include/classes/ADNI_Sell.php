@@ -148,7 +148,7 @@ class ADNI_Sell {
                         $h.= '<li><strong>'.__('Order ID','adn').'</strong>: #'.$order[0]->id.'</li>';
                         $h.= '<li><strong>'.__('Payment Status','adn').'</strong>: '.$payment_status.' <small>('.$order[0]->am_paid.' '.$sell_settings['cur'].')</small></li>';
                     $h.= '</ul>';
-                    $h.= '<div><a class="button-secondary" style="background-color:#dffc6f;" href="admin.php?page=adning&view=banner&id='.$args['post']->ID.'&approve_banner='.$order[0]->id.'">'.__('Approve','adn').'</a></div>';
+                    $h.= '<div><a class="button-secondary" style="background-color:#dffc6f;" href="'.esc_url( wp_nonce_url( self_admin_url('admin.php?page=adning&view=banner&id='.$args['post']->ID.'&approve_banner='.$order[0]->id))).'">'.__('Approve','adn').'</a></div>';
                 $h.= '</div>';
             }
         }
@@ -797,7 +797,7 @@ class ADNI_Sell {
 	 */
     public static function contract_options()
     {
-        return ADNI_Main::has_stats() ? array('ppv','ppc','ppd') : array('ppd');
+        return ADNI_Main::has_stats(array('type' => 'int')) ? array('ppv','ppc','ppd') : array('ppd');
     }
 
 
@@ -879,7 +879,7 @@ class ADNI_Sell {
 
         if( $contract === 'ppv')
         {
-            if( ADNI_Main::has_stats() )
+            if( ADNI_Main::has_stats(array('type' => 'int')) )
 		    {
                 $impressions = !empty($order->banner_id) ? ADNI_Main::count_stats(array('type' => 'impression', 'group' => 'id_1', 'id' => $order->banner_id, 'time_range' => $time_range)) : 0;
                 $togo = $duration - $impressions;
@@ -887,7 +887,7 @@ class ADNI_Sell {
         }
         if( $contract === 'ppc')
         {
-            if( ADNI_Main::has_stats() )
+            if( ADNI_Main::has_stats(array('type' => 'int')) )
 		    {
                 $clicks = !empty($order->banner_id) ? ADNI_Main::count_stats(array('type' => 'click', 'group' => 'id_1', 'id' => $order->banner_id, 'time_range' => $time_range)) : 0;
                 $togo = $duration - $clicks;
@@ -969,7 +969,7 @@ class ADNI_Sell {
             )
         );
 
-        require_once(ADNI_TPL_DIR.'/frontend_manager/sell/available_adzones.php'); 
+        require(ADNI_TPL_DIR.'/frontend_manager/sell/available_adzones.php'); 
         return $h;
     }
 
@@ -992,7 +992,7 @@ class ADNI_Sell {
             )
         );
 
-        require_once(ADNI_TPL_DIR.'/frontend_manager/sell/user_dashboard.php'); 
+        require(ADNI_TPL_DIR.'/frontend_manager/sell/user_dashboard.php'); 
         return $h;
     }
 
@@ -1018,7 +1018,7 @@ class ADNI_Sell {
             )
         );
 
-        require_once(ADNI_TPL_DIR.'/single_banner.php'); 
+        require(ADNI_TPL_DIR.'/single_banner.php'); 
         return $h;
     }
 
@@ -1117,7 +1117,8 @@ class ADNI_Sell {
             $args = wp_parse_args( $args, $defaults );
 
             self::check_if_table_exists( 'adning_sell' );
-            $result = $wpdb->get_results("SELECT * FROM " . $wpdb->prefix . "adning_sell ".$args['query']);
+            //$result = $wpdb->get_results("SELECT * FROM " . $wpdb->prefix . "adning_sell ".$args['query']);
+            $result = $wpdb->get_results("SELECT id, time, user_id, email, ip_address, adzone_id, banner_id, status, price, am_paid, pos, trans_date, transaction, provider FROM " . $wpdb->prefix . "adning_sell ".$args['query']);
         ADNI_Multi::wpmu_load_from_main_stop();
 
 		return $result;	
@@ -1295,7 +1296,7 @@ class ADNI_Sell {
                                 // Edit banner
                                 if( is_admin() )
                                 {
-                                    $edit_url = 'admin.php?page=adning&view=banner&id='.$order->banner_id;
+                                    $edit_url = esc_url( wp_nonce_url( self_admin_url('admin.php?page=adning&view=banner&id='.$order->banner_id)));
                                 }
                                 else
                                 {
@@ -1312,7 +1313,7 @@ class ADNI_Sell {
                             {
                                 if( is_admin() )
                                 {
-                                    $activate_url = 'admin.php?page=adning-sell&activate_order='.$order->id;
+                                    $activate_url = esc_url( wp_nonce_url( self_admin_url('admin.php?page=adning-sell&activate_order='.$order->id)));
                                 }
                                 else
                                 {
@@ -1326,7 +1327,7 @@ class ADNI_Sell {
                             // REMOVE ORDER
                             if( is_admin() )
                             {
-                                $remove_url = 'admin.php?page=adning-sell&remove_order='.$order->id;
+                                $remove_url = esc_url( wp_nonce_url( self_admin_url('admin.php?page=adning-sell&remove_order='.$order->id)));
                             }
                             else
                             {
@@ -1785,6 +1786,8 @@ class ADNI_Sell {
                 
                 // JS
                 // 
+                unset($adzone_info['rotation_icon']);
+
                 $html.= '<script type="text/javascript">';
                     $html.= 'jQuery(document).ready(function($){
                         $(".payment_btn").on("click", function(){
@@ -1816,7 +1819,7 @@ class ADNI_Sell {
                                     console.log(obj);
                                     //msg = JSON.parse( obj );
                                     $(".bs_confirmation_notice").html(obj);
-                                    $( "#_ning_pmt_send" ).submit();
+                                    $( "#_ning_pmt_send" ).submit();      
 
                                     if( data.payment === "bank-transfer" ){
                                         $(".loading_overlay").hide();
@@ -1930,6 +1933,9 @@ class ADNI_Sell {
         $adzone_info = json_decode(json_encode(json_decode(stripslashes($_POST['adzone_info']))), true);
         $payment = $data['payment'];
 
+        //echo stripslashes($_POST['adzone_info']);
+        //print_r( json_decode(stripslashes($_POST['adzone_info']) ));
+
         $ipn_data = array(
             'aid' => $adzone_info['id'],
             'bid' => 0,
@@ -1981,6 +1987,7 @@ class ADNI_Sell {
             $h.= '</div>';
         }
 
+        //echo print_r($adzone_info,true);
         echo do_action('ADNI_sell_send_payment', $h, $ipn_data, $payment);
 
         exit;

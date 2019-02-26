@@ -10,3 +10,4 @@ import './jssor.slider.min.js';
 import '../../packages/modaljs/index.bundle.js';
 import '../../packages/cornerpeel/cornerpeel.js';
 import '../../packages/bg_takeover/bg_takeover.js';
+import './ga_tracking.js';

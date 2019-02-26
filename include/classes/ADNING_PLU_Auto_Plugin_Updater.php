@@ -55,7 +55,8 @@ class ADNING_PLU_Auto_Plugin_Updater
 		$this->license = $plugin_license;
 		$this->envato_item_id = $envato_item_id;
         list ($t1, $t2) = explode('/', $plugin_slug);
-        $this->slug = str_replace('.php', '', $t2);
+        //$this->slug = str_replace('.php', '', $t2);
+        $this->slug = $t1;
  
         // define the alternative API for updating checking
         add_filter('pre_set_site_transient_update_plugins', array(&$this, 'check_update'));
@@ -226,7 +227,7 @@ class ADNING_PLU_Auto_Plugin_Updater
     {
 		$is_activated = !empty( $this->license );
 		if ( ! $is_activated ) {
-			$url = esc_url( 'admin.php?page=adning-updates' );
+			$url = esc_url( self_admin_url('admin.php?page=adning-updates') );
             $redirect = sprintf( '<a href="%s">%s</a>', $url, __( 'settings', 'adn' ) );
             
             printf(

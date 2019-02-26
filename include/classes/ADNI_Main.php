@@ -71,6 +71,8 @@ class ADNI_Main {
 			'placement_area_head' => '',
 			'placement_area_body' => '',
 			'adsense_pubid' => '',
+			'adsense_auto_ads' => 0,
+			'ga_tracking_id' => '',
 			'uninstall_remove_data' => 0,
 			'adblock_detect' => 0,
 			'adblock_message' => __('You are using AD Blocker!','adn')
@@ -224,6 +226,62 @@ class ADNI_Main {
 
 
 
+	/**
+	 * Setup banner probability variable
+	 * This function makes sure the probability variable contains all linked banners.
+	 */
+	public static function get_banner_probability($a)
+	{
+		$linked_banners = $a['linked_banners'];
+		$probability = $a['probability'];
+
+		if(!empty($linked_banners))
+		{
+			foreach($linked_banners as $banner_id)
+			{
+				if(!array_key_exists($banner_id, $probability))
+				{
+					$probability[$banner_id] = 50;
+				}
+				else
+				{
+					// Add value to empty values
+					if(empty($probability[$banner_id]))
+					{
+						$probability[$banner_id] = 50;
+					}
+				}
+			}
+		}
+
+		return $probability;
+	}
+
+
+	/**
+	 * Shuffle array by probability value
+	 */
+	public static function shuffle_probability($probability)
+	{
+		$k = self::random_weight($probability);
+		unset($probability[$k]);
+
+		$shuffled = array($k);
+		
+		if(!empty($probability))
+		{
+			arsort($probability);
+			foreach($probability as $key => $prob)
+			{
+				$shuffled[] = $key;
+			}
+		}
+
+		return $shuffled;
+	}
+
+
+
 
 	/*
 	 * Handle Form Fields and save them to array
@@ -283,6 +341,30 @@ class ADNI_Main {
 		return ADNI_Multi::get_option('_adning_auto_positioning', $args);
 	}
 
+
+
+
+
+	public static function remove_smart_quotes($content) 
+	{
+		$content= str_replace(
+		array("\xe2\x80\x98", "\xe2\x80\x99", "\xe2\x80\x9c", "\xe2\x80\x9d", "\xe2\x80\x93", "\xe2\x80\x94", "\xe2\x80\xa6"),
+		array("'", "'", '"', '"', '-', '--', '...'), $content);
+		
+		$content= str_replace(
+		array(chr(145), chr(146), chr(147), chr(148), chr(150), chr(151), chr(133)),
+		array("'", "'", '"', '"', '-', '--', '...'), $content);
+
+		$content = str_replace('&#8220;', '&quot;', $content);
+		$content = str_replace('&#8221;', '&quot;', $content);
+		$content = str_replace('&#8243;', '&quot;', $content);
+     	$content = str_replace('&#8216;', '&#39;', $content);
+		$content = str_replace('&#8217;', '&#39;', $content);
+		
+		
+		return $content;
+	}
+
 	
 	
 	
@@ -294,7 +376,7 @@ class ADNI_Main {
 	*/
 	public static function banner_sizes()
 	{
-		return array(
+		return apply_filters('adning_banner_sizes', array(
 			array('size' => '125x125', 'name' => __('square button','adn')),
 			array('size' => '300x250', 'name' => __('medium rectangle','adn')),
 			array('size' => '728x90', 'name' => __('leaderboard','adn')),
@@ -307,7 +389,7 @@ class ADNI_Main {
 			array('size' => '300x600', 'name' => __('half page ad','adn')),
 			array('size' => '120x240', 'name' => __('vertical banner','adn')),
 			array('size' => '240x400', 'name' => __('vertical rectangle','adn'))
-		);
+		));
 	}
 	
 	
@@ -768,16 +850,50 @@ class ADNI_Main {
 	/**
 	 * Has stats 
 	 * (Check if a stats plugin is installed)
+	 * $args[type] (string) "int" | "ext" (internal stats or external stats (like Google Analytics))
+	 * $args[name] (string) (name of the stats option/plugin)
 	 * 
 	 * return array
 	 */
-	public static function has_stats()
+	public static function has_stats($args = array(), $settings = array())
 	{
-		$has_stats = array();
-		// Check if smarTrack is active.
-		$has_stats = class_exists('sTrack_DB') ? array('smartrack') : $has_stats;
+		$defaults = array(
+			'type' => '',
+			'name' => ''
+		);
+		$args = self::parse_args($args, $defaults);
 
-		return apply_filters('ADNI_has_stats',$has_stats);
+		$has_stats = array('int' => array(), 'ext' => array());
+		if(empty($settings))
+		{
+			$set_arr = self::settings();
+        	$settings = $set_arr['settings'];
+		}
+
+		// Check if smarTrack is active.
+		if( class_exists('sTrack_DB') )
+		{
+			$has_stats['int'][] = 'smartrack';
+		}
+
+		// Google Analytics
+		if( !empty($settings['ga_tracking_id']) )
+		{
+			$has_stats['ext'][] = 'google-analytics';
+		}
+
+		$has_stats = apply_filters('ADNI_has_stats',$has_stats);
+
+		if(!empty($args['type']))
+		{
+			if(!empty($args['name']))
+			{
+				return array_key_exists($args['name'], $has_stats[$args['type']]) ? $has_stats[$args['type']][$args['name']] : '';
+			}
+			return array_key_exists($args['type'], $has_stats) ? $has_stats[$args['type']] : '';
+		}
+
+		return $has_stats;
 	}
 
 
@@ -795,12 +911,12 @@ class ADNI_Main {
 			'time_range' => '' //custom_TIMESTAMP::TIMESTAMP
 		);
 		$args = wp_parse_args($args, $defaults);
-		$has_stats = self::has_stats();
+		$has_stats = self::has_stats(array('type' => 'int'));
 
 		if( empty($has_stats) )
 			return '';
 
-		if( $has_stats[0] === 'smartrack' )
+		if( in_array('smartrack', $has_stats) )
 		{
 			$group_by = $args['group'] === 'id_1' ? 'ev.event_id' : 'ev.id_2,ev.id';
 			$between = !empty($args['time_range']) ? array('key' => 'ev.tm', 'val' => sTrack_Core::time_range(array('condition' => $args['time_range']))) : array();
@@ -814,7 +930,6 @@ class ADNI_Main {
 				'unique' => $args['unique']
 			));
 		}
-	
 		return $value;
 	}
 
@@ -825,20 +940,22 @@ class ADNI_Main {
 	 */
 	public static function reset_stats($id, $group = '')
 	{
-		if( self::has_stats() )
-		{
-			/*$row_arr = array();
-			$row_arr[$group] = 0;
-			sTrack_DB::update_row( $row_arr, $GLOBALS[ 'wpdb' ]->prefix.'strack_ev' );*/
-			$GLOBALS[ 'wpdb' ]->query("UPDATE ".$GLOBALS[ 'wpdb' ]->prefix."strack_ev SET ".$group." = '0' WHERE ".$group." = '".$id."'");
+		$has_stats = self::has_stats(array('type' => 'int'));
 
-			//sTrack_DB::delete_stats(array('delete' => 'ev.*', 'id' => $id, 'group' => 'id_2'));
-			sTrack_DB::delete_stats(array('delete' => 'ev.*', 'where' => array(
-					array('ev.id_1','0'),
-					array('ev.id_2','0'),
-					array('ev.id_3','0')
-				) 
-			));
+		if( $has_stats )
+		{
+			if( in_array('smartrack', $has_stats) )
+			{
+				$GLOBALS[ 'wpdb' ]->query("UPDATE ".$GLOBALS[ 'wpdb' ]->prefix."strack_ev SET ".$group." = '0' WHERE ".$group." = '".$id."'");
+
+				//sTrack_DB::delete_stats(array('delete' => 'ev.*', 'id' => $id, 'group' => 'id_2'));
+				sTrack_DB::delete_stats(array('delete' => 'ev.*', 'where' => array(
+						array('ev.id_1','0'),
+						array('ev.id_2','0'),
+						array('ev.id_3','0')
+					) 
+				));
+			}
 		}
 	}
 
@@ -905,7 +1022,7 @@ class ADNI_Main {
 	public static function install_plugin( $args ) 
 	{
 		$args = wp_parse_args( $args, array(
-			'plugin'   => '',
+			'plugin'   => '', // the plugin folder name
 			'package'  => '', //The full local path or URI of the package.
 			'activate' => false
 		));

@@ -2,10 +2,11 @@
 $h = '';
 if( !is_user_logged_in() )
 {
-    $h.= '<div style="margin-top:50px;text-align:center;">'.__('Please login to access this area.','adn').'</div>';
+    $h.= '<div style="margin-top:50px;text-align:center;">'.esc_attr__('Please login to access this area.','adn').'</div>';
     return;
 }
 
+//echo 'oi'.function_exists( 'is_amp_endpoint' );
 
 $id = isset($_GET['id']) ? $_GET['id'] : 0;
 $id = !$id && isset($_POST['post_id']) ? $_POST['post_id'] : $id;
@@ -18,7 +19,7 @@ if( !current_user_can(ADNI_BANNERS_ROLE) && empty($id) )
     // If not EXIT!
     if( !isset($_GET['oid']) && !isset($_GET['slid']) )
     {
-        $h.= '<div style="margin-top:50px;text-align:center;">'.__('Sorry you cannot access this area.','adn').'</div>';
+        $h.= '<div style="margin-top:50px;text-align:center;">'.esc_attr__('Sorry you cannot access this area.','adn').'</div>';
         return;
     }
 }
@@ -88,7 +89,7 @@ $banner_post = ADNI_CPT::load_post($id, array('post_type' => ADNI_CPT::$banner_c
 
 if( empty( $banner_post['post'] ) || !current_user_can(ADNI_BANNERS_ROLE) && $user_id != $banner_post['post']->post_author)
 {
-    $h.= '<div style="margin-top:50px;text-align:center;">'.__('Sorry, This banner does not exists.','adn').'</div>';
+    $h.= '<div style="margin-top:50px;text-align:center;">'.esc_attr__('Sorry, This banner does not exists.','adn').'</div>';
     return $h;
 }
 
@@ -110,7 +111,6 @@ if( !empty( $banner_post['post'] ))
         'post_type' => ADNI_CPT::$banner_cpt
     ));
 }
-
 
 
 $h.= '<div class="adning_cont adning_add_new_banner">';
@@ -138,11 +138,11 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                         $h.= '<div class="spr_wrapper">';
                             $h.= '<div class="option_box">';
                                 $h.= '<div class="info_header">';
-                                    $h.= '<span class="nr">1</span>';
-                            	    $h.= '<span class="text">'.__('Banner Settings','adn').'</span>';
+                                    $h.= '<span class="nr"><svg viewBox="0 0 512 512"><path fill="currentColor" d="M507.73 109.1c-2.24-9.03-13.54-12.09-20.12-5.51l-74.36 74.36-67.88-11.31-11.31-67.88 74.36-74.36c6.62-6.62 3.43-17.9-5.66-20.16-47.38-11.74-99.55.91-136.58 37.93-39.64 39.64-50.55 97.1-34.05 147.2L18.74 402.76c-24.99 24.99-24.99 65.51 0 90.5 24.99 24.99 65.51 24.99 90.5 0l213.21-213.21c50.12 16.71 107.47 5.68 147.37-34.22 37.07-37.07 49.7-89.32 37.91-136.73zM64 472c-13.25 0-24-10.75-24-24 0-13.26 10.75-24 24-24s24 10.74 24 24c0 13.25-10.75 24-24 24z"></path></svg></span>';
+                            	    $h.= '<span class="text">'.esc_attr__('Banner Settings','adn').'</span>';
                                 $h.= '</div>';
                                 $h.= '<div class="input_container">';
-                                    $h.= '<h3 class="title">'.__('Title','adn').'</h3>';
+                                    $h.= '<h3 class="title">'.esc_attr__('Title','adn').'</h3>';
 
                                     $val = !empty($banner_post['post']) ? $banner_post['post']->post_title : '';
                                     $h.= '<div class="input_container_inner">
@@ -151,10 +151,10 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                             class="" 
                                             name="title" 
                                             value="'.$val.'" 
-                                            placeholder="'.__('Banner Title','adn').'">
+                                            placeholder="'.esc_attr__('Banner Title','adn').'">
                                         <i class="input_icon fa fa-pencil" aria-hidden="true"></i>
                                     </div>';
-                                    $h.= '<span class="description bottom">'.__('Add a banner title.','adn').'</span>';
+                                    $h.= '<span class="description bottom">'.esc_attr__('Add a banner title.','adn').'</span>';
                                 $h.= '</div>';
                                 //<!-- end .input_container -->
 
@@ -166,7 +166,7 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                     $all_users = get_users();
                                     
                                     $h.= '<div class="input_container">';
-                                        $h.= '<h3 class="title">'.__('Advertiser','adn').'</h3>';
+                                        $h.= '<h3 class="title">'.esc_attr__('Advertiser','adn').'</h3>';
                                         $h.= '<select name="advertiser" data-placeholder="Select Advertiser" class="chosen-select">';
                                             
                                             foreach($all_users as $user)
@@ -177,24 +177,24 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                            
                                         $h.= '</select>';
                                             
-                                        $h.= '<span class="description bottom">'.__('Assign this banner to a specific advertiser.','adn').'</span>';
+                                        $h.= '<span class="description bottom">'.esc_attr__('Assign this banner to a specific advertiser.','adn').'</span>';
                                     $h.= '</div>';
                                     //<!-- end .input_container -->
                                 }
                                 
 
                                 $h.= '<div class="input_container">';
-                                    $h.= '<h3 class="title">'.__('Status','adn').'</h3>';
+                                    $h.= '<h3 class="title">'.esc_attr__('Status','adn').'</h3>';
                                         $h.= '<div class="input_container_inner">';
                                            
                                             if( current_user_can(ADNI_BANNERS_ROLE) )
                                             {
                                                 $h.= '<select name="status" class="">';
-                                                    $h.= '<option value="active" '.selected( $b['status'], 'active', false).'>'.__('Active','adn').'</option>';
-                                                    $h.= '<option value="expired" '.selected( $b['status'], 'expired', false).'>'.__('Expired','adn').'</option>';
-                                                    $h.= '<option value="draft" '.selected( $b['status'], 'draft', false).'>'.__('Draft','adn').'</option>';
-                                                    $h.= '<option value="review" '.selected( $b['status'], 'review', false).'>'.__('Pending Review','adn').'</option>';
-                                                    $h.= '<option value="on-hold" '.selected( $b['status'], 'on-hold', false).'>'.__('On Hold','adn').'</option>';
+                                                    $h.= '<option value="active" '.selected( $b['status'], 'active', false).'>'.esc_attr__('Active','adn').'</option>';
+                                                    $h.= '<option value="expired" '.selected( $b['status'], 'expired', false).'>'.esc_attr__('Expired','adn').'</option>';
+                                                    $h.= '<option value="draft" '.selected( $b['status'], 'draft', false).'>'.esc_attr__('Draft','adn').'</option>';
+                                                    $h.= '<option value="review" '.selected( $b['status'], 'review', false).'>'.esc_attr__('Pending Review','adn').'</option>';
+                                                    $h.= '<option value="on-hold" '.selected( $b['status'], 'on-hold', false).'>'.esc_attr__('On Hold','adn').'</option>';
                                                 $h.= '</select>';
                                             }
                                             else
@@ -203,36 +203,36 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                             }
                                            
                                         $h.= '</div>';
-                                    $h.= '<span class="description bottom">'.__('Banner status.','adn').'</span>';
+                                    $h.= '<span class="description bottom">'.esc_attr__('Banner status.','adn').'</span>';
                                 $h.= '</div>';
                                 //<!-- end .input_container -->
                              
                                 $h.= '<div class="input_container">';
-                                    $h.= '<h3 class="title">'.__('URL','adn').'</h3>';
+                                    $h.= '<h3 class="title">'.esc_attr__('URL','adn').'</h3>';
                                         $h.= '<div class="input_container_inner">';
                                         $h.= '<input 
                                             type="text" 
                                             class="" 
                                             name="banner_url" 
-                                            value="'.$b['banner_url'].'" 
-                                            placeholder="'.__('http://','adn').'">
+                                            value="'.esc_url($b['banner_url']).'" 
+                                            placeholder="'.esc_attr__('http://','adn').'">
                                         <i class="input_icon fa fa-link" aria-hidden="true"></i>';
                                     $h.= '</div>';
-                                    $h.= '<span class="description bottom">'.__('Add a banner link (URL).','adn').'</span>';
+                                    $h.= '<span class="description bottom">'.esc_attr__('Add a banner link (URL).','adn').'</span>';
                                 $h.= '</div>';
                                 //<!-- end .input_container -->
                              
                                 $h.= '<div class="input_container">';
-                                    $h.= '<h3 class="title">'.__('Target','adn').'</h3>';
+                                    $h.= '<h3 class="title">'.esc_attr__('Target','adn').'</h3>';
                                         $h.= '<div class="input_container_inner">';
                                             $h.= '<select name="banner_target" class="">';
-                                                $h.= '<option value="_blank" '.selected( $b['banner_target'], '_blank', false).'>'.__('_blank, Load in a new window.','adn').'</option>';
-                                                $h.= '<option value="_self" '.selected( $b['banner_target'], '_self', false).'>'.__('_self, Load in the same frame as it was clicked.','adn').'</option>';
-                                                $h.= '<option value="_parent" '.selected( $b['banner_target'], '_parent', false).'>'.__('_parent, Load in the parent frameset.','adn').'</option>';
-                                                $h.= '<option value="_top" '.selected( $b['banner_target'], '_top', false).'>'.__('_top, Load in the full body of the window.','adn').'</option>';
+                                                $h.= '<option value="_blank" '.selected( $b['banner_target'], '_blank', false).'>'.esc_attr__('_blank, Load in a new window.','adn').'</option>';
+                                                $h.= '<option value="_self" '.selected( $b['banner_target'], '_self', false).'>'.esc_attr__('_self, Load in the same frame as it was clicked.','adn').'</option>';
+                                                $h.= '<option value="_parent" '.selected( $b['banner_target'], '_parent', false).'>'.esc_attr__('_parent, Load in the parent frameset.','adn').'</option>';
+                                                $h.= '<option value="_top" '.selected( $b['banner_target'], '_top', false).'>'.esc_attr__('_top, Load in the full body of the window.','adn').'</option>';
                                             $h.= '</select>';
                                         $h.= '</div>';
-                                    $h.= '<span class="description bottom">'.__('Banner link target.','adn').'</span>';
+                                    $h.= '<span class="description bottom">'.esc_attr__('Banner link target.','adn').'</span>';
                                 $h.= '</div>';
                                 //<!-- end .input_container -->
                              
@@ -242,16 +242,16 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                     {
                                         $h.= ADNI_Templates::spr_column(array(
                                             'col' => 'spr_col-6',
-                                            'title' => __('Link Masking','adn'),
+                                            'title' => esc_attr__('Link Masking','adn'),
                                             'desc' => '',
                                             'content' => ADNI_Templates::switch_btn(array(
                                                 'name' => 'banner_link_masking',
-                                                'tooltip' => __('Turn Off link masking to link directly to the raw banner url, When turned off its not possible to save statistics for this banner.','adn'),
+                                                'tooltip' => esc_attr__('Turn Off link masking to link directly to the raw banner url, When turned off its not possible to save statistics for this banner.','adn'),
                                                 'checked' => $b['banner_link_masking'],
                                                 'value' => 1,
                                                 'hidden_input' => 1,
-                                                'chk-on' => __('On','adn'),
-                                                'chk-off' => __('Off','adn'),
+                                                'chk-on' => esc_attr__('On','adn'),
+                                                'chk-off' => esc_attr__('Off','adn'),
                                                 'chk-high' => 0
                                             ))
                                         ));
@@ -259,16 +259,16 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                         
                                     $h.= ADNI_Templates::spr_column(array(
                                         'col' => 'spr_col-6',
-                                        'title' => __('No Follow','adn'),
+                                        'title' => esc_attr__('No Follow','adn'),
                                         'desc' => '',
                                         'content' => ADNI_Templates::switch_btn(array(
                                             'name' => 'banner_no_follow',
-                                            'tooltip' => __('Add no Follow to banner link.','adn'),
+                                            'tooltip' => esc_attr__('Add no Follow to banner link.','adn'),
                                             'checked' => $b['banner_no_follow'],
                                             'value' => 1,
                                             'hidden_input' => 1,
-                                            'chk-on' => __('On','adn'),
-                                            'chk-off' => __('Off','adn'),
+                                            'chk-on' => esc_attr__('On','adn'),
+                                            'chk-off' => esc_attr__('Off','adn'),
                                             'chk-high' => 0
                                         ))
                                     ));
@@ -280,8 +280,8 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                              
                             $h.= '<div class="input_container">';
                                 $h.= '<div class="input_container_inner">';
-                                    $h.= '<div class="sep_line" style="margin:10px 0 20px 0;"><span><strong>'.__('Save','adn').'</strong></span></div>';
-                                    $h.= '<input type="submit" value="'.__('Save Banner','adn').'" class="button-primary" name="save_banner" style="width: auto;">';
+                                    $h.= '<div class="sep_line" style="margin:10px 0 20px 0;"><span><strong>'.esc_attr__('Save','adn').'</strong></span></div>';
+                                    $h.= '<input type="submit" value="'.esc_attr__('Save Banner','adn').'" class="button-primary" name="save_banner" style="width: auto;">';
                                 $h.= '</div>';
                                 $h.= '<span class="description bottom"></span>';
                             $h.= '</div>';
@@ -338,17 +338,19 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                     $h.= '<div class="spr_wrapper">';
                         $h.= '<div class="option_box">';
                             $h.= '<div class="info_header">';
-                                $h.= '<span class="nr">2</span>';
-                                $h.= '<span class="text">'.__('Banner','adn').'</span>';
-                                $h.= '<span class="fa tog ttip" title="'.__('Toggle box','adn').'"></span>';
-                                $h.= '<input type="submit" value="'.__('Save Banner','adn').'" class="button-primary" name="save_banner" style="width:auto;float:right;margin:8px;">';
+                                $h.= '<span class="nr">';
+                                    $h.= '<svg viewBox="0 0 576 512"><path fill="currentColor" d="M512 320s-64 92.65-64 128c0 35.35 28.66 64 64 64s64-28.65 64-64-64-128-64-128zm-9.37-102.94L294.94 9.37C288.69 3.12 280.5 0 272.31 0s-16.38 3.12-22.62 9.37l-81.58 81.58L81.93 4.76c-6.25-6.25-16.38-6.25-22.62 0L36.69 27.38c-6.24 6.25-6.24 16.38 0 22.62l86.19 86.18-94.76 94.76c-37.49 37.48-37.49 98.26 0 135.75l117.19 117.19c18.74 18.74 43.31 28.12 67.87 28.12 24.57 0 49.13-9.37 67.87-28.12l221.57-221.57c12.5-12.5 12.5-32.75.01-45.25zm-116.22 70.97H65.93c1.36-3.84 3.57-7.98 7.43-11.83l13.15-13.15 81.61-81.61 58.6 58.6c12.49 12.49 32.75 12.49 45.24 0s12.49-32.75 0-45.24l-58.6-58.6 58.95-58.95 162.44 162.44-48.34 48.34z"></path></svg>';
+                                $h.= '</span>';
+                                $h.= '<span class="text">'.esc_attr__('Banner','adn').'</span>';
+                                $h.= '<span class="fa tog ttip" title="'.esc_attr__('Toggle box','adn').'"></span>';
+                                $h.= '<input type="submit" value="'.esc_attr__('Save Banner','adn').'" class="button-primary" name="save_banner" style="width:auto;float:right;margin:8px;">';
                             $h.= '</div>';
                             
                             $h.= '<div class="settings_box_content">';
 
                                 if( current_user_can(ADNI_BANNERS_ROLE) )
                                 {
-                                    $h.= '<div class="sep_line" style="margin:0 0 15px 0;"><span><strong>'.__('Sizing','adn').'</strong></span></div>';
+                                    $h.= '<div class="sep_line" style="margin:0 0 15px 0;"><span><strong>'.esc_attr__('Sizing','adn').'</strong></span></div>';
                                     $h.= '<div class="spr_column spr_col-4">';
                                         $h.= '<div class="spr_column-inner left_column">';
                                             $h.= '<div class="spr_wrapper">';
@@ -356,14 +358,17 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                                     $h.= '<h3 class="title"></h3>';
                                                     $h.= '<div class="input_container_inner">';
                                                         $h.= '<select id="ADNI_size" name="size" class="">';
-                                                            foreach(ADNI_Main::banner_sizes() as $size)
+                                                            if(!empty(ADNI_Main::banner_sizes()))
                                                             {
-                                                                $h.= '<option value="'.$size['size'].'" '.selected( $b['size'], $size['size'], false).'>'.$size['name'].' ('.$size['size'].')</option>';
+                                                                foreach(ADNI_Main::banner_sizes() as $size)
+                                                                {
+                                                                    $h.= '<option value="'.$size['size'].'" '.selected( $b['size'], $size['size'], false).'>'.$size['name'].' ('.$size['size'].')</option>';
+                                                                }
                                                             }
-                                                            $h.= '<option value="custom" '.selected( $b['size'], 'custom', false).'>'.__('Custom','adn').'</option>';
+                                                            $h.= '<option value="custom" '.selected( $b['size'], 'custom', false).'>'.esc_attr__('Custom','adn').'</option>';
                                                         $h.= '</select>';
                                                     $h.= '</div>';
-                                                    $h.= '<span class="description bottom">'.__('Select one of the common banner sizes.','adn').'</span>';
+                                                    $h.= '<span class="description bottom">'.esc_attr__('Select one of the common banner sizes.','adn').'</span>';
                                                 $h.= '</div>';
                                                 //<!-- end .input_container -->
                                             $h.= '</div>';
@@ -374,16 +379,16 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                     $h.= ADNI_Templates::spr_column(array(
                                         'col' => 'spr_col-2',
                                         'title' => '',
-                                        'desc' => __('Responsive','adn'),
+                                        'desc' => esc_attr__('Responsive','adn'),
                                         'content' => ADNI_Templates::switch_btn(array(
                                             'name' => 'responsive',
                                             'id' => 'ADNI_responsive',
-                                            'tooltip' => __('Responsive banner.','adn'),
+                                            'tooltip' => esc_attr__('Responsive banner.','adn'),
                                             'checked' => $b['responsive'],
                                             'value' => 1,
                                             'hidden_input' => 1,
-                                            'chk-on' => __('On','adn'),
-                                            'chk-off' => __('Off','adn'),
+                                            'chk-on' => esc_attr__('On','adn'),
+                                            'chk-off' => esc_attr__('Off','adn'),
                                             'chk-high' => 1
                                         ))
                                     ));
@@ -396,7 +401,7 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                                 $h.= ADNI_Templates::spr_column(array(
                                                     'col' => 'spr_col-6',
                                                     'title' => '',
-                                                    'desc' => __('width.','adn'),
+                                                    'desc' => esc_attr__('width.','adn'),
                                                     'content' => ADNI_Templates::inpt_cont(array(
                                                             'type' => 'text',
                                                             'width' => '100%',
@@ -412,18 +417,18 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                                 $h.= ADNI_Templates::spr_column(array(
                                                     'col' => 'spr_col-6',
                                                     'title' => '',
-                                                    'desc' => __('height.','adn'),
+                                                    'desc' => esc_attr__('height.','adn'),
                                                     'content' => ADNI_Templates::inpt_cont(array(
-                                                            'type' => 'text',
-                                                            'width' => '100%',
-                                                            'class' => '_ning_custom_size',
-                                                            'name' => 'size_h',
-                                                            'id' => 'ADNI_size_h',
-                                                            'value' => $b['size_h'],
-                                                            'placeholder' => '',
-                                                            'icon' => 'arrows-v',
-                                                            'show_icon' => 1
-                                                        ))
+                                                        'type' => 'text',
+                                                        'width' => '100%',
+                                                        'class' => '_ning_custom_size',
+                                                        'name' => 'size_h',
+                                                        'id' => 'ADNI_size_h',
+                                                        'value' => $b['size_h'],
+                                                        'placeholder' => '',
+                                                        'icon' => 'arrows-v',
+                                                        'show_icon' => 1
+                                                    ))
                                                 ));
                                                 
                                             $h.= '</div>
@@ -439,7 +444,7 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                     $h.= '<div class="spr_column-inner">';
                                         $h.= '<div class="spr_wrapper">';
                                         
-                                            $h.= '<div class="sep_line" style="margin:0 0 5px 0;"><span><strong>'.__('Preview','adn').'</strong></span></div>';
+                                            $h.= '<div class="sep_line" style="margin:0 0 5px 0;"><span><strong>'.esc_attr__('Preview','adn').'</strong></span></div>';
                                             $h.= '<div class="banner_holder clear" style="padding:20px;">';
                                                 $h.= '<div class="banner_notice"></div>';
                                             
@@ -447,24 +452,13 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                             $h.= '</div>';
                                             // <!-- end .banner_holder -->
                                             
-                                            $h.= '<div class="sep_line" style="margin:0 0 25px 0;"><span><strong>'.__('Content','adn').'</strong></span></div>';
+                                            $h.= '<div class="sep_line" style="margin:0 0 25px 0;"><span><strong>'.esc_attr__('Content','adn').'</strong></span></div>';
                                             
-                                            /*$h.= '<div class="spr_column">';
-                                                $h.= '<div class="spr_column-inner">';
-                                                    $h.= '<div class="spr_wrapper">';
-                                                        $h.= '<div class="input_container">';
-                                                            $h.= '<div id="HTML5Uploader" class="box" style="border:dashed 1px #d7d7d7;border-radius:3px;padding:15px 5px;background: #FFF;" method="post" action="'.ADNI_AJAXURL.'" enctype="multipart/form-data"></div>';
-                                                            $h.= '<span class="description bottom">'.__('Upload banner content.','adn').'</span>';
-                                                        $h.= '</div>';
-                                                    $h.= '</div>';
-                                                $h.= '</div>';
-                                            $h.= '</div>';
-                                            //<!-- end .spr_column -->*/
                                             
                                             $h.= ADNI_Templates::spr_column(array(
                                                 'col' => 'spr_col',
                                                 'title' => '',
-                                                'desc' => __('Upload banner content.','adn'),
+                                                'desc' => esc_attr__('Upload banner content.','adn'),
                                                 'content' => ADNI_Templates::file_upload(array(
                                                     'class' => 'HTML5Uploader'
                                                 ))
@@ -482,12 +476,18 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                                             $h.= '<div class="input_container">';
                                                                 $h.= '<h3 class="title"></h3>';
                                                                 $h.= '<div class="input_container_inner">';
-                                                                    $h.= '<button class="open_imgmce_button button" type="button" style="height:30px;background-color:#fefe7e;border-color: #eee265;box-shadow: 0 1px #CCC364;color: #b6ac24;">';
-                                                                        $h.= '<img style="position:absolute;margin-top: 4px;" src="'.$imgmce_logo.'">';
-                                                                        $h.= '<span style="margin-left:20px;">'.__('imgMCE Editor', 'adn').'</span>';
-                                                                    $h.= '</button>';
+                                                                    $h.= '<a class="open_imgmce_button _imgMCE_btn">
+                                                                        <div class="logo_holder"><svg x="0px" y="0px" width="19px" height="15px" viewBox="0 0 310 426">
+                                                                        <g><g><g><g><path fill="#FFFF00" d="M237,225c-0.33,0-0.67,0-1,0c-53.73,59.93-108.85,118.49-163,178c-0.85,0.18-0.94-0.39-1-1
+                                                                        c26.08-58.92,51.7-118.3,77-178C178,224.67,209.67,222.67,237,225z"></path></g><g></g></g></g><g><g><g><path fill="#FFFF00" d="M289,165c0,1.33,0,2.67,0,4c-17.86,18.48-34.64,38.03-52,57c-56,0-112,0-168,0c0-1,0-2,0-3
+                                                                        c21.5-64.83,42.62-130.05,63-196c46.33,0,92.67,0,139,0c-27.25,45.75-54.78,91.22-81,138C223,165,256,165,289,165z"></path></g><g></g></g></g></g><g><g id="bottom_xA0_Image_1_"><g><g><path fill="#D7CB05" d="M149,225c0,1.33,0,2.67,0,4c-26.73,57.27-50.59,117.41-77,175c-16.02-1.31-37.3,2.63-50-2
+                                                                        c25.93-59.4,52.98-117.69,79-177C117,225,133,225,149,225z"></path></g><g></g></g></g><g><g><g><path fill="#D7CB05" d="M133,27c0,1,0,2,0,3c-21.17,64.5-41.92,129.41-62,195c-16.33,0-32.67,0-49,0c0-1,0-2,0-3
+                                                                        C43.17,157.5,63.92,92.59,84,27C100.33,27,116.67,27,133,27z"></path></g><g></g></g></g></g></svg></div>
+                                                                        <div class="text_holder">imgMCE Editor</div>
+                                                                    </a>';
+                                                                    
                                                                 $h.= '</div>';
-                                                                $h.= '<span class="description bottom">'.__('Open imgMCE editor.','adn').'</span>';
+                                                                $h.= '<span class="description bottom">'.esc_attr__('Open imgMCE editor.','adn').'</span>';
                                                             $h.= '</div>';
                                                             //<!-- end .input_container -->
                                                         $h.= '</div>';
@@ -504,9 +504,9 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                                             $h.= '<div class="input_container">';
                                                                 $h.= '<h3 class="title"></h3>';
                                                                 $h.= '<div class="input_container_inner">';
-                                                                    $h.= '<button class="upload_image_button button" type="button" style="height: 30px;">'.__('Wordpress Media', 'adn').'</button>';
+                                                                    $h.= '<button class="upload_image_button button" type="button" style="height: 30px;">'.esc_attr__('Wordpress Media', 'adn').'</button>';
                                                                 $h.= '</div>';
-                                                                $h.= '<span class="description bottom">'.__('Upload banner image.','adn').'</span>';
+                                                                $h.= '<span class="description bottom">'.esc_attr__('Upload banner image.','adn').'</span>';
                                                             $h.= '</div>';
                                                             //<!-- end .input_container -->
                                                         $h.= '</div>';
@@ -526,10 +526,10 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                                                 $h.= '<div class="input_container_inner">';
                                                                     $h.= '<button class="adsense_btn button" type="button" style="height: 30px;">';
                                                                         $h.= '<svg style="height: 13px;" viewBox="0 0 256 252" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid"><defs><linearGradient x1=".041%" y1="50.091%" x2="100.078%" y2="50.091%" id="a"><stop stop-color="#4284F0" offset="0%"/><stop stop-color="#4487F4" offset="100%"/></linearGradient><linearGradient x1="28.448%" y1="81.561%" x2="55.474%" y2="42.237%" id="b"><stop stop-color="#F5B406" offset="0%"/><stop stop-color="#F4B913" offset="100%"/></linearGradient></defs><path d="M254.2 154.4L209.4 252H102.3l58.6-126h75c14.6 0 24.3 15.1 18.3 28.4z" fill="#437DE6"/><path d="M235.9 127.8c6.3 0 12 3.1 15.4 8.4 3.4 5.3 3.8 11.8 1.2 17.5l-44.2 96.6H107.2l56.9-122.5h71.8zm0-1.8H163l-58.6 126h105l44.7-97.6c6.1-13.3-3.6-28.4-18.2-28.4z" fill="#196CEA"/><path d="M62.1 1.8s56.2 61 69.4 67.3L149.8 29c6.4-12.7-1.8-27.5-17.1-27.3l-70.6.1z" fill="url(#a)" transform="translate(102 126)"/><g><path d="M112.9 10.9L0 252h104.4L165 121.7 221.6 0H130c-7.3 0-14 4.2-17.1 10.9z" fill="url(#b)"/><path d="M218.8 1.8L163.4 121l-60.1 129.3H2.8L114.5 11.6c2.8-6 8.9-9.9 15.5-9.9h88.8v.1zm2.8-1.8H130c-7.3 0-14 4.2-17.1 10.9L0 252h104.4L165 121.7 221.6 0z" fill="#F3AA00"/></g></svg>';
-                                                                        $h.= __('Google AdSense', 'adn');
+                                                                        $h.= esc_attr__('Google AdSense', 'adn');
                                                                     $h.= '</button>';
                                                                 $h.= '</div>';
-                                                                $h.= '<span class="description bottom">'.__('Adsense banner settings.','adn').'</span>';
+                                                                $h.= '<span class="description bottom">'.esc_attr__('Adsense banner settings.','adn').'</span>';
                                                             $h.= '</div>';
                                                             //<!-- end .input_container -->
                                                         $h.= '</div>
@@ -544,8 +544,8 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                                     $h.= ADNI_Templates::spr_column(array(
                                                         'col' => 'spr_col-3',
                                                         'title' => '',
-                                                        'desc' => __('Wordpress post editor','adn'),
-                                                        'content' => '<a href="post.php?post='.$id.'&action=edit" class="button-secondary" target="_blank">'.__('Wordpress Editor','adn').'</a>'
+                                                        'desc' => esc_attr__('Wordpress post editor','adn'),
+                                                        'content' => '<a href="post.php?post='.$id.'&action=edit" class="button-secondary" target="_blank">'.esc_attr__('Wordpress Editor','adn').'</a>'
                                                     ));
                                                 }
                                             }
@@ -560,53 +560,53 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                                 $h.= '<div class="spr_column-inner">';
                                                     $h.= '<div class="spr_wrapper">';
                                                         $h.= '<div class="input_container clear">';
-                                                            $h.= '<h3 class="title">'.__('Google AdSense','adn').'</h3>';
+                                                            $h.= '<h3 class="title">'.esc_attr__('Google AdSense','adn').'</h3>';
 
                                                             $h.= ADNI_Templates::spr_column(array(
                                                                 'col' => 'spr_col-4',
                                                                 'title' => '',
-                                                                'desc' => __('AdSense pub ID.','adn'),
+                                                                'desc' => esc_attr__('AdSense pub ID.','adn'),
                                                                 'content' => ADNI_Templates::inpt_cont(array(
-                                                                        'type' => 'text',
-                                                                        'width' => '100%',
-                                                                        'class' => 'adsense_set adsense_pub_id',
-                                                                        'name' => 'adsense_pubid',
-                                                                        'value' => $adsense_pub_id,
-                                                                        'placeholder' => 'pub-xxxxxxx',
-                                                                        'icon' => 'pencil',
-                                                                        'show_icon' => 1
-                                                                    ))
+                                                                    'type' => 'text',
+                                                                    'width' => '100%',
+                                                                    'class' => 'adsense_set adsense_pub_id',
+                                                                    'name' => 'adsense_pubid',
+                                                                    'value' => $adsense_pub_id,
+                                                                    'placeholder' => 'pub-xxxxxxx',
+                                                                    'icon' => 'pencil',
+                                                                    'show_icon' => 1
+                                                                ))
                                                             ));
                                                             $h.= ADNI_Templates::spr_column(array(
                                                                 'col' => 'spr_col-4',
                                                                 'title' => '',
-                                                                'desc' => __('AdSense ad slot ID.','adn'),
+                                                                'desc' => esc_attr__('AdSense ad slot ID.','adn'),
                                                                 'content' => ADNI_Templates::inpt_cont(array(
-                                                                        'type' => 'text',
-                                                                        'width' => '100%',
-                                                                        'class' => 'adsense_set adsense_slot_id',
-                                                                        'name' => 'adsense_slotid',
-                                                                        'value' => $adsense_slot_id,
-                                                                        'placeholder' => 'xxxxxxx',
-                                                                        'icon' => 'pencil',
-                                                                        'show_icon' => 1
-                                                                    ))
+                                                                    'type' => 'text',
+                                                                    'width' => '100%',
+                                                                    'class' => 'adsense_set adsense_slot_id',
+                                                                    'name' => 'adsense_slotid',
+                                                                    'value' => $adsense_slot_id,
+                                                                    'placeholder' => 'xxxxxxx',
+                                                                    'icon' => 'pencil',
+                                                                    'show_icon' => 1
+                                                                ))
                                                             ));
                                                             
                                                             $adsense_type = is_array($b['adsense_settings']) && array_key_exists('type', $b['adsense_settings']) ? $b['adsense_settings']['type'] : '';
                                                             
                                                             $h.= '<div class="spr_column spr_col-4"><div class="spr_column-inner"><div class="input_container_inner">';
                                                                 $h.= '<select name="adsense_type" class="adsense_set adsense_type">';
-                                                                    $h.= '<option value="" '.selected($adsense_type, '', false).'>'.__('-- Select --','adn').'</option>';
-                                                                    $h.= '<option value="normal" '.selected($adsense_type, 'normal', false).'>'.__('Normal','adn').'</option>';
-                                                                    $h.= '<option value="responsive" '.selected($adsense_type, 'responsive',false).'>'.__('Responsive','adn').'</option>';
-                                                                    $h.= '<option value="matched-content" '.selected($adsense_type, 'matched-content', false).'>'.__('Responsive (Matched Content)','adn').'</option>';
-                                                                    $h.= '<option value="link" '.selected($adsense_type, 'link', false).'>'.__('Link ads','adn').'</option>';
-                                                                    $h.= '<option value="link-responsive" '.selected($adsense_type, 'link-responsive', false).'>'.__('Link ads (Responsive)','adn').'</option>';
-                                                                    $h.= '<option value="in-article" '.selected($adsense_type, 'in-article', false).'>'.__('InArticle','adn').'</option>';
-                                                                    $h.= '<option value="in-feed" '.selected($adsense_type, 'in-feed', false).'>'.__('InFeed','adn').'</option>';
+                                                                    $h.= '<option value="" '.selected($adsense_type, '', false).'>'.esc_attr__('-- Select --','adn').'</option>';
+                                                                    $h.= '<option value="normal" '.selected($adsense_type, 'normal', false).'>'.esc_attr__('Normal','adn').'</option>';
+                                                                    $h.= '<option value="responsive" '.selected($adsense_type, 'responsive',false).'>'.esc_attr__('Responsive','adn').'</option>';
+                                                                    $h.= '<option value="matched-content" '.selected($adsense_type, 'matched-content', false).'>'.esc_attr__('Responsive (Matched Content)','adn').'</option>';
+                                                                    $h.= '<option value="link" '.selected($adsense_type, 'link', false).'>'.esc_attr__('Link ads','adn').'</option>';
+                                                                    $h.= '<option value="link-responsive" '.selected($adsense_type, 'link-responsive', false).'>'.esc_attr__('Link ads (Responsive)','adn').'</option>';
+                                                                    $h.= '<option value="in-article" '.selected($adsense_type, 'in-article', false).'>'.esc_attr__('InArticle','adn').'</option>';
+                                                                    $h.= '<option value="in-feed" '.selected($adsense_type, 'in-feed', false).'>'.esc_attr__('InFeed','adn').'</option>';
                                                                 $h.= '</select>';
-                                                                $h.= '<span class="description bottom">'.__('AdSense banner type','adn').'</span>';
+                                                                $h.= '<span class="description bottom">'.esc_attr__('AdSense banner type','adn').'</span>';
                                                             $h.= '</div></div></div>';
                                                             //<!-- end .spr_column -->
 
@@ -628,7 +628,7 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                                             $h.= '<div class="input_container_inner">';
                                                                 $h.= '<textarea id="banner_content" class="code_editor" name="banner_content" data-lang="htmlmixed" style="min-height:200px;font-size: 13px;">'.$b['banner_content'].'</textarea>';
                                                             $h.= '</div>';
-                                                            $h.= '<span class="description bottom">'.__('Banner HTML content.','adn').'</span>';
+                                                            $h.= '<span class="description bottom">'.esc_attr__('Banner HTML content.','adn').'</span>';
                                                         $h.= '</div>';
                                                         // <!-- end .input_container -->
                                                     $h.= '</div>';
@@ -638,31 +638,45 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
 
                                             $h.= ADNI_Templates::spr_column(array(
                                                 'col' => 'spr_col-3',
-                                                'title' => __('Live Preview','adn'),
+                                                'title' => esc_attr__('Live Preview','adn'),
                                                 'desc' => '',
                                                 'content' => ADNI_Templates::checkbox(array(
                                                     'id' => 'dont_render_preview_code',
-                                                    'tooltip' => __('When using javascript banners you may need to turn of live preview code rendering.','adn'),
+                                                    'tooltip' => esc_attr__('When using javascript banners you may need to turn of live preview code rendering.','adn'),
                                                     'checked' => 1,
-                                                    'chk-on' => __('Yes','adn'),
-                                                    'chk-off' => __('No','adn'),
+                                                    'chk-on' => esc_attr__('Yes','adn'),
+                                                    'chk-off' => esc_attr__('No','adn'),
                                                     'chk-high' => 0
                                                 ))
                                             ));
 
                                             $h.= ADNI_Templates::spr_column(array(
                                                 'col' => 'spr_col-3',
-                                                'title' => '',
-                                                'desc' => __('Scale banner content.','adn'),
+                                                'title' => esc_attr__('Bg Color','adn'),
+                                                'class' => 'small_coloringPick',
+                                                'desc' => esc_attr__('Banner background color.','adn'),
+                                                'content' => ADNI_Templates::inpt_cont(array(
+                                                    'type' => 'text',
+                                                    'class' => 'banner_bg_color',
+                                                    'name' => 'bg_color',
+                                                    'value' => $b['bg_color']
+                                                )).
+                                                "<script>jQuery(document).ready(function($){ $('.banner_bg_color').coloringPick( {'on_select': function(color){ $('.banner_holder').find('._ning_inner').css({'background': color}); } } ); });</script>"
+                                            ));
+
+                                            $h.= ADNI_Templates::spr_column(array(
+                                                'col' => 'spr_col-3',
+                                                'title' => esc_attr__('Scale','adn'),
+                                                'desc' => esc_attr__('Scale banner content.','adn'),
                                                 'content' => ADNI_Templates::switch_btn(array(
                                                     'name' => 'banner_scale',
                                                     'id' => 'ADNI_scale',
-                                                    'tooltip' => __('Scale banner content to match resized banner container.','adn'),
+                                                    'tooltip' => esc_attr__('Scale banner content to match resized banner container.','adn'),
                                                     'checked' => $b['banner_scale'],
                                                     'value' => 1,
                                                     'hidden_input' => 1,
-                                                    'chk-on' => __('On','adn'),
-                                                    'chk-off' => __('Off','adn'),
+                                                    'chk-on' => esc_attr__('On','adn'),
+                                                    'chk-off' => esc_attr__('Off','adn'),
                                                     'chk-high' => 0
                                                 ))
                                             ));
@@ -676,7 +690,7 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                     'col' => 'spr_col',
                                     'title' => '',
                                     'desc' => '',
-                                    'content' => '<input type="submit" value="'.__('Save Banner','adn').'" class="button-primary" name="save_banner">'
+                                    'content' => '<input type="submit" value="'.esc_attr__('Save Banner','adn').'" class="button-primary" name="save_banner">'
                                 ));
 
                             $h.= '</div>';
@@ -828,7 +842,7 @@ $h.= 'jQuery(document).ready(function($) {';
         $h.= "'user_id': '".get_current_user_id()."',";
         $h.= "'max_upload_size': 1000,";
         $h.= "'upload': {";
-            $h.= "'folder': 'banners/".$id."/',";
+            $h.= "'folder': 'items/".$id."/',";
             $h.= "'dir': '".ADNI_UPLOAD_DIR."',";
             $h.= "'src': '".ADNI_UPLOAD_SRC."'";
         $h.= "},";
@@ -850,7 +864,8 @@ $h.= 'jQuery(document).ready(function($) {';
                 //cont = '<img src="'+src+'" />';
             $h.= "}else{";
                 $h.= "src = obj.unzip.url;";
-                $h.= "cont = '<div style=\"max-width:'+w+'px; width:100%; height:'+h+'px;\"><iframe src=\"'+src+'\" border=\"0\" scrolling=\"no\" allowtransparency=\"true\" style=\"width:1px;min-width:100%;*width:100%;height:100%;border:0;\"></iframe></div>';";
+                // https://stackoverflow.com/a/5796744/3481803
+                $h.= "cont = $('<textarea />').html('".htmlentities ("<div style=\"max-width:'+w+'px; width:100%; height:'+h+'px;\"><iframe src=\"'+src+'\" border=\"0\" scrolling=\"no\" allowtransparency=\"true\" style=\"width:1px;min-width:100%;*width:100%;height:100%;border:0;\"></iframe></div>")."').text();";
                 //cont = '<iframe src="'+src+'" style="border:none;width:'+w+'px;height:'+h+'px;"></iframe>';
             $h.= "}";
 
@@ -865,7 +880,7 @@ $h.= 'jQuery(document).ready(function($) {';
         $h.= "'user_id': '".get_current_user_id()."',";
         $h.= "'max_upload_size': 1000,";
         $h.= "'upload': {";
-            $h.= "'folder': 'banners/".$id."/',";
+            $h.= "'folder': 'items/".$id."/',";
             $h.= "'dir': '".ADNI_UPLOAD_DIR."',";
             $h.= "'src': '".ADNI_UPLOAD_SRC."'";
         $h.= "},";
@@ -932,18 +947,52 @@ $h.= 'jQuery(document).ready(function($) {';
     */
     if( class_exists('ImgMCE'))
     {
+        $banner_obj = '';
+
+        // Check if content is imgMCE and if so get ID.
+        $pattern = '~imgmce_element\s*id="\K[^"]*~';
+        if ( preg_match_all($pattern, $b['banner_content'], $matches) )
+        {
+            //print_r($matches);
+            $imgmce_id = $matches[0][0];
+
+            // user_id
+            $pattern_uid = '~user_id="\K[^"]*~';
+            if ( preg_match_all($pattern_uid, $b['banner_content'], $matches) ) 
+            {
+                //print_r($matches);
+                $imgmce_user_id = $matches[0][0];
+            }
+
+            $banner_obj = ADN_Main::load_element(array('id' => $imgmce_id,'user_id' => $imgmce_user_id));
+        }
+
         $h.= "$('.open_imgmce_button').on('click', function(){";
+
+            $h.= "var w = $('#ADNI_size_w').val(),";
+                $h.= "h = $('#ADNI_size_h').val();";
+            
+            $h.= 'var fw = w === "full" ? true : false;';
+            $h.= 'w === "full" ? "" : w;';
 
             $h.= "var editor = {imgMCE:{}};";
             $h.= "var defaults = {";
                 $h.= "'active_editor': '',";
+                $h.= "'user_id': '".$user_id."',";
                 $h.= "'in_popup':1,";
                 $h.= "'save_to_folder': 1,";
                 $h.= "'callback': '_imc_save_to_adning' ";
             $h.= "};";
             $h.= "editor.imgMCE = $.extend(defaults, editor.imgMCE);";
 
-            $h.= "ImgMCE_global.load_editor({ 'editor':editor.imgMCE });";
+            if( empty($banner_obj) )
+            {
+                $h.= "ImgMCE_global.load_editor({ 'banner_obj': { 'size':{'full': w+'x'+h, 'w':w, 'h':h, 'fw': fw}}, 'editor':editor.imgMCE });";
+            }
+            else
+            {
+                $h.= "ImgMCE_global.load_editor({ 'banner_obj': ".json_encode($banner_obj['banner_obj']).", 'editor':editor.imgMCE });";
+            }
         $h.= "});";
     }
 

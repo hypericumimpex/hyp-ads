@@ -66,7 +66,7 @@ class ADNI_Templates {
 		$args = wp_parse_args($args, $defaults);
 
 		//$activation = get_option('adning_activation', array());
-		$activation = true;
+		$activation = ADNI_Multi::get_option('adning_activation', array());
 
 		$html = '';
 		$html.= '<div class="imc-heading-section adning-header">';
@@ -136,7 +136,7 @@ class ADNI_Templates {
 		$h = '';
 		$tab = $args['tab'];
 		//$activation = get_option('adning_activation', array());
-		$activation = true;
+		$activation = ADNI_Multi::get_option('adning_activation', array());
 
 		// Menu options
 		$m_new = $tab == 'new' ? ' nav-tab-active' : '';
@@ -169,9 +169,10 @@ class ADNI_Templates {
 			'add_url' => 1,
 			'load_script' => 1,
 			'animation' => '',
-			'in_adzone' => 0,
+			'in_adzone' => array(),
 			'stats' => 1,
-			'filter' => 1 // run show/hide function
+			'filter' => 1, // run show/hide function
+			'return' => 'string' // string (just the default banner content) | array (array containing banner object and content)
 		);
 		$args = wp_parse_args($args, $defaults);
 
@@ -180,19 +181,24 @@ class ADNI_Templates {
 		$banner = ADNI_CPT::load_post( $id, array('filter' => $args['filter']) );
 		if( empty($banner) )
 			return '';
-		
+
+		$adzone_id = !empty($args['in_adzone']) ? $args['in_adzone']['post']->ID : 0;
 		// if args stats is empty it has to overwrite the single banner stats.
 		$save_stats = empty($args['stats']) ? 0 : $banner['args']['enable_stats'];
+		$loaded_id = '';
 
 		// Filter -------------------------------------------------------
 		if( $save_stats )
 		{
 			if(!is_admin())
 			{
+				// Add to loaded banners and return the loaded id
+				$loaded_id = apply_filters('adning_loaded_banners', $banner, $args);
+
 				apply_filters('adning_save_stats', array(
 					'type' => 'impression',
 					'banner_id' => $id,
-					'adzone_id' => $args['in_adzone']
+					'adzone_id' => $adzone_id
 				));
 			}
 		}
@@ -202,37 +208,39 @@ class ADNI_Templates {
 		$url = !empty($b['banner_url']) ? $b['banner_url'] : '';
 		//$url = preg_replace( "/\r|\n/", "", $url );
 		//$html.= '<pre>'.print_r($b,true).'</pre>';
-		$content = $b['banner_content'];
+		$content = apply_filters('adning_banner_content', $b['banner_content'], $banner);
 		
 		// Sizes
 		$banner_w = is_numeric($b['size_w']) ? $b['size_w'].'px' : '100%';
 		$banner_h = is_numeric($b['size_h']) ? $b['size_h'].'px' : 'inherit';
 		$banner_h = !$b['responsive'] ? $banner_h : 'inherit';
+		$bg_color = !empty($b['bg_color']) ? ' background:'.$b['bg_color'].';' : '';
 		
-		$url = $b['banner_link_masking'] && !empty($url) ? ADNI_Main::link_masking(array('id' => $id, 'adzone_id' => $args['in_adzone'])) : $url;
+		$url = $b['banner_link_masking'] && !empty($url) ? ADNI_Main::link_masking(array('id' => $id, 'adzone_id' => $adzone_id)) : $url;
 		$nofollow = $b['banner_no_follow'] ? ' rel="nofollow"' : '';
-		$responsive_class = $b['responsive'] && !$args['in_adzone'] ? ' responsive' : '';
+		$responsive_class = $b['responsive'] && !$adzone_id ? ' responsive' : '';
 		$scale_class = $b['banner_scale'] ? ' scale' : '';
 		$inner_size = $b['banner_scale'] ? 'width:'.$banner_w.';height:'.$b['size_h'].'px;' : '';
 		$animation = !empty($args['animation']) ? ' data-animation="'.$args['animation'].'"' : '';
-		$label = !$args['in_adzone'] ? $b['cont_label'] : '';
+		$label = !$adzone_id ? $b['cont_label'] : '';
 		$label_color = !empty($b['cont_label_color']) ? 'color:'.$b['cont_label_color'].';' : '';
 		$label_pos = ' _'.$b['cont_label_pos'];
 		$has_label = !empty($label) ? ' has_label' : '';
-		$has_border = !$args['in_adzone'] && !empty($b['cont_border']) ? ' has_border' : '';
+		$has_border = !$adzone_id && !empty($b['cont_border']) ? ' has_border' : '';
 		$border_color = !empty($b['cont_border_color']) ? ' background:'.$b['cont_border_color'].';' : '';
 		
-		$ning_outer_class = !$args['in_adzone'] ? ' _ning_outer' : '';
+		$ning_outer_class = !$adzone_id ? ' _ning_outer' : '';
 		$align_class = ' _align_'.$b['align'];
 		$clearfix_div = !$b['wrap_text'] ? '<div class="clear"></div>' : '';
 
 		$strack_btn = !empty($url) && $save_stats ? ' strack_bnr' : '';
+		$loaded_id_data = $loaded_id !== '' ? ' data-lid="'.$loaded_id.'"' : '';
 		
 		// Banner content
 		$b_html = '';
-		$b_html.= '<div class="_ning_cont'.$strack_btn.' _ning_hidden'.$ning_outer_class.$align_class.$responsive_class.$scale_class.$has_label.$has_border.'" data-size="'.$b['size'].'"'.$animation.' data-bid="'.$id.'" data-aid="'.$args['in_adzone'].'" style="max-width:'.$banner_w.'; width:100%;height:'.$banner_h.';'.$border_color.'">'; // height:inherit
-			$b_html.= !$args['in_adzone'] ? '<div class="_ning_label'.$label_pos.'" style="'.$label_color.'">'.$label.'</div>' : '';
-			$b_html.= '<div class="_ning_inner" style="'.$inner_size.'">';
+		$b_html.= '<div class="_ning_cont'.$strack_btn.' _ning_hidden'.$ning_outer_class.$align_class.$responsive_class.$scale_class.$has_label.$has_border.'" data-size="'.$b['size'].'"'.$animation.' data-bid="'.$id.'" data-aid="'.$adzone_id.'"'.$loaded_id_data.' style="max-width:'.$banner_w.'; width:100%;height:'.$banner_h.';'.$border_color.'">'; // height:inherit
+			$b_html.= !$adzone_id ? '<div class="_ning_label'.$label_pos.'" style="'.$label_color.'">'.$label.'</div>' : '';
+			$b_html.= '<div class="_ning_inner" style="'.$inner_size.$bg_color.'">';
 				// Banner_url
 				$b_html.= !empty($url) && $args['add_url'] ? '<a href="'.$url.'" class="strack_cli _ning_link" target="'.$b['banner_target'].'"'.$nofollow.'></a>' : '';
 				// Banner content
@@ -248,14 +256,17 @@ class ADNI_Templates {
 		// JS
 		if($args['load_script'])
 		{
-			$html.= '<script>';
-				$html.= 'jQuery(document).ready(function($){';
-					$html.= '$("._ning_cont").ningResponsive();';
-				$html.= '});';
-			$html.= '</script>';
+			$js = '';
+			$js.= '<script>';
+				$js.= 'jQuery(document).ready(function($){';
+					$js.= '$("._ning_cont").ningResponsive();';
+				$js.= '});';
+			$js.= '</script>';
+
+			ADNI_Filters::$collect_js[$id] = $js;
 		}
 		
-		return $html;
+		return $args['return'] === 'array' ? array('content' => $html, 'banner' => $banner) : $html;
 	}
 	
 
@@ -272,9 +283,14 @@ class ADNI_Templates {
 		$linked_banners = $a['linked_banners'];
 		if( !empty($linked_banners))
 		{
-			$k = array_rand($linked_banners);
-			$banner_filter = $a['no_banner_filter'] ? ' filter=0' : '';
-			$cont = ADNI_Multi::do_shortcode('[ADNI_banner id="'.$linked_banners[$k].'" in_adzone='.$adzone['post']->ID.' load_script=0'.$banner_filter.']');
+			$probability = ADNI_Main::get_banner_probability($a);
+			$kID = ADNI_Main::random_weight($probability);
+			$k = array_search ($kID, $linked_banners);
+			//$k = array_rand($linked_banners);
+			//$banner_filter = $a['no_banner_filter'] ? ' filter=0' : '';
+			$banner_filter = $a['no_banner_filter'] ? 0 : 1;
+			//$cont = ADNI_Multi::do_shortcode('[ADNI_banner id="'.$linked_banners[$k].'" in_adzone='.$adzone.' load_script=0'.$banner_filter.']');
+			$cont = self::banner_tpl($linked_banners[$k], array( 'in_adzone' => $adzone, 'load_script' => 0, 'filter' => $banner_filter));
 			
 			if( empty($cont))
 			{
@@ -323,6 +339,7 @@ class ADNI_Templates {
 			$has_border = !empty($a['cont_border']) ? ' has_border' : '';
 			$border_color = !empty($a['cont_border_color']) ? ' background:'.$a['cont_border_color'].';' : '';
 			//$responsive_class = $a['responsive'] ? ' responsive' : '';
+			$css = $a['custom_css'];
 
 			$align_class = ' _align_'.$a['align'];
 			$clearfix_div = !$a['wrap_text'] ? '<div class="clear"></div>' : '';
@@ -335,7 +352,7 @@ class ADNI_Templates {
 			$u_slides_style = !$a['load_grid'] ? 'position:absolute; overflow:hidden; left:0px; top:0px;width:'.$a['size_w'].'px; height:'.$a['size_h'].'px;' : '';
 
 			$a_html = '';
-			$a_html.= '<div class="_ning_outer _ning_jss_zone'.$has_label.$has_border.$align_class.$is_grid_class.'" style="'.$_ning_outer_style.'height:inherit;'.$border_color.'">';
+			$a_html.= '<div class="_ning_outer ang_zone_'.$id.' _ning_jss_zone'.$has_label.$has_border.$align_class.$is_grid_class.'" style="'.$_ning_outer_style.'height:inherit;'.$border_color.'">';
 				$a_html.= '<div class="_ning_label'.$label_pos.'" style="'.$label_color.'">'.$label.'</div>';
 				$a_html.= '<div id="_ning_zone_'.$rand_id.'" class="_ning_zone_inner" style="'.$_ning_zone_inner_style.'position:relative;">';
 					$a_html.= '<div u="slides" style="'.$u_slides_style.'">';
@@ -349,36 +366,36 @@ class ADNI_Templates {
 
 			// Wrapper
 			$html.= self::display_wrapper($adzone, $a_html);
+			//$html.= apply_filters('adning_adzone_content', self::display_wrapper($adzone, $a_html), $adzone);
 			
-			$html.= '<script>';
-				$html.= 'jQuery(document).ready(function($){';
+			// @since v1.2.6 JS gets collected and added to footer
+			$js = '';
+			$js.= '<script>';
+				$js.= 'jQuery(document).ready(function($){';
 
-					// Hide empty adzones.
-					//$html.= 'if( !$("#_ning_zone_'.$rand_id.'").find(".slide").length ){ $("#_ning_zone_'.$rand_id.'").closest("._ning_outer").hide(); }';
-					
 					if( !$a['load_grid'] )
 					{
 						// Create options object
-						$html.= 'var options_'.$rand_id.' = {';
-							$html.= '$ArrowKeyNavigation:false,';
-							$html.= '$DragOrientation:0,';
-						$html.= '};';
+						$js.= 'var options_'.$rand_id.' = {';
+							$js.= '$ArrowKeyNavigation:false,';
+							$js.= '$DragOrientation:0,';
+						$js.= '};';
 
 
 						if( !empty( $a['linked_banners'] ) && !$a['load_single'] )
 						{
-							$html.= 'var _SlideshowTransitions_'.$rand_id.' = ['.$a['adzone_transition'].'];';
+							$js.= 'var _SlideshowTransitions_'.$rand_id.' = ['.$a['adzone_transition'].'];';
 							
 							// Extend options object
-							$html.= 'options_'.$rand_id.'.$AutoPlay = 1;';
-							$html.= 'options_'.$rand_id.'.$ArrowKeyNavigation = false;';
-							$html.= 'options_'.$rand_id.'.$DragOrientation = '.$a['touch_scroll'].';';
-							$html.= 'options_'.$rand_id.'.$SlideshowOptions = {';
-								$html.= '$Class:$JssorSlideshowRunner$,';
-								$html.= '$Transitions:_SlideshowTransitions_'.$rand_id.',';
-								$html.= '$TransitionsOrder:1,';
-								$html.= '$ShowLink:true';
-							$html.= '};';
+							$js.= 'options_'.$rand_id.'.$AutoPlay = 1;';
+							$js.= 'options_'.$rand_id.'.$ArrowKeyNavigation = false;';
+							$js.= 'options_'.$rand_id.'.$DragOrientation = '.$a['touch_scroll'].';';
+							$js.= 'options_'.$rand_id.'.$SlideshowOptions = {';
+								$js.= '$Class:$JssorSlideshowRunner$,';
+								$js.= '$Transitions:_SlideshowTransitions_'.$rand_id.',';
+								$js.= '$TransitionsOrder:1,';
+								$js.= '$ShowLink:true';
+							$js.= '};';
 							
 
 							/*$html.= 'function SliderPositionChangeEventHandler(position, fromPosition, virtualPosition, virtualFromPosition)
@@ -398,34 +415,39 @@ class ADNI_Templates {
 							*/
 						}
 						
-						$html.= 'var _ning_slider_'.$rand_id.' = new $JssorSlider$(\'_ning_zone_'.$rand_id.'\', options_'.$rand_id.');';
+						$js.= 'if( $("#_ning_zone_'.$rand_id.'").length ){';
+							$js.= 'var _ning_slider_'.$rand_id.' = new $JssorSlider$(\'_ning_zone_'.$rand_id.'\', options_'.$rand_id.');';
+						$js.= '}';
 					}
 
 
 					//Scale slider after document ready
-					$html.= 'ScaleSlider();';
-					$html.= 'function ScaleSlider() {';
-						$html.= 'var parentWidth = $(\'#_ning_zone_'.$rand_id.'\').parent().width();';
+					$js.= 'ScaleSlider();';
+					$js.= 'function ScaleSlider() {';
+						$js.= 'var parentWidth = $(\'#_ning_zone_'.$rand_id.'\').parent().width();';
 						//$html.= 'console.log("'.$rand_id.': "+ parentWidth);';
-						$html.= 'if(parentWidth){';
-							$html.= 'if( typeof _ning_slider_'.$rand_id.' !== "undefined" ){';
-								$html.= '_ning_slider_'.$rand_id.'.$ScaleWidth(parentWidth);';
-							$html.= '}';
-						$html.= '}else{';
-							$html.= 'window.setTimeout(ScaleSlider, 30);';
-						$html.= '}';
+						$js.= 'if(parentWidth){';
+							$js.= 'if( typeof _ning_slider_'.$rand_id.' !== "undefined" ){';
+								$js.= '_ning_slider_'.$rand_id.'.$ScaleWidth(parentWidth);';
+							$js.= '}';
+						$js.= '}else{';
+							$js.= 'window.setTimeout(ScaleSlider, 30);';
+						$js.= '}';
 						 
 						// Run ningResponsive() to make sure banners are visible in admin area.
-						$html.= '$("._ning_cont").ningResponsive();';
-					$html.= '}';
+						$js.= '$("._ning_cont").ningResponsive();';
+					$js.= '}';
 												
 					//Scale slider while window load/resize/orientationchange.
-					$html.= '$(window).bind("load", ScaleSlider);';
-					$html.= '$(window).bind("resize", ScaleSlider);';
-					$html.= '$(window).bind("orientationchange", ScaleSlider);';
+					$js.= '$(window).bind("load", ScaleSlider);';
+					$js.= '$(window).bind("resize", ScaleSlider);';
+					$js.= '$(window).bind("orientationchange", ScaleSlider);';
 					
-				$html.= '});';
-			$html.= '</script>';
+				$js.= '});';
+			$js.= '</script>';
+			
+			ADNI_Filters::$collect_js[$rand_id] = $js;
+			ADNI_Filters::$collect_css[$rand_id] = $css;
 		}
 		
 		return $html;
@@ -449,8 +471,10 @@ class ADNI_Templates {
 			// Check if random order is selected. If so, shuffle array.
 			if( $a['random_order'] )
 			{
-				shuffle($a['linked_banners']);
-				// TODO: random by weight. check function ADNI_Main::random_weight();
+				//shuffle($a['linked_banners']);
+				$probability = ADNI_Main::get_banner_probability($adzone['args']);
+				$a['linked_banners'] = ADNI_Main::shuffle_probability($probability);
+				//print_r($a['linked_banners']);
 			}
 			// Check if only a single banner has to be loaded.
 			if( $a['load_single'] )
@@ -467,18 +491,19 @@ class ADNI_Templates {
 				$banner_count = 1;
 				foreach($a['linked_banners'] as $i => $banner_id)
 				{
-					$banner_filter = $a['no_banner_filter'] ? ' filter=0' : '';
-					$banner_filter = empty($args['filter']) ? ' filter=0' : $banner_filter; // overwrite this when adzone filter is 0
+					$banner_filter = $a['no_banner_filter'] ? 0 : 1;
+					$banner_filter = empty($args['filter']) ? 0 : $banner_filter;
+
+					$bnr_cont = self::banner_tpl($banner_id, array( 'return' => 'array', 'in_adzone' => $adzone, 'load_script' => 0, 'filter' => $banner_filter));
 					
-					$bnr_cont = ADNI_Multi::do_shortcode('[ADNI_banner id="'.$banner_id.'" in_adzone='.$adzone['post']->ID.' load_script=0'.$banner_filter.']');  
-					
-					if( !empty($bnr_cont))
+					if( !empty($bnr_cont['content']))
 					{
+						$transition_time = !empty($bnr_cont['banner']['args']['duration']) ? $bnr_cont['banner']['args']['duration'] : $transition_time;
 						//$grid_resp = !$a['responsive'] ? 'max-width:'.$a['size_w'].'px;' : '';
 						$h.= $a['load_grid'] ? '<div class="_ningzone_grid mjs_column mjs_col" style="max-width:'.$a['size_w'].'px;">' : '';
 
 							$h.= '<div class="slide_'.$banner_count.' slide" idle="'.($transition_time*1000).'">';
-								$h.= $bnr_cont;
+								$h.= $bnr_cont['content'];
 							$h.= '</div>';
 
 						$h.= $a['load_grid'] ? '</div>' : '';
@@ -1072,55 +1097,55 @@ class ADNI_Templates {
 										<div class="clear">
 											<!-- Manuall -->
 											<div class="spot_box ttip" data-pos="" data-custom="0" title="'.__('Manually','adn').'">
-												<div class="ad_cont" style="width:100%;position:relative;">
-													<div class="ad_box" style="background:transparent;text-align: center;margin: 26px 0;font-size: 10px;">[adning]</div>
+												<div class="a_cont" style="width:100%;position:relative;">
+													<div class="a_box" style="background:transparent;text-align: center;margin: 26px 0;font-size: 10px;">[adning]</div>
 												</div>
 											</div>';
 
 											$selected = $adzone['args']['positioning'] === 'above_content' ? ' selected' : '';
 											$h.= '<div class="spot_box ttip'.$selected.'" data-pos="above_content" data-custom="0" title="'.__('Above Content','adn').'">
-												<div class="ad_cont" style="width:100%;height:17px;">
-													<div class="ad_box" style="width:95%;height:15px;margin: 17px auto;"></div>
+												<div class="a_cont" style="width:100%;height:17px;">
+													<div class="a_box" style="width:95%;height:15px;margin: 17px auto;"></div>
 												</div>
 												<svg viewBox="0 0 402.532 334.177"> <path fill="#D6D6D6" d="M393.671,17.72c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,11.391,393.671,14.225,393.671,17.72L393.671,17.72z"></path> <path fill="#D6D6D6" d="M393.671,44.732c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,38.403,393.671,41.237,393.671,44.732L393.671,44.732z"></path> <path fill="#D6D6D6" d="M393.671,71.885c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,65.556,393.671,68.389,393.671,71.885L393.671,71.885z"></path> <path fill="#D6D6D6" d="M393.671,99.999c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,93.67,393.671,96.503,393.671,99.999L393.671,99.999z"></path> <path fill="#D6D6D6" d="M393.671,127.011c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,120.682,393.671,123.516,393.671,127.011L393.671,127.011z"></path> <path fill="#D6D6D6" d="M393.671,154.163c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.495,2.833-6.328,6.329-6.328h372.152C390.837,147.835,393.671,150.668,393.671,154.163L393.671,154.163z"></path> <path fill="#D6D6D6" d="M393.671,182.288c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,175.959,393.671,178.792,393.671,182.288L393.671,182.288z"></path> <path fill="#D6D6D6" d="M393.671,209.3c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,202.971,393.671,205.805,393.671,209.3L393.671,209.3z"></path> <path fill="#D6D6D6" d="M393.671,236.453c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,230.124,393.671,232.957,393.671,236.453L393.671,236.453z"></path> <path fill="#D6D6D6" d="M393.671,264.567c0,3.495-2.834,6.328-6.329,6.328H15.19c-3.496,0-6.329-2.833-6.329-6.328l0,0 c0-3.496,2.833-6.33,6.329-6.33h372.152C390.837,258.237,393.671,261.071,393.671,264.567L393.671,264.567z"></path> <path fill="#D6D6D6" d="M393.671,291.579c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,285.25,393.671,288.083,393.671,291.579L393.671,291.579z"></path> <path fill="#D6D6D6" d="M393.671,318.731c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.328,6.329-6.328h372.152C390.837,312.403,393.671,315.235,393.671,318.731L393.671,318.731z"></path> <path display="none" opacity="0.4" d="M412.595,329.455c0,6.627-5.373,12-12,12h-403c-6.627,0-12-5.373-12-12v-329 c0-6.627,5.373-12,12-12h403c6.627,0,12,5.373,12,12V329.455z"></path></svg>
 											</div>';
 
 											$selected = $adzone['args']['positioning'] === 'inside_content' ? ' selected' : '';
 											$h.= '<div class="spot_box ttip'.$selected.'" data-pos="inside_content" data-custom="1" title="'.__('Inside Content','adn').'">
-												<div class="ad_cont" style="width:100%;height:17px;background:transparent;">
-													<div class="ad_box" style="width:95%;height:15px;margin: 18px auto;"></div>
+												<div class="a_cont" style="width:100%;height:17px;background:transparent;">
+													<div class="a_box" style="width:95%;height:15px;margin: 18px auto;"></div>
 												</div>
 												<svg viewBox="0 0 402.532 334.177"> <path fill="#D6D6D6" d="M393.671,17.72c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,11.391,393.671,14.225,393.671,17.72L393.671,17.72z"></path> <path fill="#D6D6D6" d="M393.671,44.732c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,38.403,393.671,41.237,393.671,44.732L393.671,44.732z"></path> <path fill="#D6D6D6" d="M393.671,71.885c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,65.556,393.671,68.389,393.671,71.885L393.671,71.885z"></path> <path fill="#D6D6D6" d="M393.671,99.999c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,93.67,393.671,96.503,393.671,99.999L393.671,99.999z"></path> <path fill="#D6D6D6" d="M393.671,127.011c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,120.682,393.671,123.516,393.671,127.011L393.671,127.011z"></path> <path fill="#D6D6D6" d="M393.671,154.163c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.495,2.833-6.328,6.329-6.328h372.152C390.837,147.835,393.671,150.668,393.671,154.163L393.671,154.163z"></path> <path fill="#D6D6D6" d="M393.671,182.288c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,175.959,393.671,178.792,393.671,182.288L393.671,182.288z"></path> <path fill="#D6D6D6" d="M393.671,209.3c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,202.971,393.671,205.805,393.671,209.3L393.671,209.3z"></path> <path fill="#D6D6D6" d="M393.671,236.453c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,230.124,393.671,232.957,393.671,236.453L393.671,236.453z"></path> <path fill="#D6D6D6" d="M393.671,264.567c0,3.495-2.834,6.328-6.329,6.328H15.19c-3.496,0-6.329-2.833-6.329-6.328l0,0 c0-3.496,2.833-6.33,6.329-6.33h372.152C390.837,258.237,393.671,261.071,393.671,264.567L393.671,264.567z"></path> <path fill="#D6D6D6" d="M393.671,291.579c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,285.25,393.671,288.083,393.671,291.579L393.671,291.579z"></path> <path fill="#D6D6D6" d="M393.671,318.731c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.328,6.329-6.328h372.152C390.837,312.403,393.671,315.235,393.671,318.731L393.671,318.731z"></path> <path display="none" opacity="0.4" d="M412.595,329.455c0,6.627-5.373,12-12,12h-403c-6.627,0-12-5.373-12-12v-329 c0-6.627,5.373-12,12-12h403c6.627,0,12,5.373,12,12V329.455z"></path></svg>
 											</div>';
 
 											$selected = $adzone['args']['positioning'] === 'below_content' ? ' selected' : '';
 											$h.= '<div class="spot_box ttip'.$selected.'" data-pos="below_content" data-custom="0" title="'.__('Below Content','adn').'">
-												<div class="ad_cont" style="width:100%;height:30px;bottom:0;">
-													<div class="ad_box" style="width:95%;height:15px;margin:0 auto;"></div>
+												<div class="a_cont" style="width:100%;height:30px;bottom:0;">
+													<div class="a_box" style="width:95%;height:15px;margin:0 auto;"></div>
 												</div>
 												<svg viewBox="0 0 402.532 334.177"> <path fill="#D6D6D6" d="M393.671,17.72c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,11.391,393.671,14.225,393.671,17.72L393.671,17.72z"></path> <path fill="#D6D6D6" d="M393.671,44.732c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,38.403,393.671,41.237,393.671,44.732L393.671,44.732z"></path> <path fill="#D6D6D6" d="M393.671,71.885c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,65.556,393.671,68.389,393.671,71.885L393.671,71.885z"></path> <path fill="#D6D6D6" d="M393.671,99.999c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,93.67,393.671,96.503,393.671,99.999L393.671,99.999z"></path> <path fill="#D6D6D6" d="M393.671,127.011c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,120.682,393.671,123.516,393.671,127.011L393.671,127.011z"></path> <path fill="#D6D6D6" d="M393.671,154.163c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.495,2.833-6.328,6.329-6.328h372.152C390.837,147.835,393.671,150.668,393.671,154.163L393.671,154.163z"></path> <path fill="#D6D6D6" d="M393.671,182.288c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,175.959,393.671,178.792,393.671,182.288L393.671,182.288z"></path> <path fill="#D6D6D6" d="M393.671,209.3c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,202.971,393.671,205.805,393.671,209.3L393.671,209.3z"></path> <path fill="#D6D6D6" d="M393.671,236.453c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,230.124,393.671,232.957,393.671,236.453L393.671,236.453z"></path> <path fill="#D6D6D6" d="M393.671,264.567c0,3.495-2.834,6.328-6.329,6.328H15.19c-3.496,0-6.329-2.833-6.329-6.328l0,0 c0-3.496,2.833-6.33,6.329-6.33h372.152C390.837,258.237,393.671,261.071,393.671,264.567L393.671,264.567z"></path> <path fill="#D6D6D6" d="M393.671,291.579c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,285.25,393.671,288.083,393.671,291.579L393.671,291.579z"></path> <path fill="#D6D6D6" d="M393.671,318.731c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.328,6.329-6.328h372.152C390.837,312.403,393.671,315.235,393.671,318.731L393.671,318.731z"></path> <path display="none" opacity="0.4" d="M412.595,329.455c0,6.627-5.373,12-12,12h-403c-6.627,0-12-5.373-12-12v-329 c0-6.627,5.373-12,12-12h403c6.627,0,12,5.373,12,12V329.455z"></path></svg>
 											</div>';
 
 											$selected = $adzone['args']['positioning'] === 'js_inject' ? ' selected' : '';
 											$h.= '<div class="spot_box ttip'.$selected.'" data-pos="js_inject" data-custom="1" title="'.__('Inject before/after class','adn').'">
-												<div class="ad_cont" style="width: 60%;height: 15px;bottom:42px;left: 2px;">
-													<div class="ad_box" style="width:95%;height:15px;margin:0 auto;"></div>
+												<div class="a_cont" style="width: 60%;height: 15px;bottom:42px;left: 2px;">
+													<div class="a_box" style="width:95%;height:15px;margin:0 auto;"></div>
 												</div>
 												<svg viewBox="0 0 402.532 334.177"> <path fill="#D6D6D6" d="M393.671,17.72c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,11.391,393.671,14.225,393.671,17.72L393.671,17.72z"></path> <path fill="#D6D6D6" d="M393.671,44.732c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,38.403,393.671,41.237,393.671,44.732L393.671,44.732z"></path> <path fill="#D6D6D6" d="M393.671,71.885c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,65.556,393.671,68.389,393.671,71.885L393.671,71.885z"></path> <path fill="#D6D6D6" d="M393.671,99.999c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,93.67,393.671,96.503,393.671,99.999L393.671,99.999z"></path> <path fill="#D6D6D6" d="M393.671,127.011c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,120.682,393.671,123.516,393.671,127.011L393.671,127.011z"></path> <path fill="#D6D6D6" d="M393.671,154.163c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.495,2.833-6.328,6.329-6.328h372.152C390.837,147.835,393.671,150.668,393.671,154.163L393.671,154.163z"></path> <path fill="#D6D6D6" d="M393.671,182.288c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,175.959,393.671,178.792,393.671,182.288L393.671,182.288z"></path> <path fill="#D6D6D6" d="M393.671,209.3c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,202.971,393.671,205.805,393.671,209.3L393.671,209.3z"></path> <path fill="#D6D6D6" d="M393.671,236.453c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,230.124,393.671,232.957,393.671,236.453L393.671,236.453z"></path> <path fill="#D6D6D6" d="M393.671,264.567c0,3.495-2.834,6.328-6.329,6.328H15.19c-3.496,0-6.329-2.833-6.329-6.328l0,0 c0-3.496,2.833-6.33,6.329-6.33h372.152C390.837,258.237,393.671,261.071,393.671,264.567L393.671,264.567z"></path> <path fill="#D6D6D6" d="M393.671,291.579c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,285.25,393.671,288.083,393.671,291.579L393.671,291.579z"></path> <path fill="#D6D6D6" d="M393.671,318.731c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.328,6.329-6.328h372.152C390.837,312.403,393.671,315.235,393.671,318.731L393.671,318.731z"></path> <path display="none" opacity="0.4" d="M412.595,329.455c0,6.627-5.373,12-12,12h-403c-6.627,0-12-5.373-12-12v-329 c0-6.627,5.373-12,12-12h403c6.627,0,12,5.373,12,12V329.455z"></path></svg>
 											</div>';
 
 											$selected = $adzone['args']['positioning'] === 'popup' ? ' selected' : '';
-											$h.= '<div class="spot_box ttip'.$selected.'" data-pos="popup" data-custom="1" title="'.__('Popup','adn').'">
-												<div class="ad_cont" style="width: 100%;height: 80px;background: rgba(0, 0, 0, 0.25);">
-													<div class="ad_box" style="width: 50%;position: absolute;top: 20px;left: 20px;height: 25px;"></div>
+											$h.= '<div class="spot_box ttip'.$selected.'" data-pos="popup" data-custom="1" title="'.__('Popup/Sticky','adn').'">
+												<div class="a_cont" style="width: 100%;height: 80px;background: rgba(0, 0, 0, 0.25);">
+													<div class="a_box" style="width: 50%;position: absolute;top: 20px;left: 20px;height: 25px;"></div>
 												</div>
 												<svg viewBox="0 0 402.532 334.177"> <path fill="#D6D6D6" d="M393.671,17.72c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,11.391,393.671,14.225,393.671,17.72L393.671,17.72z"></path> <path fill="#D6D6D6" d="M393.671,44.732c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,38.403,393.671,41.237,393.671,44.732L393.671,44.732z"></path> <path fill="#D6D6D6" d="M393.671,71.885c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,65.556,393.671,68.389,393.671,71.885L393.671,71.885z"></path> <path fill="#D6D6D6" d="M393.671,99.999c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,93.67,393.671,96.503,393.671,99.999L393.671,99.999z"></path> <path fill="#D6D6D6" d="M393.671,127.011c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,120.682,393.671,123.516,393.671,127.011L393.671,127.011z"></path> <path fill="#D6D6D6" d="M393.671,154.163c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.495,2.833-6.328,6.329-6.328h372.152C390.837,147.835,393.671,150.668,393.671,154.163L393.671,154.163z"></path> <path fill="#D6D6D6" d="M393.671,182.288c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,175.959,393.671,178.792,393.671,182.288L393.671,182.288z"></path> <path fill="#D6D6D6" d="M393.671,209.3c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,202.971,393.671,205.805,393.671,209.3L393.671,209.3z"></path> <path fill="#D6D6D6" d="M393.671,236.453c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,230.124,393.671,232.957,393.671,236.453L393.671,236.453z"></path> <path fill="#D6D6D6" d="M393.671,264.567c0,3.495-2.834,6.328-6.329,6.328H15.19c-3.496,0-6.329-2.833-6.329-6.328l0,0 c0-3.496,2.833-6.33,6.329-6.33h372.152C390.837,258.237,393.671,261.071,393.671,264.567L393.671,264.567z"></path> <path fill="#D6D6D6" d="M393.671,291.579c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,285.25,393.671,288.083,393.671,291.579L393.671,291.579z"></path> <path fill="#D6D6D6" d="M393.671,318.731c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.328,6.329-6.328h372.152C390.837,312.403,393.671,315.235,393.671,318.731L393.671,318.731z"></path> <path display="none" opacity="0.4" d="M412.595,329.455c0,6.627-5.373,12-12,12h-403c-6.627,0-12-5.373-12-12v-329 c0-6.627,5.373-12,12-12h403c6.627,0,12,5.373,12,12V329.455z"></path></svg>
 											</div>';
 
 											$selected = $adzone['args']['positioning'] === 'cornerpeel' ? ' selected' : '';
 											$h.= '<div class="spot_box ttip'.$selected.'" data-pos="cornerpeel" data-custom="0" title="'.__('Corner Peel','adn').'">
-												<div class="ad_cont" style="width: 100%;height: 80px;background:transparent;">
-													<div class="ad_box" style="width: 25px;position: absolute;top: -8px;right: -8px;height: 25px;background: #FFF;"></div>
+												<div class="a_cont" style="width: 100%;height: 80px;background:transparent;">
+													<div class="a_box" style="width: 25px;position: absolute;top: -8px;right: -8px;height: 25px;background: #FFF;"></div>
 													<div class="peel" style="width: 25px;height: 25px;background: #c7ff00;position: absolute;right: -12px;top: -12px;-ms-transform: rotate(20deg);-webkit-transform: rotate(20deg);transform: rotate(45deg);"></div>
 												</div>
 												<svg viewBox="0 0 402.532 334.177"> <path fill="#D6D6D6" d="M393.671,17.72c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,11.391,393.671,14.225,393.671,17.72L393.671,17.72z"></path> <path fill="#D6D6D6" d="M393.671,44.732c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,38.403,393.671,41.237,393.671,44.732L393.671,44.732z"></path> <path fill="#D6D6D6" d="M393.671,71.885c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,65.556,393.671,68.389,393.671,71.885L393.671,71.885z"></path> <path fill="#D6D6D6" d="M393.671,99.999c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,93.67,393.671,96.503,393.671,99.999L393.671,99.999z"></path> <path fill="#D6D6D6" d="M393.671,127.011c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,120.682,393.671,123.516,393.671,127.011L393.671,127.011z"></path> <path fill="#D6D6D6" d="M393.671,154.163c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.495,2.833-6.328,6.329-6.328h372.152C390.837,147.835,393.671,150.668,393.671,154.163L393.671,154.163z"></path> <path fill="#D6D6D6" d="M393.671,182.288c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,175.959,393.671,178.792,393.671,182.288L393.671,182.288z"></path> <path fill="#D6D6D6" d="M393.671,209.3c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,202.971,393.671,205.805,393.671,209.3L393.671,209.3z"></path> <path fill="#D6D6D6" d="M393.671,236.453c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,230.124,393.671,232.957,393.671,236.453L393.671,236.453z"></path> <path fill="#D6D6D6" d="M393.671,264.567c0,3.495-2.834,6.328-6.329,6.328H15.19c-3.496,0-6.329-2.833-6.329-6.328l0,0 c0-3.496,2.833-6.33,6.329-6.33h372.152C390.837,258.237,393.671,261.071,393.671,264.567L393.671,264.567z"></path> <path fill="#D6D6D6" d="M393.671,291.579c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,285.25,393.671,288.083,393.671,291.579L393.671,291.579z"></path> <path fill="#D6D6D6" d="M393.671,318.731c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.328,6.329-6.328h372.152C390.837,312.403,393.671,315.235,393.671,318.731L393.671,318.731z"></path> <path display="none" opacity="0.4" d="M412.595,329.455c0,6.627-5.373,12-12,12h-403c-6.627,0-12-5.373-12-12v-329 c0-6.627,5.373-12,12-12h403c6.627,0,12,5.373,12,12V329.455z"></path></svg>
@@ -1129,9 +1154,9 @@ class ADNI_Templates {
 											if( $adzone['args']['type'] === 'banner' ){
 												$selected = $adzone['args']['positioning'] === 'bg_takeover' ? ' selected' : '';
 												$h.= '<div class="spot_box ttip'.$selected.'" data-pos="bg_takeover" data-custom="1" title="'.__('Background Takeover AD','adn').'">
-													<div class="ad_cont" style="width: 100%;height: 80px;background: rgba(0, 0, 0, 0);">
-														<div class="ad_box" style="width: 12px;position: absolute;top: 0;left: 0;height: 100%;background: #c7ff00;border-right: solid #f9f9f9;"></div>
-														<div class="ad_box" style="width: 12px;height: 100%;background: #c7ff00;position: absolute;right: 0;top: 0;border-left: solid #f9f9f9;"></div>
+													<div class="a_cont" style="width: 100%;height: 80px;background: rgba(0, 0, 0, 0);">
+														<div class="a_box" style="width: 12px;position: absolute;top: 0;left: 0;height: 100%;background: #c7ff00;border-right: solid #f9f9f9;"></div>
+														<div class="a_box" style="width: 12px;height: 100%;background: #c7ff00;position: absolute;right: 0;top: 0;border-left: solid #f9f9f9;"></div>
 													</div>
 													<svg viewBox="0 0 402.532 334.177"> <path fill="#D6D6D6" d="M393.671,17.72c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,11.391,393.671,14.225,393.671,17.72L393.671,17.72z"></path> <path fill="#D6D6D6" d="M393.671,44.732c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,38.403,393.671,41.237,393.671,44.732L393.671,44.732z"></path> <path fill="#D6D6D6" d="M393.671,71.885c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,65.556,393.671,68.389,393.671,71.885L393.671,71.885z"></path> <path fill="#D6D6D6" d="M393.671,99.999c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,93.67,393.671,96.503,393.671,99.999L393.671,99.999z"></path> <path fill="#D6D6D6" d="M393.671,127.011c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,120.682,393.671,123.516,393.671,127.011L393.671,127.011z"></path> <path fill="#D6D6D6" d="M393.671,154.163c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.495,2.833-6.328,6.329-6.328h372.152C390.837,147.835,393.671,150.668,393.671,154.163L393.671,154.163z"></path> <path fill="#D6D6D6" d="M393.671,182.288c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,175.959,393.671,178.792,393.671,182.288L393.671,182.288z"></path> <path fill="#D6D6D6" d="M393.671,209.3c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,202.971,393.671,205.805,393.671,209.3L393.671,209.3z"></path> <path fill="#D6D6D6" d="M393.671,236.453c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,230.124,393.671,232.957,393.671,236.453L393.671,236.453z"></path> <path fill="#D6D6D6" d="M393.671,264.567c0,3.495-2.834,6.328-6.329,6.328H15.19c-3.496,0-6.329-2.833-6.329-6.328l0,0 c0-3.496,2.833-6.33,6.329-6.33h372.152C390.837,258.237,393.671,261.071,393.671,264.567L393.671,264.567z"></path> <path fill="#D6D6D6" d="M393.671,291.579c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,285.25,393.671,288.083,393.671,291.579L393.671,291.579z"></path> <path fill="#D6D6D6" d="M393.671,318.731c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.328,6.329-6.328h372.152C390.837,312.403,393.671,315.235,393.671,318.731L393.671,318.731z"></path> <path display="none" opacity="0.4" d="M412.595,329.455c0,6.627-5.373,12-12,12h-403c-6.627,0-12-5.373-12-12v-329 c0-6.627,5.373-12,12-12h403c6.627,0,12,5.373,12,12V329.455z"></path></svg>
 												</div>';
@@ -1331,192 +1356,548 @@ class ADNI_Templates {
 											$h.= '<div class="input_container">
 												<h2 class="title">'.__('Popup, Settings','adn').'</h2>
 											</div>';
-											$h.= '<div class="input_container">
-												<h3 class="title">'.__('Popup Options','adn').'</h3>
-											</div>';
-											$h.= '<div class="spr_column spr_col-3 left_column">';
-												$h.= '<div class="input_container">
-													<h3 class="title">'.__('Width','adn').'</h3>
-													<div class="input_container_inner">';
-														$popup_width = '';
-														if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
-														{
-															//$popup_width = array_key_exists('popup_width', $auto_pos[$id]['custom']) ? $auto_pos[$id]['custom']['popup_width'] : '';
-															$popup_width = array_key_exists('popup', $auto_pos[$id]) ? $auto_pos[$id]['popup']['width'] : '';
-														}
-														
-														$h.= '<input 
-															type="text" 
-															class="" 
-															name="pos[popup][width]" 
-															value="'.$popup_width.'" 
-															placeholder="" />';
-														$h.= '<i class="input_icon fa fa-arrows-h" aria-hidden="true"></i>';
-														
-													$h.= '</div>
-													<span class="description bottom">'.__('Width of the popup. (Leave empty to use banner size)','adn').'</span>
-												</div>';
-											$h.= '</div>';
-											// end .spr_column 
-											$h.= '<div class="spr_column spr_col-3">';
-												$h.= '<div class="input_container">
-													<h3 class="title">'.__('Height','adn').'</h3>
-													<div class="input_container_inner">';
-														$popup_height = '';
-														if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
-														{
-															//$popup_height = array_key_exists('popup_height', $auto_pos[$id]['custom']) ? $auto_pos[$id]['custom']['popup_height'] : '';
-															$popup_height = array_key_exists('popup', $auto_pos[$id]) ? $auto_pos[$id]['popup']['height'] : '';
-														}
-														
-														$h.= '<input 
-															type="text" 
-															class="" 
-															name="pos[popup][height]" 
-															value="'.$popup_height.'" 
-															placeholder="" />';
-														$h.= '<i class="input_icon fa fa-arrows-v" aria-hidden="true"></i>';
-														
-													$h.= '</div>
-													<span class="description bottom">'.__('Height of the popup. (Leave empty to use banner size)','adn').'</span>
-												</div>';
-											$h.= '</div>';
-											// end .spr_column
-											$h.= '<div class="spr_column spr_col-3">';
-												$h.= '<div class="input_container">
-													<h3 class="title">'.__('Bg Color','adn').'</h3>
-													<div class="input_container_inner">';
-														$popup_bg_color = '';
-														if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
-														{
-															//$popup_bg_color = array_key_exists('popup_bg_color', $auto_pos[$id]['custom']) ? $auto_pos[$id]['custom']['popup_bg_color'] : '';
-															$popup_bg_color = array_key_exists('popup', $auto_pos[$id]) ? $auto_pos[$id]['popup']['bg_color'] : '';
-														}
-														
-														$h.= '<input id="popup_bg_color" name="pos[popup][bg_color]" type="text" value="'.$popup_bg_color.'">';
-														$h.= "<script>jQuery(document).ready(function($){ $('#popup_bg_color').coloringPick(); });</script>";
 											
-													$h.= '</div>
-													<span class="description bottom">'.__('Popup background color.','adn').'</span>
-												</div>';
-											$h.= '</div>';
-											// end .spr_column  
-											$h.= '<div class="spr_column spr_col-3">';
-												$h.= '<div class="input_container">
-													<h3 class="title">'.__('Shadow Color','adn').'</h3>
-													<div class="input_container_inner">';
-														$popup_shadow_color = '';
-														if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
+											$h.= '<div class="spr_column spr_col">';
+												$h.= '<div class="input_container popup_display_options">';
+
+													$popup_display = 'mc_popup';
+													if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
+													{
+														if( array_key_exists('popup', $auto_pos[$id]) )
 														{
-															//$popup_shadow_color = array_key_exists('popup_shadow_color', $auto_pos[$id]['custom']) ? $auto_pos[$id]['custom']['popup_shadow_color'] : '';
-															$popup_shadow_color = array_key_exists('popup', $auto_pos[$id]) ? $auto_pos[$id]['popup']['shadow_color'] : '';
+															$popup_display = array_key_exists('display', $auto_pos[$id]['popup']) ? $auto_pos[$id]['popup']['display'] : $popup_display;
 														}
-														
-														$h.= '<input id="popup_shadow_color" name="pos[popup][shadow_color]" type="text" value="'.$popup_shadow_color.'">';
-														$h.= "<script>jQuery(document).ready(function($){ $('#popup_shadow_color').coloringPick({'picker':'solid','picker_changeable':false}); });</script>";
-											
-													$h.= '</div>
-													<span class="description bottom">'.__('Popup shadow color.','adn').'</span>
-												</div>';
+													}
+													$h.= '<input class="popup_display_type" type="hidden" value="'.$popup_display.'" name="pos[popup][display]">';
+													$h.= '<h3 class="title">'.__('Positioning','adn').'</h3>';
+
+													// TOP
+													$selected = $popup_display === 'tl_popup' ? ' selected' : '';
+													$h.= '<div class="pop_box ttip'.$selected.'" data-pos="tl_popup" data-custom="1" title="'.__('Top Left','adn').'">
+														<div class="a_cont" style="width: 100%;height: 40px;background: rgba(0, 0, 0, 0.15);">
+															<div class="a_box" style="width:18px;position: absolute;top:0px;left:0px;height:13px;"></div>
+														</div>
+														<svg viewBox="0 0 402.532 334.177"> <path fill="#D6D6D6" d="M393.671,17.72c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,11.391,393.671,14.225,393.671,17.72L393.671,17.72z"></path> <path fill="#D6D6D6" d="M393.671,44.732c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,38.403,393.671,41.237,393.671,44.732L393.671,44.732z"></path> <path fill="#D6D6D6" d="M393.671,71.885c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,65.556,393.671,68.389,393.671,71.885L393.671,71.885z"></path> <path fill="#D6D6D6" d="M393.671,99.999c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,93.67,393.671,96.503,393.671,99.999L393.671,99.999z"></path> <path fill="#D6D6D6" d="M393.671,127.011c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,120.682,393.671,123.516,393.671,127.011L393.671,127.011z"></path> <path fill="#D6D6D6" d="M393.671,154.163c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.495,2.833-6.328,6.329-6.328h372.152C390.837,147.835,393.671,150.668,393.671,154.163L393.671,154.163z"></path> <path fill="#D6D6D6" d="M393.671,182.288c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,175.959,393.671,178.792,393.671,182.288L393.671,182.288z"></path> <path fill="#D6D6D6" d="M393.671,209.3c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,202.971,393.671,205.805,393.671,209.3L393.671,209.3z"></path> <path fill="#D6D6D6" d="M393.671,236.453c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,230.124,393.671,232.957,393.671,236.453L393.671,236.453z"></path> <path fill="#D6D6D6" d="M393.671,264.567c0,3.495-2.834,6.328-6.329,6.328H15.19c-3.496,0-6.329-2.833-6.329-6.328l0,0 c0-3.496,2.833-6.33,6.329-6.33h372.152C390.837,258.237,393.671,261.071,393.671,264.567L393.671,264.567z"></path> <path fill="#D6D6D6" d="M393.671,291.579c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,285.25,393.671,288.083,393.671,291.579L393.671,291.579z"></path> <path fill="#D6D6D6" d="M393.671,318.731c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.328,6.329-6.328h372.152C390.837,312.403,393.671,315.235,393.671,318.731L393.671,318.731z"></path> <path display="none" opacity="0.4" d="M412.595,329.455c0,6.627-5.373,12-12,12h-403c-6.627,0-12-5.373-12-12v-329 c0-6.627,5.373-12,12-12h403c6.627,0,12,5.373,12,12V329.455z"></path></svg>
+													</div>';
+
+													$selected = $popup_display === 'tc_popup' ? ' selected' : '';
+													$h.= '<div class="pop_box ttip'.$selected.'" data-pos="tc_popup" data-custom="1" title="'.__('Top Center','adn').'">
+														<div class="a_cont" style="width: 100%;height: 40px;background: rgba(0, 0, 0, 0.15);">
+															<div class="a_box" style="width:18px;position: absolute;top:0px;left:11px;height:13px;"></div>
+														</div>
+														<svg viewBox="0 0 402.532 334.177"> <path fill="#D6D6D6" d="M393.671,17.72c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,11.391,393.671,14.225,393.671,17.72L393.671,17.72z"></path> <path fill="#D6D6D6" d="M393.671,44.732c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,38.403,393.671,41.237,393.671,44.732L393.671,44.732z"></path> <path fill="#D6D6D6" d="M393.671,71.885c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,65.556,393.671,68.389,393.671,71.885L393.671,71.885z"></path> <path fill="#D6D6D6" d="M393.671,99.999c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,93.67,393.671,96.503,393.671,99.999L393.671,99.999z"></path> <path fill="#D6D6D6" d="M393.671,127.011c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,120.682,393.671,123.516,393.671,127.011L393.671,127.011z"></path> <path fill="#D6D6D6" d="M393.671,154.163c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.495,2.833-6.328,6.329-6.328h372.152C390.837,147.835,393.671,150.668,393.671,154.163L393.671,154.163z"></path> <path fill="#D6D6D6" d="M393.671,182.288c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,175.959,393.671,178.792,393.671,182.288L393.671,182.288z"></path> <path fill="#D6D6D6" d="M393.671,209.3c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,202.971,393.671,205.805,393.671,209.3L393.671,209.3z"></path> <path fill="#D6D6D6" d="M393.671,236.453c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,230.124,393.671,232.957,393.671,236.453L393.671,236.453z"></path> <path fill="#D6D6D6" d="M393.671,264.567c0,3.495-2.834,6.328-6.329,6.328H15.19c-3.496,0-6.329-2.833-6.329-6.328l0,0 c0-3.496,2.833-6.33,6.329-6.33h372.152C390.837,258.237,393.671,261.071,393.671,264.567L393.671,264.567z"></path> <path fill="#D6D6D6" d="M393.671,291.579c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,285.25,393.671,288.083,393.671,291.579L393.671,291.579z"></path> <path fill="#D6D6D6" d="M393.671,318.731c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.328,6.329-6.328h372.152C390.837,312.403,393.671,315.235,393.671,318.731L393.671,318.731z"></path> <path display="none" opacity="0.4" d="M412.595,329.455c0,6.627-5.373,12-12,12h-403c-6.627,0-12-5.373-12-12v-329 c0-6.627,5.373-12,12-12h403c6.627,0,12,5.373,12,12V329.455z"></path></svg>
+													</div>';
+
+													$selected = $popup_display === 'tr_popup' ? ' selected' : '';
+													$h.= '<div class="pop_box ttip'.$selected.'" data-pos="tr_popup" data-custom="1" title="'.__('Top Right','adn').'">
+														<div class="a_cont" style="width: 100%;height: 40px;background: rgba(0, 0, 0, 0.15);">
+															<div class="a_box" style="width:18px;position: absolute;top:0px;right:0px;height:13px;"></div>
+														</div>
+														<svg viewBox="0 0 402.532 334.177"> <path fill="#D6D6D6" d="M393.671,17.72c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,11.391,393.671,14.225,393.671,17.72L393.671,17.72z"></path> <path fill="#D6D6D6" d="M393.671,44.732c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,38.403,393.671,41.237,393.671,44.732L393.671,44.732z"></path> <path fill="#D6D6D6" d="M393.671,71.885c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,65.556,393.671,68.389,393.671,71.885L393.671,71.885z"></path> <path fill="#D6D6D6" d="M393.671,99.999c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,93.67,393.671,96.503,393.671,99.999L393.671,99.999z"></path> <path fill="#D6D6D6" d="M393.671,127.011c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,120.682,393.671,123.516,393.671,127.011L393.671,127.011z"></path> <path fill="#D6D6D6" d="M393.671,154.163c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.495,2.833-6.328,6.329-6.328h372.152C390.837,147.835,393.671,150.668,393.671,154.163L393.671,154.163z"></path> <path fill="#D6D6D6" d="M393.671,182.288c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,175.959,393.671,178.792,393.671,182.288L393.671,182.288z"></path> <path fill="#D6D6D6" d="M393.671,209.3c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,202.971,393.671,205.805,393.671,209.3L393.671,209.3z"></path> <path fill="#D6D6D6" d="M393.671,236.453c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,230.124,393.671,232.957,393.671,236.453L393.671,236.453z"></path> <path fill="#D6D6D6" d="M393.671,264.567c0,3.495-2.834,6.328-6.329,6.328H15.19c-3.496,0-6.329-2.833-6.329-6.328l0,0 c0-3.496,2.833-6.33,6.329-6.33h372.152C390.837,258.237,393.671,261.071,393.671,264.567L393.671,264.567z"></path> <path fill="#D6D6D6" d="M393.671,291.579c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,285.25,393.671,288.083,393.671,291.579L393.671,291.579z"></path> <path fill="#D6D6D6" d="M393.671,318.731c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.328,6.329-6.328h372.152C390.837,312.403,393.671,315.235,393.671,318.731L393.671,318.731z"></path> <path display="none" opacity="0.4" d="M412.595,329.455c0,6.627-5.373,12-12,12h-403c-6.627,0-12-5.373-12-12v-329 c0-6.627,5.373-12,12-12h403c6.627,0,12,5.373,12,12V329.455z"></path></svg>
+													</div>';
+													
+													// MIDDLE
+													$selected = $popup_display === 'ml_popup' ? ' selected' : '';
+													$h.= '<div class="pop_box ttip'.$selected.'" data-pos="ml_popup" data-custom="1" title="'.__('Middle Left','adn').'">
+														<div class="a_cont" style="width: 100%;height: 40px;background: rgba(0, 0, 0, 0.15);">
+															<div class="a_box" style="width:18px;position: absolute;top:10px;left:0px;height:13px;"></div>
+														</div>
+														<svg viewBox="0 0 402.532 334.177"> <path fill="#D6D6D6" d="M393.671,17.72c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,11.391,393.671,14.225,393.671,17.72L393.671,17.72z"></path> <path fill="#D6D6D6" d="M393.671,44.732c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,38.403,393.671,41.237,393.671,44.732L393.671,44.732z"></path> <path fill="#D6D6D6" d="M393.671,71.885c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,65.556,393.671,68.389,393.671,71.885L393.671,71.885z"></path> <path fill="#D6D6D6" d="M393.671,99.999c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,93.67,393.671,96.503,393.671,99.999L393.671,99.999z"></path> <path fill="#D6D6D6" d="M393.671,127.011c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,120.682,393.671,123.516,393.671,127.011L393.671,127.011z"></path> <path fill="#D6D6D6" d="M393.671,154.163c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.495,2.833-6.328,6.329-6.328h372.152C390.837,147.835,393.671,150.668,393.671,154.163L393.671,154.163z"></path> <path fill="#D6D6D6" d="M393.671,182.288c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,175.959,393.671,178.792,393.671,182.288L393.671,182.288z"></path> <path fill="#D6D6D6" d="M393.671,209.3c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,202.971,393.671,205.805,393.671,209.3L393.671,209.3z"></path> <path fill="#D6D6D6" d="M393.671,236.453c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,230.124,393.671,232.957,393.671,236.453L393.671,236.453z"></path> <path fill="#D6D6D6" d="M393.671,264.567c0,3.495-2.834,6.328-6.329,6.328H15.19c-3.496,0-6.329-2.833-6.329-6.328l0,0 c0-3.496,2.833-6.33,6.329-6.33h372.152C390.837,258.237,393.671,261.071,393.671,264.567L393.671,264.567z"></path> <path fill="#D6D6D6" d="M393.671,291.579c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,285.25,393.671,288.083,393.671,291.579L393.671,291.579z"></path> <path fill="#D6D6D6" d="M393.671,318.731c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.328,6.329-6.328h372.152C390.837,312.403,393.671,315.235,393.671,318.731L393.671,318.731z"></path> <path display="none" opacity="0.4" d="M412.595,329.455c0,6.627-5.373,12-12,12h-403c-6.627,0-12-5.373-12-12v-329 c0-6.627,5.373-12,12-12h403c6.627,0,12,5.373,12,12V329.455z"></path></svg>
+													</div>';
+
+													$selected = $popup_display === 'mc_popup' ? ' selected' : '';
+													$h.= '<div class="pop_box ttip'.$selected.'" data-pos="mc_popup" data-custom="1" title="'.__('Middle Center','adn').'">
+														<div class="a_cont" style="width: 100%;height: 40px;background: rgba(0, 0, 0, 0.15);">
+															<div class="a_box" style="width:18px;position: absolute;top:10px;left:11px;height:13px;"></div>
+														</div>
+														<svg viewBox="0 0 402.532 334.177"> <path fill="#D6D6D6" d="M393.671,17.72c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,11.391,393.671,14.225,393.671,17.72L393.671,17.72z"></path> <path fill="#D6D6D6" d="M393.671,44.732c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,38.403,393.671,41.237,393.671,44.732L393.671,44.732z"></path> <path fill="#D6D6D6" d="M393.671,71.885c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,65.556,393.671,68.389,393.671,71.885L393.671,71.885z"></path> <path fill="#D6D6D6" d="M393.671,99.999c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,93.67,393.671,96.503,393.671,99.999L393.671,99.999z"></path> <path fill="#D6D6D6" d="M393.671,127.011c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,120.682,393.671,123.516,393.671,127.011L393.671,127.011z"></path> <path fill="#D6D6D6" d="M393.671,154.163c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.495,2.833-6.328,6.329-6.328h372.152C390.837,147.835,393.671,150.668,393.671,154.163L393.671,154.163z"></path> <path fill="#D6D6D6" d="M393.671,182.288c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,175.959,393.671,178.792,393.671,182.288L393.671,182.288z"></path> <path fill="#D6D6D6" d="M393.671,209.3c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,202.971,393.671,205.805,393.671,209.3L393.671,209.3z"></path> <path fill="#D6D6D6" d="M393.671,236.453c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,230.124,393.671,232.957,393.671,236.453L393.671,236.453z"></path> <path fill="#D6D6D6" d="M393.671,264.567c0,3.495-2.834,6.328-6.329,6.328H15.19c-3.496,0-6.329-2.833-6.329-6.328l0,0 c0-3.496,2.833-6.33,6.329-6.33h372.152C390.837,258.237,393.671,261.071,393.671,264.567L393.671,264.567z"></path> <path fill="#D6D6D6" d="M393.671,291.579c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,285.25,393.671,288.083,393.671,291.579L393.671,291.579z"></path> <path fill="#D6D6D6" d="M393.671,318.731c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.328,6.329-6.328h372.152C390.837,312.403,393.671,315.235,393.671,318.731L393.671,318.731z"></path> <path display="none" opacity="0.4" d="M412.595,329.455c0,6.627-5.373,12-12,12h-403c-6.627,0-12-5.373-12-12v-329 c0-6.627,5.373-12,12-12h403c6.627,0,12,5.373,12,12V329.455z"></path></svg>
+													</div>';
+
+													$selected = $popup_display === 'mr_popup' ? ' selected' : '';
+													$h.= '<div class="pop_box ttip'.$selected.'" data-pos="mr_popup" data-custom="1" title="'.__('Middle Right','adn').'">
+														<div class="a_cont" style="width: 100%;height: 40px;background: rgba(0, 0, 0, 0.15);">
+															<div class="a_box" style="width:18px;position: absolute;top:10px;right:0px;height:13px;"></div>
+														</div>
+														<svg viewBox="0 0 402.532 334.177"> <path fill="#D6D6D6" d="M393.671,17.72c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,11.391,393.671,14.225,393.671,17.72L393.671,17.72z"></path> <path fill="#D6D6D6" d="M393.671,44.732c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,38.403,393.671,41.237,393.671,44.732L393.671,44.732z"></path> <path fill="#D6D6D6" d="M393.671,71.885c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,65.556,393.671,68.389,393.671,71.885L393.671,71.885z"></path> <path fill="#D6D6D6" d="M393.671,99.999c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,93.67,393.671,96.503,393.671,99.999L393.671,99.999z"></path> <path fill="#D6D6D6" d="M393.671,127.011c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,120.682,393.671,123.516,393.671,127.011L393.671,127.011z"></path> <path fill="#D6D6D6" d="M393.671,154.163c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.495,2.833-6.328,6.329-6.328h372.152C390.837,147.835,393.671,150.668,393.671,154.163L393.671,154.163z"></path> <path fill="#D6D6D6" d="M393.671,182.288c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,175.959,393.671,178.792,393.671,182.288L393.671,182.288z"></path> <path fill="#D6D6D6" d="M393.671,209.3c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,202.971,393.671,205.805,393.671,209.3L393.671,209.3z"></path> <path fill="#D6D6D6" d="M393.671,236.453c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,230.124,393.671,232.957,393.671,236.453L393.671,236.453z"></path> <path fill="#D6D6D6" d="M393.671,264.567c0,3.495-2.834,6.328-6.329,6.328H15.19c-3.496,0-6.329-2.833-6.329-6.328l0,0 c0-3.496,2.833-6.33,6.329-6.33h372.152C390.837,258.237,393.671,261.071,393.671,264.567L393.671,264.567z"></path> <path fill="#D6D6D6" d="M393.671,291.579c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,285.25,393.671,288.083,393.671,291.579L393.671,291.579z"></path> <path fill="#D6D6D6" d="M393.671,318.731c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.328,6.329-6.328h372.152C390.837,312.403,393.671,315.235,393.671,318.731L393.671,318.731z"></path> <path display="none" opacity="0.4" d="M412.595,329.455c0,6.627-5.373,12-12,12h-403c-6.627,0-12-5.373-12-12v-329 c0-6.627,5.373-12,12-12h403c6.627,0,12,5.373,12,12V329.455z"></path></svg>
+													</div>';
+
+													// BOTTOM
+													$selected = $popup_display === 'bl_popup' ? ' selected' : '';
+													$h.= '<div class="pop_box ttip'.$selected.'" data-pos="bl_popup" data-custom="1" title="'.__('Bottom Left','adn').'">
+														<div class="a_cont" style="width: 100%;height: 40px;background: rgba(0, 0, 0, 0.15);">
+															<div class="a_box" style="width:18px;position: absolute;bottom:3px;left:0px;height:13px;"></div>
+														</div>
+														<svg viewBox="0 0 402.532 334.177"> <path fill="#D6D6D6" d="M393.671,17.72c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,11.391,393.671,14.225,393.671,17.72L393.671,17.72z"></path> <path fill="#D6D6D6" d="M393.671,44.732c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,38.403,393.671,41.237,393.671,44.732L393.671,44.732z"></path> <path fill="#D6D6D6" d="M393.671,71.885c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,65.556,393.671,68.389,393.671,71.885L393.671,71.885z"></path> <path fill="#D6D6D6" d="M393.671,99.999c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,93.67,393.671,96.503,393.671,99.999L393.671,99.999z"></path> <path fill="#D6D6D6" d="M393.671,127.011c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,120.682,393.671,123.516,393.671,127.011L393.671,127.011z"></path> <path fill="#D6D6D6" d="M393.671,154.163c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.495,2.833-6.328,6.329-6.328h372.152C390.837,147.835,393.671,150.668,393.671,154.163L393.671,154.163z"></path> <path fill="#D6D6D6" d="M393.671,182.288c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,175.959,393.671,178.792,393.671,182.288L393.671,182.288z"></path> <path fill="#D6D6D6" d="M393.671,209.3c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,202.971,393.671,205.805,393.671,209.3L393.671,209.3z"></path> <path fill="#D6D6D6" d="M393.671,236.453c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,230.124,393.671,232.957,393.671,236.453L393.671,236.453z"></path> <path fill="#D6D6D6" d="M393.671,264.567c0,3.495-2.834,6.328-6.329,6.328H15.19c-3.496,0-6.329-2.833-6.329-6.328l0,0 c0-3.496,2.833-6.33,6.329-6.33h372.152C390.837,258.237,393.671,261.071,393.671,264.567L393.671,264.567z"></path> <path fill="#D6D6D6" d="M393.671,291.579c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,285.25,393.671,288.083,393.671,291.579L393.671,291.579z"></path> <path fill="#D6D6D6" d="M393.671,318.731c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.328,6.329-6.328h372.152C390.837,312.403,393.671,315.235,393.671,318.731L393.671,318.731z"></path> <path display="none" opacity="0.4" d="M412.595,329.455c0,6.627-5.373,12-12,12h-403c-6.627,0-12-5.373-12-12v-329 c0-6.627,5.373-12,12-12h403c6.627,0,12,5.373,12,12V329.455z"></path></svg>
+													</div>';
+
+													$selected = $popup_display === 'bc_popup' ? ' selected' : '';
+													$h.= '<div class="pop_box ttip'.$selected.'" data-pos="bc_popup" data-custom="1" title="'.__('Bottom Center','adn').'">
+														<div class="a_cont" style="width: 100%;height: 40px;background: rgba(0, 0, 0, 0.15);">
+															<div class="a_box" style="width:18px;position: absolute;bottom:3px;left:11px;height:13px;"></div>
+														</div>
+														<svg viewBox="0 0 402.532 334.177"> <path fill="#D6D6D6" d="M393.671,17.72c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,11.391,393.671,14.225,393.671,17.72L393.671,17.72z"></path> <path fill="#D6D6D6" d="M393.671,44.732c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,38.403,393.671,41.237,393.671,44.732L393.671,44.732z"></path> <path fill="#D6D6D6" d="M393.671,71.885c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,65.556,393.671,68.389,393.671,71.885L393.671,71.885z"></path> <path fill="#D6D6D6" d="M393.671,99.999c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,93.67,393.671,96.503,393.671,99.999L393.671,99.999z"></path> <path fill="#D6D6D6" d="M393.671,127.011c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,120.682,393.671,123.516,393.671,127.011L393.671,127.011z"></path> <path fill="#D6D6D6" d="M393.671,154.163c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.495,2.833-6.328,6.329-6.328h372.152C390.837,147.835,393.671,150.668,393.671,154.163L393.671,154.163z"></path> <path fill="#D6D6D6" d="M393.671,182.288c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,175.959,393.671,178.792,393.671,182.288L393.671,182.288z"></path> <path fill="#D6D6D6" d="M393.671,209.3c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,202.971,393.671,205.805,393.671,209.3L393.671,209.3z"></path> <path fill="#D6D6D6" d="M393.671,236.453c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,230.124,393.671,232.957,393.671,236.453L393.671,236.453z"></path> <path fill="#D6D6D6" d="M393.671,264.567c0,3.495-2.834,6.328-6.329,6.328H15.19c-3.496,0-6.329-2.833-6.329-6.328l0,0 c0-3.496,2.833-6.33,6.329-6.33h372.152C390.837,258.237,393.671,261.071,393.671,264.567L393.671,264.567z"></path> <path fill="#D6D6D6" d="M393.671,291.579c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,285.25,393.671,288.083,393.671,291.579L393.671,291.579z"></path> <path fill="#D6D6D6" d="M393.671,318.731c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.328,6.329-6.328h372.152C390.837,312.403,393.671,315.235,393.671,318.731L393.671,318.731z"></path> <path display="none" opacity="0.4" d="M412.595,329.455c0,6.627-5.373,12-12,12h-403c-6.627,0-12-5.373-12-12v-329 c0-6.627,5.373-12,12-12h403c6.627,0,12,5.373,12,12V329.455z"></path></svg>
+													</div>';
+
+													$selected = $popup_display === 'br_popup' ? ' selected' : '';
+													$h.= '<div class="pop_box ttip'.$selected.'" data-pos="br_popup" data-custom="1" title="'.__('Bottom Right','adn').'">
+														<div class="a_cont" style="width: 100%;height: 40px;background: rgba(0, 0, 0, 0.15);">
+															<div class="a_box" style="width:18px;position: absolute;bottom:3px;right:0px;height:13px;"></div>
+														</div>
+														<svg viewBox="0 0 402.532 334.177"> <path fill="#D6D6D6" d="M393.671,17.72c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,11.391,393.671,14.225,393.671,17.72L393.671,17.72z"></path> <path fill="#D6D6D6" d="M393.671,44.732c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,38.403,393.671,41.237,393.671,44.732L393.671,44.732z"></path> <path fill="#D6D6D6" d="M393.671,71.885c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,65.556,393.671,68.389,393.671,71.885L393.671,71.885z"></path> <path fill="#D6D6D6" d="M393.671,99.999c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,93.67,393.671,96.503,393.671,99.999L393.671,99.999z"></path> <path fill="#D6D6D6" d="M393.671,127.011c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,120.682,393.671,123.516,393.671,127.011L393.671,127.011z"></path> <path fill="#D6D6D6" d="M393.671,154.163c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.495,2.833-6.328,6.329-6.328h372.152C390.837,147.835,393.671,150.668,393.671,154.163L393.671,154.163z"></path> <path fill="#D6D6D6" d="M393.671,182.288c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,175.959,393.671,178.792,393.671,182.288L393.671,182.288z"></path> <path fill="#D6D6D6" d="M393.671,209.3c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,202.971,393.671,205.805,393.671,209.3L393.671,209.3z"></path> <path fill="#D6D6D6" d="M393.671,236.453c0,3.496-2.834,6.329-6.329,6.329H15.19c-3.496,0-6.329-2.833-6.329-6.329l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,230.124,393.671,232.957,393.671,236.453L393.671,236.453z"></path> <path fill="#D6D6D6" d="M393.671,264.567c0,3.495-2.834,6.328-6.329,6.328H15.19c-3.496,0-6.329-2.833-6.329-6.328l0,0 c0-3.496,2.833-6.33,6.329-6.33h372.152C390.837,258.237,393.671,261.071,393.671,264.567L393.671,264.567z"></path> <path fill="#D6D6D6" d="M393.671,291.579c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.329,6.329-6.329h372.152C390.837,285.25,393.671,288.083,393.671,291.579L393.671,291.579z"></path> <path fill="#D6D6D6" d="M393.671,318.731c0,3.496-2.834,6.33-6.329,6.33H15.19c-3.496,0-6.329-2.834-6.329-6.33l0,0 c0-3.496,2.833-6.328,6.329-6.328h372.152C390.837,312.403,393.671,315.235,393.671,318.731L393.671,318.731z"></path> <path display="none" opacity="0.4" d="M412.595,329.455c0,6.627-5.373,12-12,12h-403c-6.627,0-12-5.373-12-12v-329 c0-6.627,5.373-12,12-12h403c6.627,0,12,5.373,12,12V329.455z"></path></svg>
+													</div>';
+
+												$h.= '</div>';
 											$h.= '</div>';
-											// end .spr_column 
-											$h.= '<div class="spr_column spr_col-3 clearFix">';
-												$h.= '<div class="input_container">
-													<h3 class="title">'.__('Overlay Color','adn').'</h3>
-													<div class="input_container_inner">';
-														$popup_overlay_color = '';
-														if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
-														{
-															//$popup_overlay_color = array_key_exists('popup_overlay_color', $auto_pos[$id]['custom']) ? $auto_pos[$id]['custom']['popup_overlay_color'] : '';
-															$popup_overlay_color = array_key_exists('popup', $auto_pos[$id]) ? $auto_pos[$id]['popup']['overlay_color'] : '';
-														}
-														
-														$h.= '<input id="popup_overlay_color" name="pos[popup][overlay_color]" type="text" value="'.$popup_overlay_color.'">';
-														$h.= "<script>jQuery(document).ready(function($){ $('#popup_overlay_color').coloringPick(); });</script>";
+
+											$h.= '<div class="clearFix"></div>';
+
+											$popup_width = '';
+											if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
+											{
+												$popup_width = array_key_exists('popup', $auto_pos[$id]) ? $auto_pos[$id]['popup']['width'] : '';
+											}
+											$h.= ADNI_Templates::spr_column(array(
+												'col' => 'spr_col-3',
+												'title' => esc_attr__('Width','adn'),
+												'desc' => esc_attr__('Width of the popup.','adn'),
+												'content' => ADNI_Templates::inpt_cont(array(
+													'type' => 'text',
+													'width' => '100%',
+													'name' => 'pos[popup][width]',
+													'value' => $popup_width,
+													'placeholder' => '',
+													'icon' => 'arrows-h',
+													'show_icon' => 1
+												))
+											));
+
+											$popup_height = '';
+											if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
+											{
+												$popup_height = array_key_exists('popup', $auto_pos[$id]) ? $auto_pos[$id]['popup']['height'] : '';
+											}
+											$h.= ADNI_Templates::spr_column(array(
+												'col' => 'spr_col-3',
+												'title' => esc_attr__('Height','adn'),
+												'desc' => esc_attr__('Height of the popup.','adn'),
+												'content' => ADNI_Templates::inpt_cont(array(
+													'type' => 'text',
+													'width' => '100%',
+													'name' => 'pos[popup][height]',
+													'value' => $popup_height,
+													'placeholder' => '',
+													'icon' => 'arrows-v',
+													'show_icon' => 1
+												))
+											));
+
+											$popup_bg_color = '';
+											if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
+											{
+												$popup_bg_color = array_key_exists('popup', $auto_pos[$id]) ? $auto_pos[$id]['popup']['bg_color'] : '';
+											}
+											$h.= ADNI_Templates::spr_column(array(
+												'col' => 'spr_col-2',
+												'title' => esc_attr__('Bg Color','adn'),
+												'desc' => esc_attr__('Popup background color.','adn'),
+												'content' => ADNI_Templates::inpt_cont(array(
+													'type' => 'text',
+													'width' => '100%',
+													'id' => 'popup_bg_color',
+													'name' => 'pos[popup][bg_color]',
+													'value' => $popup_bg_color,
+													'placeholder' => '',
+													'show_icon' => 0
+												)).
+												'<script>jQuery(document).ready(function($){ $("#popup_bg_color").coloringPick(); });</script>'
+											));
+
+											$popup_shadow_color = '';
+											if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
+											{
+												$popup_shadow_color = array_key_exists('popup', $auto_pos[$id]) ? $auto_pos[$id]['popup']['shadow_color'] : '';
+											}
+											$h.= ADNI_Templates::spr_column(array(
+												'col' => 'spr_col-2',
+												'title' => esc_attr__('Shadow Color','adn'),
+												'desc' => esc_attr__('Popup shadow color.','adn'),
+												'content' => ADNI_Templates::inpt_cont(array(
+													'type' => 'text',
+													'width' => '100%',
+													'id' => 'popup_shadow_color',
+													'name' => 'pos[popup][shadow_color]',
+													'value' => $popup_shadow_color,
+													'placeholder' => '',
+													'show_icon' => 0
+												)).
+												'<script>jQuery(document).ready(function($){ $("#popup_shadow_color").coloringPick({"picker":"solid","picker_changeable":false}); });</script>'
+											));
+
+											$popup_overlay_color = '';
+											if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
+											{
+												$popup_overlay_color = array_key_exists('popup', $auto_pos[$id]) ? $auto_pos[$id]['popup']['overlay_color'] : '';
+											}
+											$h.= ADNI_Templates::spr_column(array(
+												'col' => 'spr_col-2',
+												'title' => esc_attr__('Overlay Color','adn'),
+												'desc' => esc_attr__('Background overlay color for the popup.','adn'),
+												'content' => ADNI_Templates::inpt_cont(array(
+													'type' => 'text',
+													'width' => '100%',
+													'id' => 'popup_overlay_color',
+													'name' => 'pos[popup][overlay_color]',
+													'value' => $popup_overlay_color,
+													'placeholder' => '',
+													'show_icon' => 0
+												)).
+												'<script>jQuery(document).ready(function($){ $("#popup_overlay_color").coloringPick(); });</script>'
+											));
+
+
+
+											$h.= '<div class="clearFix"></div>';
+											$h.= '<div class="spr_column">';
+												$h.= '<div class="spr_column-inner">';
+													$h.= '<div class="spr_wrapper">';
+														$h.= '<div class="input_container">';
+
+															$h.= '<div class="adn_settings_cont closed">';
+																$h.= '<h4>'.__('Trigger Settings','adn').' <span class="fa togg"></span></h4>';
+																$h.= '<div class="set_box_content hidden" style="margin-top: 15px;">';
+																	
+																	$is_exit_popup = 0;
+																	$is_scroll_popup = 0;
+																	$is_inactive_popup = 0;
+																	$is_delay_popup = 0;
+																	$delay_args = array('target' => 5);
+																	$scroll_args = array('target' => 'percent', 'value' => '20');
+																	$inactive_args = array('target' => 5);
+																	
+																	if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
+																	{
+																		if( array_key_exists('popup', $auto_pos[$id]) )
+																		{
+																			if( array_key_exists('trigger', $auto_pos[$id]['popup']) )
+																			{
+																				$is_exit_popup = $auto_pos[$id]['popup']['trigger']['exit'];
+																				$is_scroll_popup = $auto_pos[$id]['popup']['trigger']['scroll'];
+																				$scroll_args = $auto_pos[$id]['popup']['trigger']['args']['scroll'];
+																				$is_delay_popup = $auto_pos[$id]['popup']['trigger']['delay'];
+																				$delay_args = $auto_pos[$id]['popup']['trigger']['args']['delay'];
+																				//$is_inactive_popup = $auto_pos[$id]['popup']['trigger']['inactive'];
+																				//$inactive_args = $auto_pos[$id]['popup']['trigger']['args']['inactive'];
+																			}
+																		}
+																		
+																	}
+																	$h.= ADNI_Templates::spr_column(array(
+																		'col' => 'spr_col-3',
+																		'title' => esc_attr__('Exit Popup','adn'),
+																		'desc' => '',
+																		'content' => ADNI_Templates::switch_btn(array(
+																			'name' => 'pos[popup][trigger][exit]',
+																			'tooltip' => esc_attr__('Trigger popup when user exits page.','adn'),
+																			'checked' => $is_exit_popup,
+																			'value' => 1,
+																			'hidden_input' => 1,
+																			'chk-on' => esc_attr__('Yes','adn'),
+																			'chk-off' => esc_attr__('No','adn'),
+																			'chk-high' => 1
+																		))
+																	));
+																	$h.= '<div class="clearFix"></div>';
+
+																	// Scroll Popup
+																	$h.= ADNI_Templates::spr_column(array(
+																		'col' => 'spr_col-3',
+																		'title' => esc_attr__('Scroll Popup','adn'),
+																		'desc' => '',
+																		'content' => ADNI_Templates::switch_btn(array(
+																			'name' => 'pos[popup][trigger][scroll]',
+																			'tooltip' => esc_attr__('Trigger popup when the user reaches a certain point.','adn'),
+																			'checked' => $is_scroll_popup,
+																			'value' => 1,
+																			'hidden_input' => 1,
+																			'chk-on' => esc_attr__('Yes','adn'),
+																			'chk-off' => esc_attr__('No','adn'),
+																			'chk-high' => 1
+																		))
+																	));
+																	$h.= ADNI_Templates::spr_column(array(
+																		'col' => 'spr_col-4',
+																		'title' => esc_attr__('Target','adn'),
+																		'desc' => esc_attr__('','adn'),
+																		'content' => '<select name="pos[popup][trigger][args][scroll][target]">
+																			<option value="percent"'.selected( $scroll_args['target'], 'percent', false ).'>'.__('Percent (x% of the page)','adn').'</option>
+																			<option value="scroll"'.selected( $scroll_args['target'], 'scroll', false ).'>'.__('Scroll (specific class/id)','adn').'</option>
+																		</select>'
+																	));
+																	$h.= ADNI_Templates::spr_column(array(
+																		'col' => 'spr_col-4',
+																		'title' => esc_attr__('Value','adn'),
+																		'desc' => esc_attr__('','adn'),
+																		'content' => ADNI_Templates::inpt_cont(array(
+																			'type' => 'text',
+																			'width' => '100%',
+																			'name' => 'pos[popup][trigger][args][scroll][value]',
+																			'value' => $scroll_args['value'],
+																			'placeholder' => '',
+																			'show_icon' => 1,
+																			'icon' => 'pencil'
+																		))
+																	));
+																	$h.= '<div class="clearFix"></div>';
+
+																	// Delay Popup
+																	$h.= ADNI_Templates::spr_column(array(
+																		'col' => 'spr_col-3',
+																		'title' => esc_attr__('Delay Popup','adn'),
+																		'desc' => '',
+																		'content' => ADNI_Templates::switch_btn(array(
+																			'name' => 'pos[popup][trigger][delay]',
+																			'tooltip' => esc_attr__('Trigger popup after x amount of time.','adn'),
+																			'checked' => $is_delay_popup,
+																			'value' => 1,
+																			'hidden_input' => 1,
+																			'chk-on' => esc_attr__('Yes','adn'),
+																			'chk-off' => esc_attr__('No','adn'),
+																			'chk-high' => 1
+																		))
+																	));
+																	$h.= ADNI_Templates::spr_column(array(
+																		'col' => 'spr_col-4',
+																		'title' => esc_attr__('Seconds','adn'),
+																		'desc' => esc_attr__('','adn'),
+																		'content' => ADNI_Templates::inpt_cont(array(
+																			'type' => 'text',
+																			'width' => '100%',
+																			'name' => 'pos[popup][trigger][args][delay][target]',
+																			'value' => $delay_args['target'],
+																			'placeholder' => '',
+																			'show_icon' => 1,
+																			'icon' => 'clock-o'
+																		))
+																	));
+																	$h.= '<div class="clearFix"></div>';
+
+																	// Inactive Popup
+																	/*$h.= ADNI_Templates::spr_column(array(
+																		'col' => 'spr_col-3',
+																		'title' => esc_attr__('Inactive Popup','adn'),
+																		'desc' => '',
+																		'content' => ADNI_Templates::switch_btn(array(
+																			'name' => 'pos[popup][trigger][inactive]',
+																			'tooltip' => esc_attr__('Trigger popup when the user is inactive for x amount of time.','adn'),
+																			'checked' => $is_inactive_popup,
+																			'value' => 1,
+																			'hidden_input' => 1,
+																			'chk-on' => esc_attr__('Yes','adn'),
+																			'chk-off' => esc_attr__('No','adn'),
+																			'chk-high' => 1
+																		))
+																	));
+																	$h.= ADNI_Templates::spr_column(array(
+																		'col' => 'spr_col-4',
+																		'title' => esc_attr__('Seconds','adn'),
+																		'desc' => esc_attr__('','adn'),
+																		'content' => ADNI_Templates::inpt_cont(array(
+																			'type' => 'text',
+																			'width' => '100%',
+																			'name' => 'pos[popup][trigger][args][inactive][target]',
+																			'value' => $inactive_args['target'],
+																			'placeholder' => '',
+																			'show_icon' => 1,
+																			'icon' => 'clock-o'
+																		))
+																	));*/
+																	
+																	$h.= '<div class="clearFix"></div>';
+																$h.= '</div>';
+															$h.= '</div>';
+
+														$h.= '</div>';
+													$h.= '</div>';	
+												$h.= '</div>';	
+											$h.= '</div>';		
+
 											
-													$h.= '</div>
-													<span class="description bottom">'.__('Background overlay color for the popup.','adn').'</span>
-												</div>';
-											$h.= '</div>';
-											// end .spr_column 
-											$h.= '<div class="spr_column spr_col-6">';
+											$h.= '<div class="clearFix"></div>';
+											$h.= '<div class="spr_column">';
+												$h.= '<div class="spr_column-inner">';
+													$h.= '<div class="spr_wrapper">';
+														$h.= '<div class="input_container">';
+
+															$h.= '<div class="adn_settings_cont closed">';
+																$h.= '<h4>'.__('Animation Settings','adn').' <span class="fa togg"></span></h4>';
+																$h.= '<div class="set_box_content hidden" style="margin-top: 15px;">';
+																	$popup_animateIn = 'tada';
+																	$popup_animateOut = 'tada';
+																	if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
+																	{
+																		$popup_animateIn = array_key_exists('popup', $auto_pos[$id]) ? $auto_pos[$id]['popup']['animate_in'] : 'tada';
+																		$popup_animateOut = array_key_exists('popup', $auto_pos[$id]) ? $auto_pos[$id]['popup']['animate_out'] : 'tada';
+																	}
+																	$h.= ADNI_Templates::spr_column(array(
+																		'col' => 'spr_col-6',
+																		'title' => esc_attr__('Animate In','adn'),
+																		'desc' => esc_attr__('Animation when popup gets shown.','adn'),
+																		'content' => self::popup_animations(array('id' => 'animate_in', 'name' => 'pos[popup][animate_in]', 'value' => $popup_animateIn))
+																	));
+																	$h.= ADNI_Templates::spr_column(array(
+																		'col' => 'spr_col-6',
+																		'title' => esc_attr__('Animate Out','adn'),
+																		'desc' => esc_attr__('Animation when popup gets closed.','adn'),
+																		'content' => self::popup_animations(array('id' => 'animate_out', 'name' => 'pos[popup][animate_out]', 'value' => $popup_animateOut))
+																	));
+																	$h.= '<div class="clearFix"></div>';
+																$h.= '</div>';
+															$h.= '</div>';
+
+														$h.= '</div>';
+													$h.= '</div>';	
+												$h.= '</div>';	
+											$h.= '</div>';		
+
+
+											$h.= '<div class="clearFix"></div>';
+											$h.= '<div class="spr_column">';
+												$h.= '<div class="spr_column-inner">';
+													$h.= '<div class="spr_wrapper">';
+														$h.= '<div class="input_container">';
+
+															$h.= '<div class="adn_settings_cont closed">';
+																$h.= '<h4>'.__('Advanced Settings','adn').' <span class="fa togg"></span></h4>';
+																$h.= '<div class="set_box_content hidden" style="margin-top: 15px;">';
+																	
+																	$popup_disable_window_scroll = 0;
+																	if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
+																	{
+																		$popup_disable_window_scroll = array_key_exists('popup', $auto_pos[$id]) ? $auto_pos[$id]['popup']['disable_ws'] : 0;
+																	}
+																	$h.= ADNI_Templates::spr_column(array(
+																		'col' => 'spr_col-3',
+																		'title' => esc_attr__('Disable Window Scroll','adn'),
+																		'desc' => '',
+																		'content' => ADNI_Templates::switch_btn(array(
+																			'name' => 'pos[popup][disable_ws]',
+																			'tooltip' => esc_attr__('Turn Off window scrolling when popup is open.','adn'),
+																			'checked' => $popup_disable_window_scroll,
+																			'value' => 1,
+																			'hidden_input' => 1,
+																			'chk-on' => esc_attr__('Yes','adn'),
+																			'chk-off' => esc_attr__('No','adn'),
+																			'chk-high' => 0
+																		))
+																	));
+
+																	$h.= '<div class="clearFix"></div>';
+
+																	$popup_custom_json = '';
+																	if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
+																	{
+																		$popup_custom_json = array_key_exists('popup', $auto_pos[$id]) ? $auto_pos[$id]['popup']['custom_json'] : '';
+																	}
+																	$h.= ADNI_Templates::spr_column(array(
+																		'col' => 'spr_col',
+																		'title' => 'Custom Attributes',
+																		'desc' => sprintf(__('Add custom %s attributes.','adn'), '<a href="http://modaljs.com/installation/#attributes" target="_blank">ModalJS</a>'),
+																		'content' => ADNI_Templates::inpt_cont(array(
+																			'type' => 'text',
+																			'width' => '100%',
+																			'name' => 'pos[popup][custom_json]',
+																			'value' => str_replace('"',"'", stripslashes($popup_custom_json)),
+																			'placeholder' => "animatedIn:\'tada\'",
+																			'show_icon' => 1,
+																			'icon' => 'pencil'
+																		))
+																	));
+
+																	$h.= '<div class="clearFix"></div>';
+																$h.= '</div>';
+															$h.= '</div>';
+
+														$h.= '</div>';
+													$h.= '</div>';	
+												$h.= '</div>';	
+											$h.= '</div>';		
+											
+											$h.= '<div class="clearFix"></div>';
+											$h.= '<div class="spr_column">';
+												$h.= '<div class="spr_column-inner">';
+													$h.= '<div class="spr_wrapper">';
+														$h.= '<div class="input_container">';
+
+															$h.= '<div class="adn_settings_cont closed">';
+																$h.= '<h4>'.__('Cookie Settings','adn').' <span class="fa togg"></span></h4>';
+																$h.= '<div class="set_box_content hidden" style="margin-top: 15px;">';
+																	$popup_cookie_value = '';
+																	if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
+																	{
+																		$popup_cookie_value = array_key_exists('popup', $auto_pos[$id]) ? $auto_pos[$id]['popup']['cookie_value'] : '';
+																	}
+																	$h.= ADNI_Templates::spr_column(array(
+																		'col' => 'spr_col-3',
+																		'title' => '',
+																		'desc' => esc_attr__('Numeric value in how long the cookie should expire.','adn'),
+																		'content' => ADNI_Templates::inpt_cont(array(
+																			'type' => 'text',
+																			'width' => '100%',
+																			'name' => 'pos[popup][cookie_value]',
+																			'value' => $popup_cookie_value,
+																			'placeholder' => '0',
+																			'show_icon' => 0
+																		))
+																	));
+					
+																	$popup_cookie_type = '';
+																	if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
+																	{
+																		$popup_cookie_type = array_key_exists('popup', $auto_pos[$id]) ? $auto_pos[$id]['popup']['cookie_type'] : '';
+																	}
+																	$h.= ADNI_Templates::spr_column(array(
+																		'col' => 'spr_col-3',
+																		'title' => '',
+																		'desc' => esc_attr__('Set a cookie to only show the popup every x amount of time.','adn'),
+																		'content' => '<select name="pos[popup][cookie_type]">
+																			<option value="minutes"'.selected( $popup_cookie_type, 'minutes', false ).'>'.__('Minutes','adn').'</option>
+																			<option value="days"'.selected( $popup_cookie_type, 'days', false ).'>'.__('Days','adn').'</option>
+																		</select>'
+																	));
+																	$h.= '<div class="clearFix"></div>';
+																$h.= '</div>';
+															$h.= '</div>';
+																	
+														$h.= '</div>';
+													$h.= '</div>';	
+												$h.= '</div>';	
+											$h.= '</div>';		
+											
+											
+											/*$h.= '<div class="spr_column spr_col-6">';
 												$h.= '<div class="input_container">
 													<h3 class="title">'.__('Custom Attributes','adn').'</h3>
 													<div class="input_container_inner">';
-														$popup_custom_json = '';
-														if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
-														{
-															//$popup_custom_json = array_key_exists('popup_custom_json', $auto_pos[$id]['custom']) ? $auto_pos[$id]['custom']['popup_custom_json'] : '';
-															$popup_custom_json = array_key_exists('popup', $auto_pos[$id]) ? $auto_pos[$id]['popup']['custom_json'] : '';
-														}
 														
-														$h.= '<input 
-															type="text" 
-															class="" 
-															name="pos[popup][custom_json]" 
-															value="'.str_replace('"',"'", stripslashes($popup_custom_json)).'" 
-															placeholder="animatedIn:\'tada\'" />';
-														$h.= '<i class="input_icon fa fa-pencil" aria-hidden="true"></i>';
 														
 													$h.= '</div>
 													<span class="description bottom">'.sprintf(__('Add custom %s attributes.','adn'), '<a href="http://modaljs.com/installation/#attributes" target="_blank">ModalJS</a>').'</span>
 												</div>';
 											$h.= '</div>';
-											// end .spr_column 
+											// end .spr_column */
 
 											// Popup Cookie settings
-											$h.= '<div class="clearFix">';
-												$h.= '<div class="input_container">
-													<h3 class="title">'.__('Popup Cookie Settings','adn').'</h3>
-												</div>';
-
-												$h.= '<div class="spr_column spr_col-3 left_column">';
-													$h.= '<div class="input_container">
-														<div class="input_container_inner">';
-															$popup_cookie_value = '';
-															if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
-															{
-																//$popup_cookie_value = array_key_exists('popup_cookie_value', $auto_pos[$id]['custom']) ? $auto_pos[$id]['custom']['popup_cookie_value'] : '';
-																$popup_cookie_value = array_key_exists('popup', $auto_pos[$id]) ? $auto_pos[$id]['popup']['cookie_value'] : '';
-															}
-															
-															$h.= '<input 
-																type="text" 
-																class="" 
-																name="pos[popup][cookie_value]" 
-																value="'.$popup_cookie_value.'" 
-																placeholder="0" />';
-															//$h.= '<svg viewBox="0 0 512 512" class="input_icon"><path fill="currentColor" d="M204.3 5C104.9 24.4 24.8 104.3 5.2 203.4c-37 187 131.7 326.4 258.8 306.7 41.2-6.4 61.4-54.6 42.5-91.7-23.1-45.4 9.9-98.4 60.9-98.4h79.7c35.8 0 64.8-29.6 64.9-65.3C511.5 97.1 368.1-26.9 204.3 5zM96 320c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32zm32-128c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32zm128-64c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32zm128 64c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z"></path></svg>';
-															
-														$h.= '</div>
-														<span class="description bottom">'.__('Numeric value in how long the cookie should expire.','adn').'</span>
-													</div>';
+											/*$h.= '<div class="clearFix">';
+												$h.= '<div class="input_container">';
+													$h.= '<h3 class="title">'.__('Popup Cookie Settings','adn').'</h3>';
 												$h.= '</div>';
-												// end .spr_column 
-												$h.= '<div class="spr_column spr_col-3">';
-													$h.= '<div class="input_container">
-														<div class="input_container_inner">';
-															$popup_cookie_type = '';
-															if( !empty($auto_pos) && array_key_exists($id, $auto_pos) )
-															{
-																//$popup_cookie_type = array_key_exists('popup_cookie_type', $auto_pos[$id]['custom']) ? $auto_pos[$id]['custom']['popup_cookie_type'] : '';
-																$popup_cookie_type = array_key_exists('popup', $auto_pos[$id]) ? $auto_pos[$id]['popup']['cookie_type'] : '';
-															}
-															
-															$h.= '<select name="pos[popup][cookie_type]">';
-																$h.= '<option value="minutes"'.selected( $popup_cookie_type, 'minutes', false ).'>'.__('Minutes','adn').'</option>';
-																$h.= '<option value="days"'.selected( $popup_cookie_type, 'days', false ).'>'.__('Days','adn').'</option>';
-															$h.= '</select>';
+											$h.= '</div>';*/
 
-														$h.= '</div>
-														<span class="description bottom">'.__('Set a cookie to only show the popup every x amount of time.','adn').'</span>
-													</div>';
-												$h.= '</div>';
-												// end .spr_column 
-
-											$h.= '</div>';
 										$h.= '</div>';
 										// end popup settings
+
+
+
 
 										// Background Takeover AD - Settings
 										if( $adzone['args']['type'] === 'banner' ){
@@ -1545,28 +1926,6 @@ class ADNI_Templates {
 														'data' => array('id' => $id)
 													))
 												));
-												/*$h.= '<div class="spr_column spr_col-4 left_column">';
-													$h.= '<div class="input_container">
-														<h3 class="title">'.__('Background Takover Image','adn').'</h3>
-														<div class="input_container_inner">';
-															
-															$h.= '<input 
-																type="text" 
-																class="bg_takeover_prev_obj"
-																id="bg_takeover_src"
-																name="bg_takeover_src" 
-																value="'.$adzone['args']['bg_takeover_src'].'" 
-																placeholder="'.__('','adn').'" />
-															<i class="input_icon fa fa-pencil" aria-hidden="true"></i>
-
-															<div id="BGADUploader" class="box" style="border:dashed 1px #d7d7d7;border-radius:3px;padding:15px 5px;background: #FFF;" method="post" action="'.ADNI_AJAXURL.'" enctype="multipart/form-data"></div>
-														</div>
-														<span class="description bottom">'.__('Upload or Insert the background takeover image URL (JPG, PNG, GIF, SVG).','adn').'</span>
-													</div>';
-												$h.= '</div>';
-												*/
-												// end .spr_column
-												
 
 
 
@@ -1762,6 +2121,143 @@ class ADNI_Templates {
 				<!-- end .option_box -->
 			</div>
 		</div>';
+		return $h;
+	}
+
+
+
+
+	public static function popup_animations($args = array())
+	{
+		$defaults = array(
+			'id' => 'animate_in',
+			'class' => 'animation_edit',
+			'name' => '',
+			'value' => 'tada'
+		);
+		$args = ADNI_Main::parse_args($args, $defaults);
+		$h = '';
+		$h.= '<select id="'.$args['id'].'" name="'.$args['name'].'" class="'.$args['class'].'">
+			<optgroup label="Attention Seekers">
+				<option value="bounce" '.selected( $args['value'], 'bounce', false ).'>bounce</option>
+				<option value="flash" '.selected( $args['value'], 'flash', false ).'>flash</option>
+				<option value="pulse" '.selected( $args['value'], 'pulse', false ).'>pulse</option>
+				<option value="rubberBand" '.selected( $args['value'], 'rubberBand', false ).'>rubberBand</option>
+				<option value="shake" '.selected( $args['value'], 'shake', false ).'>shake</option>
+				<option value="swing" '.selected( $args['value'], 'swing', false ).'>swing</option>
+				<option value="tada" '.selected( $args['value'], 'tada', false ).'>tada</option>
+				<option value="wobble" '.selected( $args['value'], 'wobble', false ).'>wobble</option>
+				<option value="jello" '.selected( $args['value'], 'jello', false ).'>jello</option>
+			</optgroup>
+
+			<optgroup label="Bouncing Entrances">
+				<option value="bounceIn" '.selected( $args['value'], 'bounceIn', false ).'>bounceIn</option>
+				<option value="bounceInDown" '.selected( $args['value'], 'bounceInDown', false ).'>bounceInDown</option>
+				<option value="bounceInLeft" '.selected( $args['value'], 'bounceInLeft', false ).'>bounceInLeft</option>
+				<option value="bounceInRight" '.selected( $args['value'], 'bounceInRight', false ).'>bounceInRight</option>
+				<option value="bounceInUp" '.selected( $args['value'], 'bounceInUp', false ).'>bounceInUp</option>
+			</optgroup>
+
+			<optgroup label="Bouncing Exits">
+				<option value="bounceOut" '.selected( $args['value'], 'bounceOut', false ).'>bounceOut</option>
+				<option value="bounceOutDown" '.selected( $args['value'], 'bounceOutDown', false ).'>bounceOutDown</option>
+				<option value="bounceOutLeft" '.selected( $args['value'], 'bounceOutLeft', false ).'>bounceOutLeft</option>
+				<option value="bounceOutRight" '.selected( $args['value'], 'bounceOutRight', false ).'>bounceOutRight</option>
+				<option value="bounceOutUp" '.selected( $args['value'], 'bounceOutUp', false ).'>bounceOutUp</option>
+			</optgroup>
+
+			<optgroup label="Fading Entrances">
+				<option value="fadeIn" '.selected( $args['value'], 'fadeIn', false ).'>fadeIn</option>
+				<option value="fadeInDown" '.selected( $args['value'], 'fadeInDown', false ).'>fadeInDown</option>
+				<option value="fadeInDownBig" '.selected( $args['value'], 'fadeInDownBig', false ).'>fadeInDownBig</option>
+				<option value="fadeInLeft" '.selected( $args['value'], 'fadeInLeft', false ).'>fadeInLeft</option>
+				<option value="fadeInLeftBig" '.selected( $args['value'], 'fadeInLeftBig', false ).'>fadeInLeftBig</option>
+				<option value="fadeInRight" '.selected( $args['value'], 'fadeRight', false ).'>fadeInRight</option>
+				<option value="fadeInRightBig" '.selected( $args['value'], 'fadeInRightBig', false ).'>fadeInRightBig</option>
+				<option value="fadeInUp" '.selected( $args['value'], 'fadeInUp', false ).'>fadeInUp</option>
+				<option value="fadeInUpBig" '.selected( $args['value'], 'fadeInUpBig', false ).'>fadeInUpBig</option>
+			</optgroup>
+
+			<optgroup label="Fading Exits">
+				<option value="fadeOut" '.selected( $args['value'], 'fadeOut', false ).'>fadeOut</option>
+				<option value="fadeOutDown" '.selected( $args['value'], 'fadeOutDown', false ).'>fadeOutDown</option>
+				<option value="fadeOutDownBig" '.selected( $args['value'], 'fadeOutDownBig', false ).'>fadeOutDownBig</option>
+				<option value="fadeOutLeft" '.selected( $args['value'], 'fadeOutLeft', false ).'>fadeOutLeft</option>
+				<option value="fadeOutLeftBig" '.selected( $args['value'], 'fadeOutLeftBig', false ).'>fadeOutLeftBig</option>
+				<option value="fadeOutRight" '.selected( $args['value'], 'fadeOutRight', false ).'>fadeOutRight</option>
+				<option value="fadeOutRightBig" '.selected( $args['value'], 'fadeOutRightBig', false ).'>fadeOutRightBig</option>
+				<option value="fadeOutUp" '.selected( $args['value'], 'fadeOutUp', false ).'>fadeOutUp</option>
+				<option value="fadeOutUpBig" '.selected( $args['value'], 'fadeOutUpBig', false ).'>fadeOutUpBig</option>
+			</optgroup>
+
+			<optgroup label="Flippers">
+				<option value="flip" '.selected( $args['value'], 'flip', false ).'>flip</option>
+				<option value="flipInX" '.selected( $args['value'], 'flipInX', false ).'>flipInX</option>
+				<option value="flipInY" '.selected( $args['value'], 'flipInY', false ).'>flipInY</option>
+				<option value="flipOutX" '.selected( $args['value'], 'flipOutX', false ).'>flipOutX</option>
+				<option value="flipOutY" '.selected( $args['value'], 'flipOutY', false ).'>flipOutY</option>
+			</optgroup>
+
+			<optgroup label="Lightspeed">
+				<option value="lightSpeedIn" '.selected( $args['value'], 'lightSpeedIn', false ).'>lightSpeedIn</option>
+				<option value="lightSpeedOut" '.selected( $args['value'], 'lightSpeedOut', false ).'>lightSpeedOut</option>
+			</optgroup>
+
+			<optgroup label="Rotating Entrances">
+				<option value="rotateIn" '.selected( $args['value'], 'rotateIn', false ).'>rotateIn</option>
+				<option value="rotateInDownLeft" '.selected( $args['value'], 'rotateInDownLeft', false ).'>rotateInDownLeft</option>
+				<option value="rotateInDownRight" '.selected( $args['value'], 'rotateInDownRight', false ).'>rotateInDownRight</option>
+				<option value="rotateInUpLeft" '.selected( $args['value'], 'rotateInUpLeft', false ).'>rotateInUpLeft</option>
+				<option value="rotateInUpRight" '.selected( $args['value'], 'rotateInUpRight', false ).'>rotateInUpRight</option>
+			</optgroup>
+
+			<optgroup label="Rotating Exits">
+				<option value="rotateOut" '.selected( $args['value'], 'rotateOut', false ).'>rotateOut</option>
+				<option value="rotateOutDownLeft" '.selected( $args['value'], 'rotateOutDownLeft', false ).'>rotateOutDownLeft</option>
+				<option value="rotateOutDownRight" '.selected( $args['value'], 'rotateOutDownRight', false ).'>rotateOutDownRight</option>
+				<option value="rotateOutUpLeft" '.selected( $args['value'], 'rotateOutUpLeft', false ).'>rotateOutUpLeft</option>
+				<option value="rotateOutUpRight" '.selected( $args['value'], 'rotateOutUpRight', false ).'>rotateOutUpRight</option>
+			</optgroup>
+
+			<optgroup label="Sliding Entrances">
+				<option value="slideInUp" '.selected( $args['value'], 'slideInUp', false ).'>slideInUp</option>
+				<option value="slideInDown" '.selected( $args['value'], 'slideInDown', false ).'>slideInDown</option>
+				<option value="slideInLeft" '.selected( $args['value'], 'slideInLeft', false ).'>slideInLeft</option>
+				<option value="slideInRight" '.selected( $args['value'], 'slideInRight', false ).'>slideInRight</option>
+
+			</optgroup>
+			<optgroup label="Sliding Exits">
+				<option value="slideOutUp" '.selected( $args['value'], 'slideOutUp', false ).'>slideOutUp</option>
+				<option value="slideOutDown" '.selected( $args['value'], 'slideOutDown', false ).'>slideOutDown</option>
+				<option value="slideOutLeft" '.selected( $args['value'], 'slideOutLeft', false ).'>slideOutLeft</option>
+				<option value="slideOutRight" '.selected( $args['value'], 'slideOutRight', false ).'>slideOutRight</option>
+				
+			</optgroup>
+			
+			<optgroup label="Zoom Entrances">
+				<option value="zoomIn" '.selected( $args['value'], 'zoomIn', false ).'>zoomIn</option>
+				<option value="zoomInDown" '.selected( $args['value'], 'zoomInDown', false ).'>zoomInDown</option>
+				<option value="zoomInLeft" '.selected( $args['value'], 'zoomInLeft', false ).'>zoomInLeft</option>
+				<option value="zoomInRight" '.selected( $args['value'], 'zoomInRight', false ).'>zoomInRight</option>
+				<option value="zoomInUp" '.selected( $args['value'], 'zoomInUp', false ).'>zoomInUp</option>
+			</optgroup>
+			
+			<optgroup label="Zoom Exits">
+				<option value="zoomOut" '.selected( $args['value'], 'zoomOut', false ).'>zoomOut</option>
+				<option value="zoomOutDown" '.selected( $args['value'], 'zoomOutDown', false ).'>zoomOutDown</option>
+				<option value="zoomOutLeft" '.selected( $args['value'], 'zoomOutLeft', false ).'>zoomOutLeft</option>
+				<option value="zoomOutRight" '.selected( $args['value'], 'zoomOutRight', false ).'>zoomOutRight</option>
+				<option value="zoomOutUp" '.selected( $args['value'], 'zoomOutUp', false ).'>zoomOutUp</option>
+			</optgroup>
+
+			<optgroup label="Specials">
+				<option value="hinge" '.selected( $args['value'], 'hinge', false ).'>hinge</option>
+				<option value="jackInTheBox" '.selected( $args['value'], 'jackInTheBox', false ).'>jackInTheBox</option>
+				<option value="rollIn" '.selected( $args['value'], 'rollIn', false ).'>rollIn</option>
+				<option value="rollOut" '.selected( $args['value'], 'rollOut', false ).'>rollOut</option>
+			</optgroup>
+		</select>';
+
 		return $h;
 	}
 
@@ -2102,6 +2598,8 @@ class ADNI_Templates {
 										$h.= '<textarea class="export_embed_code" style="min-height:120px;font-size:11px;">'.$code.'</textarea>';
 										$h.= '<span class="description bottom">'.__('Iframe code.','adn').'</span>';
 									$h.= '</div>';
+
+									$h.= '<p>'.__('<strong>Note:</strong> "Display Filters" will not work with Embed Code and Iframe export options.','adn').'</p>';
 								$h.= '</div>';
 							
 						$h.= '</div>';
@@ -2188,22 +2686,7 @@ class ADNI_Templates {
 										'chk-high' => 1
 									))
 								));
-								/*<div class="spr_column spr_col-6">
-									<div class="input_container">';
-
-										$show_hide = array_key_exists('homepage', $adzone['args']['display_filter']) ? $adzone['args']['display_filter']['homepage'] : 0;
-										$h.= '<label class="switch switch-slide small input_h ttip" title="'.__('Show/Hide.','adn').'">
-											<input class="switch-input" type="checkbox" name="display_filter[homepage]" value="1" '.checked($show_hide,1,false).' />
-											<span class="switch-label" data-on="'.__('Show','adn').'" data-off="'.__('Hide','adn').'"></span> 
-											<span class="switch-handle"></span>
-										</label>';
-
-										$h.= '<span class="description bottom">'.__('Show or Hide the banner on the home page.','adn').'</span>
-									</div>
-								</div>
-								<!-- end .spr_column -->
-								*/
-
+								
 							$h.= '</div>';
 
 							$h.= '<div class="clear device_filter_container" style="margin-top: 40px;">
@@ -2258,21 +2741,7 @@ class ADNI_Templates {
 													'chk-high' => 1
 												))
 											));
-											/*<div class="spr_column spr_col-6">
-												<div class="input_container">';
-													
-													$show_hide = array_key_exists($post_type, $adzone['args']['display_filter']['post_types']) ? $adzone['args']['display_filter']['post_types'][$post_type]['show_hide'] : 0;
-													$h.= '<label class="switch switch-slide small input_h ttip" title="'.__('Show/Hide.','adn').'">
-														<input class="switch-input" type="checkbox" name="display_filter[post_types]['.$post_type.'][show_hide]" value="1" '.checked($show_hide,1,false).' />
-														<span class="switch-label" data-on="'.__('Show','adn').'" data-off="'.__('Hide','adn').'"></span> 
-														<span class="switch-handle"></span>
-													</label>';
-
-													$h.= '<span class="description bottom">'.sprintf(__('Show or Hide the banner for the selected %s.','adn'), $post_type).'</span>
-												</div>
-											</div>
-											<!-- end .spr_column -->
-											*/
+											
 
 											$h.= '<div class="spr_column spr_col-6">
 												<div class="input_container">
@@ -2423,7 +2892,7 @@ class ADNI_Templates {
 										'col' => 'spr_col',
 										'title' => '',
 										'desc' => '',
-										'content' => sprintf(__('<strong>Note:</strong> No Post Types have been selected under <em>General Settings</em> -> <em>Placement Settings</em> -> <em>Post Types for ADS</em>. As a result ADS will not be visible on most of the pages. %s','adn'), '<div><a class="button-secondary" style="margin-top:5px;" href="admin.php?page=adning-settings#posttypes_for_ads">'.__('Select post types here','adn').'</a></div>')
+										'content' => sprintf(__('<strong>Note:</strong> No Post Types have been selected under <em>General Settings</em> -> <em>Placement Settings</em> -> <em>Post Types for ADS</em>. As a result ADS will not be visible on most of the pages. %s','adn'), '<div><a class="button-secondary" style="margin-top:5px;" href="'.esc_url( wp_nonce_url( self_admin_url('admin.php?page=adning-settings#posttypes_for_ads'))).'">'.__('Select post types here','adn').'</a></div>')
 									));
 								}
 
@@ -2457,7 +2926,9 @@ class ADNI_Templates {
 		$h = '';
 		$h.= '<div class="option_box closed">
 			<div class="info_header">
-				<span class="nr">6</span>
+				<span class="nr">
+				<svg viewBox="0 0 576 512"><path fill="currentColor" d="M564 224c6.627 0 12-5.373 12-12v-72c0-6.627-5.373-12-12-12h-72c-6.627 0-12 5.373-12 12v12h-88v-24h12c6.627 0 12-5.373 12-12V44c0-6.627-5.373-12-12-12h-72c-6.627 0-12 5.373-12 12v12H96V44c0-6.627-5.373-12-12-12H12C5.373 32 0 37.373 0 44v72c0 6.627 5.373 12 12 12h12v160H12c-6.627 0-12 5.373-12 12v72c0 6.627 5.373 12 12 12h72c6.627 0 12-5.373 12-12v-12h88v24h-12c-6.627 0-12 5.373-12 12v72c0 6.627 5.373 12 12 12h72c6.627 0 12-5.373 12-12v-12h224v12c0 6.627 5.373 12 12 12h72c6.627 0 12-5.373 12-12v-72c0-6.627-5.373-12-12-12h-12V224h12zM352 64h32v32h-32V64zm0 256h32v32h-32v-32zM64 352H32v-32h32v32zm0-256H32V64h32v32zm32 216v-12c0-6.627-5.373-12-12-12H72V128h12c6.627 0 12-5.373 12-12v-12h224v12c0 6.627 5.373 12 12 12h12v160h-12c-6.627 0-12 5.373-12 12v12H96zm128 136h-32v-32h32v32zm280-64h-12c-6.627 0-12 5.373-12 12v12H256v-12c0-6.627-5.373-12-12-12h-12v-24h88v12c0 6.627 5.373 12 12 12h72c6.627 0 12-5.373 12-12v-72c0-6.627-5.373-12-12-12h-12v-88h88v12c0 6.627 5.373 12 12 12h12v160zm40 64h-32v-32h32v32zm0-256h-32v-32h32v32z"></path></svg>
+				</span>
 				<span class="text">'.__('Border Settings','adn').'</span>
 				<span class="fa tog ttip" title="'.__('Toggle box','adn').'"></span>
 			</div>
@@ -2602,7 +3073,7 @@ class ADNI_Templates {
 		$group = $type === 'banner' ? 'id_1' : 'id_2';
 		$args['time_range'] = 'custom_'.get_the_time('U', $id).'::'.current_time('timestamp');
 
-		if( ADNI_Main::has_stats() )
+		if( ADNI_Main::has_stats(array('type' => 'int')) || ADNI_Main::has_stats(array('type' => 'ext')) )
 		{
 			// show stats for adzones alaways as they are based on banner stats anyway.
 			$b['enable_stats'] = $type === 'banner' ? $b['enable_stats'] : 1; 
@@ -2615,11 +3086,11 @@ class ADNI_Templates {
 				</div>';
 
 				$h.= '<div class="settings_box_content">';
-	
-					if( $b['enable_stats'] )
+					if( $b['enable_stats'] && ADNI_Main::has_stats(array('type' => 'int')) )
 					{
 						$impressions = !empty($id) ? ADNI_Main::count_stats(array('type' => 'impression', 'group' => $group, 'id' => $id, 'time_range' => $args['time_range'])) : 0;
 						$clicks = !empty($id) ? ADNI_Main::count_stats(array('type' => 'click', 'group' => $group, 'id' => $id, 'time_range' => $args['time_range'])) : 0;
+						
 						$h.= self::spr_column(array(
 							'col' => 'spr_col-6',
 							'class' => 'stats_box',
@@ -2645,6 +3116,16 @@ class ADNI_Templates {
 							));
 						}
 					}
+
+					// External stats notice
+					if( $b['enable_stats'] && ADNI_Main::has_stats(array('type' => 'ext')) )
+					{
+						$h.= self::spr_column(array(
+							'col' => 'spr_col',
+							'class' => 'stats_info',
+							'content' => sprintf(__('Stats are getting tracked by %s.','adn'), '<a href="https://analytics.google.com/analytics/" target="_blank">'.__('Google Analytics','adn').'</a>')
+						));
+					}
 					
 
 					if( !$args['frontend'] )
@@ -2665,10 +3146,11 @@ class ADNI_Templates {
 							))
 						)) : '';
 
-						if( $b['enable_stats'] )
+						if( $b['enable_stats'] && ADNI_Main::has_stats(array('type' => 'int')) )
 						{
-							$stats_url = 'admin.php?page=strack-statistics&group='.$group.'&group_id='.$id; // .'&range='.$args['time_range']
-							$remove_stats_url = 'admin.php?page=adning&view='.$type.'&id='.$id.'&reset_stats=1';
+							$stats_url = esc_url( wp_nonce_url( self_admin_url( 'admin.php?page=strack-statistics&group='.$group.'&group_id='.$id ) ) );
+							//$stats_url = 'admin.php?page=strack-statistics&group='.$group.'&group_id='.$id; // .'&range='.$args['time_range']
+							$remove_stats_url = esc_url( wp_nonce_url( self_admin_url('admin.php?page=adning&view='.$type.'&id='.$id.'&reset_stats=1')));
 							$h.= self::spr_column(array(
 								'col' => 'spr_col-4',
 								'title' => __('View all stats','adn'),
@@ -2804,9 +3286,25 @@ class ADNI_Templates {
 								<!-- end .input_container -->
 							</div>
 						</div>
-					</div>
-					<!-- end .spr_column -->
-				</div>';
+					</div>';
+					//<!-- end .spr_column -->
+
+					$h.= ADNI_Templates::spr_column(array(
+						'col' => 'spr_col',
+						'title' => __('Banner Duration','adn'),
+						'desc' => __('Duration time for this banner in seconds.','adn'),
+						'content' => ADNI_Templates::inpt_cont(array(
+							'type' => 'text',
+							'width' => '100%',
+							'name' => 'duration',
+							'value' => $b['duration'],
+							'placeholder' => '5',
+							'icon' => 'clock',
+							'show_icon' => 1
+						))
+					));
+
+				$h.= '</div>';
 			$h.= '</div>';
 			// end .settings_box_content
 
@@ -2823,7 +3321,9 @@ class ADNI_Templates {
 		$h = '';
 		$h.= '<div class="option_box">
 			<div class="info_header">
-				<span class="nr">5</span>
+				<span class="nr">
+				<svg viewBox="0 0 448 512"><path fill="currentColor" d="M352 44v40c0 8.837-7.163 16-16 16H112c-8.837 0-16-7.163-16-16V44c0-8.837 7.163-16 16-16h224c8.837 0 16 7.163 16 16zM16 228h416c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16H16c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16zm0 256h416c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16H16c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16zm320-200H112c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16h224c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16z"></path></svg>
+				</span>
 				<span class="text">'.__('Alignment Settings','adn').'</span>
 				<span class="fa tog ttip" title="'.__('Toggle box','adn').'"></span>
 			</div>
@@ -2911,7 +3411,7 @@ class ADNI_Templates {
 							 'data-ad-client="ca-' . $args['pub_id'] . '" ' .
 							 'data-ad-slot="' . $args['slot_id'] . '" ' .
 							 'data-ad-layout-key="' . $args['layout_key'] . '" ';
-				if ( args['layout'] !== '' ) {
+				if ( $args['layout'] !== '' ) {
 					$code .= 'data-ad-layout="' . $args['layout'] . '" ';
 				}
 				$code .= 'data-ad-format="fluid"></ins>' .

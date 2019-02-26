@@ -31,12 +31,12 @@ module.exports = {
     module: {
         rules: [{
             test: /\.js$/,
-            include: [path.resolve(__dirname, "./src/assets/dev/js/")],
+            include: [path.resolve(__dirname, "./assets/dev/js/")],
             exclude: /node_modules/,
             use: {
                 loader: 'babel-loader',
                 options: {
-                    presets: ['env']
+                    presets: ['@babel/preset-env']
                 }
             }
         },

@@ -91,17 +91,17 @@ class ADNI_Frontend {
 				echo '<div class="page_container">';
 					if( $view === 'banner')
 					{
-						require_once(ADNI_TPL_DIR.'/single_banner.php'); 
+						require(ADNI_TPL_DIR.'/single_banner.php'); 
 						echo $h;
 					}
 					if( $view === 'user_dashboard')
 					{
-						require_once(ADNI_TPL_DIR.'/frontend_manager/sell/user_dashboard.php'); 
+						require(ADNI_TPL_DIR.'/frontend_manager/sell/user_dashboard.php'); 
 						echo $h;
 					}
 					if( $view === 'available_adzones')
 					{
-						require_once(ADNI_TPL_DIR.'/frontend_manager/sell/available_adzones.php'); 
+						require(ADNI_TPL_DIR.'/frontend_manager/sell/available_adzones.php'); 
 						echo $h;
 					}
 				echo '</div>';
@@ -254,7 +254,7 @@ class ADNI_Frontend {
 	{
 		if( isset( $_GET['_ning_front'] ) && !empty( $_GET['_ning_front'] ) )
 		{
-			require_once(ADNI_TPL_DIR.'/frontend_manager/index.php');
+			require(ADNI_TPL_DIR.'/frontend_manager/index.php');
 			
 			exit;
 		}

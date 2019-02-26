@@ -6,7 +6,7 @@
 	<div class="wrap">
        
 		<?php
-		$activation = true;
+		$activation = ADNI_Multi::get_option('adning_activation', array());
 		$tip = empty($activation) && current_user_can(ADNI_ADMIN_ROLE) ? ' <span style="background-color:#d4ff00;">'.__('Tip: start by activting your Product License.','adn').'</span>' : '';
 
 		echo ADNI_Templates::main_admin_header(array(
@@ -101,23 +101,23 @@
 												<h3><?php _e('Included Add-Ons','adn'); ?></h3>
 												<?php
 												$h = '';
-												$activation = true;
+												$activation = ADNI_Multi::get_option('adning_activation', array());
 												$addOns = array(
 													'smartrack' => array(
 														'name' => 'smarTrack',
 														'desc' => __('Statistics add-on to keep track of your banner/adzone stats.','adn'),
 														'package' => ADNI_INC_URL.'/extensions/plugins/smartrack.zip'
 													),
-													'adning_woo' => array(
+													'angwp_woo' => array(
 														'name' => 'Adning WooCommerce',
 														'desc' => __('Sell adzones on your website and handle payments using WooCommerce.','adn'),
-														'package' => ADNI_INC_URL.'/extensions/plugins/adning_woo.zip'
+														'package' => ADNI_INC_URL.'/extensions/plugins/angwp_woo.zip'
  													)
 												);
 
 												if( empty($activation))
 												{
-													$h.= '<p class="_ning_notices">'.sprintf(__('Please %s in order to install the Add-Ons.','adn'), '<a href="admin.php?page=adning-updates">'.__('activate your license','adn').'</a>').'</p>';
+													$h.= '<p class="_ning_notices">'.sprintf(__('Please %s in order to install the Add-Ons.','adn'), '<a href="'.esc_url( wp_nonce_url( self_admin_url('admin.php?page=adning-updates'))).'">'.__('activate your license','adn').'</a>').'</p>';
 												}
 								
 												$h.= '<ul>';

@@ -3742,6 +3742,10 @@
     height: inherit;
     overflow: auto;
     vertical-align: top;
+    
+    display: flex;
+    min-height: 100%;
+    align-items: center;
 }
 .mdl_container .mdl_inner .barload{
     height: 5px;

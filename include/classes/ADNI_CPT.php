@@ -12,8 +12,11 @@ class ADNI_CPT {
 	public function __construct() 
 	{
 		// Actions ------------------------------------------------------
-		add_action('init', array(__CLASS__, 'register_posttypes'));
-		add_action( 'pre_get_posts', array(__CLASS__,'filter_cpt_listing_by_author') );
+		add_action( 'init', array(__CLASS__, 'register_posttypes'));
+		add_action( 'pre_get_posts', array(__CLASS__, 'filter_cpt_listing_by_author') );
+		add_action( 'add_meta_boxes', array( __CLASS__, 'ning_meta_box') );
+		add_action( 'save_post', array( __CLASS__, 'save_ning_settings_meta_box_data') );
+
 		
 		// Filters ------------------------------------------------------
 		add_filter( 'admin_url', array(__CLASS__,'custom_add_new_link'), 10, 2 );
@@ -90,9 +93,10 @@ class ADNI_CPT {
 		{
 			//$content_post = get_post($my_postid);
 			$content = get_post_field('post_content', $post_id);
-			//$content = $content_post->post_content;
-			$content = apply_filters('the_content', $content);
+			//$content = apply_filters('the_content', $content);
 			$content = str_replace(']]>', ']]&gt;', $content);
+			
+			$content = ADNI_Main::remove_smart_quotes($content);
 
 			$b_args = get_post_meta($post_id, '_adning_args', array());
 			$b_args = !empty($b_args) ? $b_args[0] : $b_args;
@@ -107,7 +111,8 @@ class ADNI_CPT {
 	{
 		if( $path === 'post-new.php?post_type='.strtolower(self::$banner_cpt) ) 
 		{
-			$url = get_admin_url().'admin.php?page=adning&view=banner';
+			$url = esc_url( self_admin_url('admin.php?page=adning&view=banner'));
+			//$url = get_admin_url().'admin.php?page=adning&view=banner';
 		}
 		return $url;
 	}
@@ -115,7 +120,8 @@ class ADNI_CPT {
 	{
 		if( $path === 'post-new.php?post_type='.strtolower(self::$adzone_cpt) ) 
 		{
-			$url = get_admin_url().'admin.php?page=adning&view=adzone';
+			$url = esc_url( self_admin_url('admin.php?page=adning&view=adzone'));
+			//$url = get_admin_url().'admin.php?page=adning&view=adzone';
 		}
 		return $url;
 	}
@@ -123,7 +129,8 @@ class ADNI_CPT {
 	{
 		if( $path === 'post-new.php?post_type='.strtolower(self::$campaign_cpt) ) 
 		{
-			$url = get_admin_url().'admin.php?page=adning&view=campaign';
+			$url = esc_url( self_admin_url('admin.php?page=adning&view=campaign'));
+			//$url = get_admin_url().'admin.php?page=adning&view=campaign';
 		}
 		return $url;
 	}
@@ -361,11 +368,13 @@ class ADNI_CPT {
 	{
 		if( $path === 'post-new.php?post_type='.self::$banner_cpt ) {
 			//$url = get_admin_url().'admin.php?page='.self::$banner_cpt;
-			$url = get_admin_url().'admin.php?page=adning&view=banner';
+			//$url = get_admin_url().'admin.php?page=adning&view=banner';
+			$url = esc_url( self_admin_url('admin.php?page=adning&view=banner'));
 		}
 		elseif( $path === 'post-new.php?post_type='.self::$adzone_cpt ) {
 			//$url = get_admin_url().'admin.php?page='.self::$banner_cpt;
-			$url = get_admin_url().'admin.php?page=adning&view=adzone';
+			//$url = get_admin_url().'admin.php?page=adning&view=adzone';
+			$url = esc_url( self_admin_url('admin.php?page=adning&view=adzone'));
 		}
 		return $url;
 	}
@@ -387,7 +396,7 @@ class ADNI_CPT {
 			return;
 	
 		global $current_user, $pagenow;
-		wp_get_current_user();
+		//wp_get_current_user();
 	
 		// http://php.net/manual/en/function.is-a.php
 		if( !is_a( $current_user, 'WP_User') )
@@ -462,7 +471,9 @@ class ADNI_CPT {
 			case '_adn_b_name' :
 				
 				$can_edit = get_current_user_id() == $post->post_author || current_user_can(ADNI_BANNERS_ROLE) ? 1 : 0;
-				$edit_url = $can_edit ? get_admin_url().'admin.php?page=adning&view=banner&id='.$post->ID : '';
+				//$edit_url = $can_edit ? get_admin_url().'admin.php?page=adning&view=banner&id='.$post->ID : '';
+				$edit_url = $can_edit ? esc_url( self_admin_url('admin.php?page=adning&view=banner&id='.$post->ID)) : '';
+				
 				$title            = _draft_or_post_title();
 				$post_type_object = get_post_type_object( $post->post_type );
 				$can_edit_post    = $can_edit ? current_user_can( $post_type_object->cap->edit_posts, $post->ID ) : 0;
@@ -544,7 +555,7 @@ class ADNI_CPT {
 				echo $status['name'];
 			break;
 			case '_adn_b_stats':
-				echo ADNI_Main::has_stats() ? '<a href="admin.php?page=strack-statistics&group=id_1&group_id='.$post->ID.'"><svg viewBox="0 0 512 512" style="height:20px;"><path fill="currentColor" d="M496 384H64V80c0-8.84-7.16-16-16-16H16C7.16 64 0 71.16 0 80v336c0 17.67 14.33 32 32 32h464c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16zM464 96H345.94c-21.38 0-32.09 25.85-16.97 40.97l32.4 32.4L288 242.75l-73.37-73.37c-12.5-12.5-32.76-12.5-45.25 0l-68.69 68.69c-6.25 6.25-6.25 16.38 0 22.63l22.62 22.62c6.25 6.25 16.38 6.25 22.63 0L192 237.25l73.37 73.37c12.5 12.5 32.76 12.5 45.25 0l96-96 32.4 32.4c15.12 15.12 40.97 4.41 40.97-16.97V112c.01-8.84-7.15-16-15.99-16z"></path></svg></a>' : __('N/A','adn');
+				echo ADNI_Main::has_stats(array('type' => 'int')) ? '<a href="admin.php?page=strack-statistics&group=id_1&group_id='.$post->ID.'"><svg viewBox="0 0 512 512" style="height:20px;"><path fill="currentColor" d="M496 384H64V80c0-8.84-7.16-16-16-16H16C7.16 64 0 71.16 0 80v336c0 17.67 14.33 32 32 32h464c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16zM464 96H345.94c-21.38 0-32.09 25.85-16.97 40.97l32.4 32.4L288 242.75l-73.37-73.37c-12.5-12.5-32.76-12.5-45.25 0l-68.69 68.69c-6.25 6.25-6.25 16.38 0 22.63l22.62 22.62c6.25 6.25 16.38 6.25 22.63 0L192 237.25l73.37 73.37c12.5 12.5 32.76 12.5 45.25 0l96-96 32.4 32.4c15.12 15.12 40.97 4.41 40.97-16.97V112c.01-8.84-7.15-16-15.99-16z"></path></svg></a>' : __('N/A','adn');
 			break;
 		}
 	}
@@ -579,7 +590,8 @@ class ADNI_CPT {
 			case '_adn_a_name' :
 				
 				$can_edit = get_current_user_id() == $post->post_author || current_user_can(ADNI_ADZONES_ROLE) ? 1 : 0;
-				$edit_url = $can_edit ? get_admin_url().'admin.php?page=adning&view=adzone&id='.$post->ID : '';
+				//$edit_url = $can_edit ? get_admin_url().'admin.php?page=adning&view=adzone&id='.$post->ID : '';
+				$edit_url = $can_edit ? esc_url( self_admin_url('admin.php?page=adning&view=adzone&id='.$post->ID)) : '';
 				$title            = _draft_or_post_title();
 				$post_type_object = get_post_type_object( $post->post_type );
 				$can_edit_post    = $can_edit ? current_user_can( $post_type_object->cap->edit_post, $post->ID ) : 0;
@@ -657,7 +669,7 @@ class ADNI_CPT {
 				echo $status['name'];
 			break;
 			case '_adn_a_stats':
-				echo ADNI_Main::has_stats() ? '<a href="admin.php?page=strack-statistics&group=id_2&group_id='.$post->ID.'"><svg viewBox="0 0 512 512" style="height:20px;"><path fill="currentColor" d="M496 384H64V80c0-8.84-7.16-16-16-16H16C7.16 64 0 71.16 0 80v336c0 17.67 14.33 32 32 32h464c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16zM464 96H345.94c-21.38 0-32.09 25.85-16.97 40.97l32.4 32.4L288 242.75l-73.37-73.37c-12.5-12.5-32.76-12.5-45.25 0l-68.69 68.69c-6.25 6.25-6.25 16.38 0 22.63l22.62 22.62c6.25 6.25 16.38 6.25 22.63 0L192 237.25l73.37 73.37c12.5 12.5 32.76 12.5 45.25 0l96-96 32.4 32.4c15.12 15.12 40.97 4.41 40.97-16.97V112c.01-8.84-7.15-16-15.99-16z"></path></svg></a>' : __('N/A','adn');
+				echo ADNI_Main::has_stats(array('type' => 'int')) ? '<a href="admin.php?page=strack-statistics&group=id_2&group_id='.$post->ID.'"><svg viewBox="0 0 512 512" style="height:20px;"><path fill="currentColor" d="M496 384H64V80c0-8.84-7.16-16-16-16H16C7.16 64 0 71.16 0 80v336c0 17.67 14.33 32 32 32h464c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16zM464 96H345.94c-21.38 0-32.09 25.85-16.97 40.97l32.4 32.4L288 242.75l-73.37-73.37c-12.5-12.5-32.76-12.5-45.25 0l-68.69 68.69c-6.25 6.25-6.25 16.38 0 22.63l22.62 22.62c6.25 6.25 16.38 6.25 22.63 0L192 237.25l73.37 73.37c12.5 12.5 32.76 12.5 45.25 0l96-96 32.4 32.4c15.12 15.12 40.97 4.41 40.97-16.97V112c.01-8.84-7.15-16-15.99-16z"></path></svg></a>' : __('N/A','adn');
 			break;
 		}
 	}
@@ -694,7 +706,8 @@ class ADNI_CPT {
 			case '_adn_c_name' :
 				
 				$can_edit = get_current_user_id() == $post->post_author || current_user_can(ADNI_CAMPAIGNS_ROLE) ? 1 : 0;
-				$edit_url = $can_edit ? get_admin_url().'admin.php?page=adning&view=campaign&id='.$post->ID : '';
+				//$edit_url = $can_edit ? get_admin_url().'admin.php?page=adning&view=campaign&id='.$post->ID : '';
+				$edit_url = $can_edit ? esc_url( self_admin_url('admin.php?page=adning&view=campaign&id='.$post->ID)) : '';
 				$title            = _draft_or_post_title();
 				$post_type_object = get_post_type_object( $post->post_type );
 				$can_edit_post    = $can_edit ? current_user_can( $post_type_object->cap->edit_post, $post->ID ) : 0;
@@ -821,6 +834,7 @@ class ADNI_CPT {
 			'size_h' => 250,
 			'campaigns' => array(),
 			'adzones' => array(),
+			'duration' => '',
 			'responsive' => 1,
 			//'responsive' => $args['empty_checkbox_values'] ? 0 : 1, // @since v1.1.7 deprecated (empty_checkbox_values)
 			'enable_stats' => 0,
@@ -833,6 +847,7 @@ class ADNI_CPT {
 			'banner_link_masking' => 1,
 			//'banner_link_masking' => $args['empty_checkbox_values'] ? 0 : 1, // @since v1.1.7 deprecated
 			'banner_content' => '',
+			'bg_color' => '',
 			//'banner_responsive' => $args['empty_checkbox_values'] ? 0 : 1, // @since v1.0.7 deprecated - start using responsive
 			//'banner_scale' => $args['empty_checkbox_values'] ? 0 : 1,
 			'banner_scale' => 0,
@@ -887,6 +902,7 @@ class ADNI_CPT {
 			'size_w' => 300,
 			'size_h' => 250,
 			'campaigns' => array(),
+			'custom_css' => '',
 			//'responsive' => $args['empty_checkbox_values'] ? 0 : 1, // @since v1.1.7 deprecated (empty_checkbox_values)
 			'responsive' => 1,
 			'no_banner_filter' => 0,
@@ -904,6 +920,7 @@ class ADNI_CPT {
 			//'adzone_responsive' => $args['empty_checkbox_values'] ? 0 : 1, // @since v1.0.7 deprecated - start using responsive
 			'adzone_transition' => '{$Duration:400,x:-1,$Easing:$Jease$.$InQuad}',
 			'linked_banners' => array(),
+			'probability' => array(),
 			'align' => 'center',
 			//'wrap_text' => $args['empty_checkbox_values'] ? 0 : 1, // @since v1.1.7 deprecated (empty_checkbox_values)
 			'wrap_text' => 0,
@@ -1000,7 +1017,7 @@ class ADNI_CPT {
 		$post_type = $post['post_type'];
 		$advertiser = isset($post['advertiser']) ? $post['advertiser'] : $current_user->ID;
 		$type = self::get_type($post_type);
-		$b_title = !empty($post['title']) ? $post['title'] : sprintf(__('%s created on: %s','adn'), ucfirst($type), date('D j F Y, H:s', current_time( 'timestamp' )) );
+		$b_title = !empty($post['title']) ? sanitize_text_field($post['title']) : sprintf(__('%s created on: %s','adn'), ucfirst($type), date('D j F Y, H:s', current_time( 'timestamp' )) );
 		$b_args = array();
 		
 
@@ -1080,8 +1097,8 @@ class ADNI_CPT {
 			{
 				// Adsense data
 				$adsense_settings = array(
-					'pub_id' => isset($post['adsense_pubid']) ? $post['adsense_pubid'] : '',
-					'slot_id' => isset($post['adsense_slotid']) ? $post['adsense_slotid'] : '',
+					'pub_id' => isset($post['adsense_pubid']) ? sanitize_text_field($post['adsense_pubid']) : '',
+					'slot_id' => isset($post['adsense_slotid']) ? sanitize_text_field($post['adsense_slotid']) : '',
 					'type' => isset($post['adsense_type']) ? $post['adsense_type'] : '',
 				);
 				unset($post['adsense_pubid']);
@@ -1101,7 +1118,11 @@ class ADNI_CPT {
 					{
 						foreach($admin_args['adzones'] as $adzone_id)
 						{
-							self::remove_banner_from_adzone($adzone_id, $b_id);
+							// Only remove banner from adzone if it's not getting re-added.
+							if( !in_array($adzone_id, $post['adzones']) )
+							{
+								self::remove_banner_from_adzone($adzone_id, $b_id);
+							}
 						}
 					}
 					if( isset($post['adzones']) && !empty($post['adzones']) )
@@ -1513,7 +1534,119 @@ class ADNI_CPT {
 		);
 		
 		return !empty($args['key']) ? $array[$args['key']] : $array;
-    }
+	}
+	
+
+
+
+
+	/**
+	 * Add custom meta boxes to post types that can serve ads
+	 */
+	public static function ning_meta_box()
+	{
+		global $typenow;
+
+		$set_arr = ADNI_Main::settings();
+		$settings = $set_arr['settings'];
+		$screens = $settings['positioning']['post_types'];
+
+		if( in_array($typenow, $screens) && current_user_can(ADNI_BANNERS_ROLE) )
+		{
+			ADNI_Init::enqueue(
+				array(
+					'files' => array(
+						array('file' => 'wp-block-library', 'type' => 'style'), // for Gutenberg
+						array('file' => '_ning_css', 'type' => 'style'),
+						array('file' => '_ning_admin_css', 'type' => 'style'),
+						array('file' => '_ning_global', 'type' => 'script'),
+						array('file' => '_ning_uploader', 'type' => 'script'),
+						array('file' => '_ning_admin_global', 'type' => 'script')
+					)
+				)
+			);
+
+			foreach( $screens as $screen ) 
+			{
+				add_meta_box('ning_settings', __( 'Adning Settings', 'adn' ), array(__CLASS__, 'ning_meta_box_callback'), $screen, 'side');
+			}
+		}
+	}
+
+
+
+	public static function ning_meta_box_callback( $post ) 
+	{
+		// Add a nonce field so we can check for it later.
+		wp_nonce_field( 'ning_settings_nonce', 'ning_settings_nonce' );
+
+		$defaults = array(
+			'allow_ads' => 1
+		);
+		$meta = get_post_meta( $post->ID, '_ning_settings', array() );
+		$meta = !empty($meta) ? $meta[0] : $meta;
+		$set = ADNI_Main::parse_args($meta, $defaults);
+
+		$h = '';
+		$h.= '<div class="adning_cont">';
+			$h.= '<div class="spr_row  ning_meta_box">';
+				$h.= '<div class="spr_column">';
+					$h.= '<div class="spr_column-inner">';
+						$h.= '<div class="spr_wrapper">';
+							$h.= '<div class="option_box">';
+								
+								$h.= ADNI_Templates::spr_column(array(
+									'col' => 'spr_col',
+									'title' => __('Allow ADS','adn'),
+									'desc' => __('Allow ads to be displayed in this post.','adn'),
+									'content' => ADNI_Templates::switch_btn(array(
+										'name' => 'ning_settings[allow_ads]',
+										'checked' => $set['allow_ads'],
+										'value' => 1,
+										'hidden_input' => 1,
+										'chk-on' => __('Yes','adn'),
+										'chk-off' => __('No','adn'),
+										'chk-high' => 1
+									))
+								));
+
+							$h.= '</div>';
+						$h.= '</div>';
+					$h.= '</div>';
+				$h.= '</div>';
+			$h.= '</div>';
+		$h.= '</div>';
+		
+		echo $h;
+		//echo '<textarea style="width:100%" id="ning_settings" name="ning_settings">' . esc_attr( $value ) . '</textarea>';
+	}
+
+
+	public static function save_ning_settings_meta_box_data( $post_id )
+	{
+		if ( !isset( $_POST['ning_settings_nonce'] ) ) 
+		{
+			return;
+		}
+		if ( !wp_verify_nonce( $_POST['ning_settings_nonce'], 'ning_settings_nonce' ) ) 
+		{
+			return;
+		}
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) 
+		{
+			return;
+		}
+		
+		if ( !isset( $_POST['ning_settings'] ) ) 
+		{
+			return;
+		}
+
+		//$adning_data = sanitize_text_field( $_POST['ning_settings'] );
+
+		// Update the meta field in the database.
+		update_post_meta( $post_id, '_ning_settings', $_POST['ning_settings'] );
+	}
 	
 }
 
