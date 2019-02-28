@@ -31,8 +31,8 @@
    
     
 	<?php if(function_exists('wp_footer')) { wp_footer(); } ?>
-	<script type="text/javascript" src="<?php echo ADNI_ASSETS_URL; ?>/dist/_ning_admin.bundle.js"></script>
-	<script type="text/javascript" src="<?php echo ADNI_ASSETS_URL; ?>/dist/_ning_frontend_manager.bundle.js"></script>
+	<script type="text/javascript" src="<?php echo ADNI_ASSETS_URL; ?>/dist/angwp_admin.bundle.js"></script>
+	<script type="text/javascript" src="<?php echo ADNI_ASSETS_URL; ?>/dist/angwp_frontend_manager.bundle.js"></script>
 </body>
 </html>
 

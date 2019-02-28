@@ -31,7 +31,7 @@ $auto_pos = ADNI_Main::auto_positioning();
 */
 $adzone = ADNI_CPT::load_post($id, array('post_type' => ADNI_CPT::$adzone_cpt));
 
-if( !current_user_can(ADNI_ADZONES_ROLE) && $user_id != $adzone['post']->post_author)
+if( !current_user_can(ADNI_ALL_ADZONES_ROLE) && $user_id != $adzone['post']->post_author)
 {
     echo '<div style="margin-top:50px;text-align:center;">'.__('Sorry, This adzone does not exists.','adn').'</div>';
     return;
@@ -206,9 +206,10 @@ if( !empty( $adzone['post'] ))
                                                         <div class="input_container_inner">
                                                         <select id="ADNI_size" name="size" class="">
                                                             <?php
-                                                            if(!empty(ADNI_Main::banner_sizes()))
+                                                            $banner_sizes = ADNI_Main::banner_sizes();
+                                                            if(!empty($banner_sizes))
                                                             {
-                                                                foreach(ADNI_Main::banner_sizes() as $size)
+                                                                foreach($banner_sizes as $size)
                                                                 {
                                                                     echo '<option value="'.$size['size'].'" '.selected( $adzone['args']['size'], $size['size'] ).'>'.$size['name'].' ('.$size['size'].')</option>';
                                                                 }
@@ -490,6 +491,7 @@ if( !empty( $adzone['post'] ))
                                                                                                     'desc' => '',
                                                                                                     'content' => '<a href="'.esc_url( wp_nonce_url( self_admin_url('admin.php?page=adning&view=banner&id='.$banner_id))).'" target="_blank">'.get_the_title($banner_id).' <small>( #'.$banner_id.' )</small></a>'
                                                                                                 ));
+                                                                                                $prob_val = array_key_exists($banner_id, $adzone['args']['probability']) ? $adzone['args']['probability'][$banner_id] : '';
                                                                                                 $h.= ADNI_Templates::spr_column(array(
                                                                                                     'col' => 'spr_col-2',
                                                                                                     'title' => '',
@@ -498,7 +500,7 @@ if( !empty( $adzone['post'] ))
                                                                                                         'type' => 'text',
                                                                                                         'width' => '100%',
                                                                                                         'name' => 'probability['.$banner_id.']',
-                                                                                                        'value' => $adzone['args']['probability'][$banner_id],
+                                                                                                        'value' => $prob_val,
                                                                                                         'placeholder' => '50',
                                                                                                         'icon' => 'percent',
                                                                                                         'show_icon' => 1

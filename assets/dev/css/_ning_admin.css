@@ -32,6 +32,17 @@
 }
 
 
+.adning_cont .role_manager h3.title{
+    font-weight: bold;
+}
+.adning_cont .role_manager .input_container{
+    margin-top: 15px;
+}
+.adning_cont .role_manager .all_check_cont{
+    border-right: solid 1px #eaeaea;
+}
+
+
 .adning_cont .spr_column.stats_box .input_container_inner{
     background: #e5e5e5;
     color: #9b9b9b;

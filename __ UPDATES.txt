@@ -1,3 +1,22 @@
+ADNING V1.3.3
+——————————————————————————————————
+* Fixed issue with foreach loop on functions for some servers.
+* Improved custom_http_headers.
+
+
+ADNING V1.3.2
+——————————————————————————————————
+* Added Author Filter to Display Filters.
+* Added smarTrack v1.1.2.
+* Fixed load_code_editor $ is not defined.
+* Fixed file loading issues with _ning_front
+
+
+ADNING V1.3.1
+——————————————————————————————————
+* Improved role manager.
+
+
 ADNING V1.3.0
 ——————————————————————————————————
 * Added custom probability (weight) option for showing random banners in adzones.

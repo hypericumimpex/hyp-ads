@@ -190,6 +190,24 @@ class ADNI_Filters {
                     return;
             }
 
+
+            if( array_key_exists('authors', $display) && !empty($display['authors']) )
+            {
+                $show = array_key_exists('show_hide', $display['authors']) ? $display['authors']['show_hide'] : 0;
+                //echo '<pre>'.print_r($post, true).'</pre>';
+                if( !empty($display['authors']['ids']))
+                {
+                    if( !in_array($post->post_author, $display['authors']['ids']) && $show || in_array($post->post_author, $display['authors']['ids']) && !$show ){
+                        return;
+                    }
+                }
+                else
+                {
+                    if( !$show )
+                        return;
+                }
+            }
+
             if( array_key_exists('post_types', $display) && !empty($display['post_types']) )
             {
                 $post_type = get_post_type($post->ID);

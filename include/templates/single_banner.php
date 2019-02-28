@@ -87,7 +87,7 @@ $settings = $set_arr['settings'];
 */
 $banner_post = ADNI_CPT::load_post($id, array('post_type' => ADNI_CPT::$banner_cpt, 'filter' => 0));
 
-if( empty( $banner_post['post'] ) || !current_user_can(ADNI_BANNERS_ROLE) && $user_id != $banner_post['post']->post_author)
+if( empty( $banner_post['post'] ) || !current_user_can(ADNI_ALL_BANNERS_ROLE) && $user_id != $banner_post['post']->post_author)
 {
     $h.= '<div style="margin-top:50px;text-align:center;">'.esc_attr__('Sorry, This banner does not exists.','adn').'</div>';
     return $h;
@@ -159,7 +159,7 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                 //<!-- end .input_container -->
 
                             
-                                if( current_user_can(ADNI_BANNERS_ROLE) )
+                                if( current_user_can(ADNI_ALL_BANNERS_ROLE) )
                                 {
                                     global $current_user;
                                     $advertiser_id = !empty($banner_post['post']) ? $banner_post['post']->post_author : $current_user->ID;
@@ -301,13 +301,14 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                         /**
                          * CAMPAIGNS
                         */
-                        $h.= current_user_can(ADNI_BANNERS_ROLE) ? ADNI_Templates::link_campaign_tpl($b) : '';
+                        $h.= current_user_can(ADNI_CAMPAIGNS_ROLE) ? ADNI_Templates::link_campaign_tpl($b) : '';
+                        
 
 
                         /**
                          * ADZONES
                         */
-                        $h.= current_user_can(ADNI_BANNERS_ROLE) ? ADNI_Templates::link_adzone_tpl($b) : '';
+                        $h.= current_user_can(ADNI_ADZONES_ROLE) ? ADNI_Templates::link_adzone_tpl($b) : '';
 
 
                         /**
@@ -358,9 +359,10 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                                                     $h.= '<h3 class="title"></h3>';
                                                     $h.= '<div class="input_container_inner">';
                                                         $h.= '<select id="ADNI_size" name="size" class="">';
-                                                            if(!empty(ADNI_Main::banner_sizes()))
+                                                            $banner_sizes = ADNI_Main::banner_sizes();
+                                                            if( !empty($banner_sizes) )
                                                             {
-                                                                foreach(ADNI_Main::banner_sizes() as $size)
+                                                                foreach($banner_sizes as $size)
                                                                 {
                                                                     $h.= '<option value="'.$size['size'].'" '.selected( $b['size'], $size['size'], false).'>'.$size['name'].' ('.$size['size'].')</option>';
                                                                 }
@@ -717,7 +719,7 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
                 //<!-- end .spr_column -->
 
                 $h.= current_user_can(ADNI_BANNERS_ROLE) ? ADNI_Templates::parallax_tpl($banner_post, $settings) : '';
-
+                
 
             $h.= '</div>';
             //<!-- end .spr_column -->

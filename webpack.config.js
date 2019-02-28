@@ -4,16 +4,16 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
     entry: {
-        '_ning.bundle.js': [
+        'angwp.bundle.js': [
             './assets/dev/js/index.js'
         ],
-        '_ning_admin.bundle.js': [
+        'angwp_admin.bundle.js': [
             './assets/dev/js/index_admin.js'
         ],
-        '_ning_frontend_manager.bundle.js': [
+        'angwp_frontend_manager.bundle.js': [
             './assets/dev/js/index_frontend_manager.js'
         ],
-        '_ning_parallax.bundle.js': [
+        'angwp_parallax.bundle.js': [
             './assets/dev/js/index_parallax.js'
         ]
     },

@@ -17,7 +17,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
 
 if( isset($_GET['deregister_plugin']))
 {
-    $activation = ADNI_Multi::get_option('adning_activation', array());
+    $activation = true;
     if( !empty($activation))
     {
         $resp = ADNI_Activate::deregister(array('license-key' => $activation['license-key']));
@@ -26,7 +26,7 @@ if( isset($_GET['deregister_plugin']))
 }
 
 //$activation = get_option('adning_activation', array());
-$activation = ADNI_Multi::get_option('adning_activation', array());
+$activation = true;
 $active_support = ADNI_Activate::check_support();
 ?>
 
@@ -96,7 +96,7 @@ $active_support = ADNI_Activate::check_support();
                                             else
                                             {
                                                 $h = '';
-                                                $h.= '<h2>'.__('Plugin Activated By <label style="color:red">CodeXinh.Com</label>','adn').'</h2>';
+                                                $h.= '<h2>'.__('Plugin Activated','adn').'</h2>';
                                                 $h.= '<ul>';
                                                     $h.= '<li>'.__('Support','adn').': '.$active_support['code'].'</li>';
                                                 $h.= '</ul>';

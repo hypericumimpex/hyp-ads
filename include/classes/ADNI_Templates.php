@@ -3,9 +3,6 @@
 if ( ! defined( "ABSPATH" ) ) exit;
 if ( ! class_exists( 'ADNI_Templates' ) ) :
 
-// Fix for Chrome bug: https://stackoverflow.com/a/44687900/3481803
-header('X-XSS-Protection:0');
-
 class ADNI_Templates {
 
 	public static function logo_svg($args = array())
@@ -66,7 +63,7 @@ class ADNI_Templates {
 		$args = wp_parse_args($args, $defaults);
 
 		//$activation = get_option('adning_activation', array());
-		$activation = ADNI_Multi::get_option('adning_activation', array());
+		$activation = true;
 
 		$html = '';
 		$html.= '<div class="imc-heading-section adning-header">';
@@ -136,7 +133,7 @@ class ADNI_Templates {
 		$h = '';
 		$tab = $args['tab'];
 		//$activation = get_option('adning_activation', array());
-		$activation = ADNI_Multi::get_option('adning_activation', array());
+		$activation = true;
 
 		// Menu options
 		$m_new = $tab == 'new' ? ' nav-tab-active' : '';
@@ -242,7 +239,7 @@ class ADNI_Templates {
 			$b_html.= !$adzone_id ? '<div class="_ning_label'.$label_pos.'" style="'.$label_color.'">'.$label.'</div>' : '';
 			$b_html.= '<div class="_ning_inner" style="'.$inner_size.$bg_color.'">';
 				// Banner_url
-				$b_html.= !empty($url) && $args['add_url'] ? '<a href="'.$url.'" class="strack_cli _ning_link" target="'.$b['banner_target'].'"'.$nofollow.'></a>' : '';
+				$b_html.= !empty($url) && $args['add_url'] ? '<a href="'.$url.'" class="strack_cli _ning_link" target="'.$b['banner_target'].'"'.$nofollow.'>&nbsp;</a>' : '';
 				// Banner content
 				$b_html.= ADNI_Multi::do_shortcode($content);
 			$b_html.= '</div>';
@@ -2265,6 +2262,9 @@ class ADNI_Templates {
 
 	public static function parallax_tpl($post = array(), $settings = array())
 	{
+		if( empty($post['post']))
+			return;
+
 		$b = $post['args'];
 		$id = $post['post']->ID;
 
@@ -2517,9 +2517,10 @@ class ADNI_Templates {
 	public static function export_tpl($banner_post = array())
 	{
 		$h = '';
-		$id = $banner_post['post']->ID;
-		$b = $banner_post['args'];
 
+		$id = !empty($banner_post['post']) ? $banner_post['post']->ID : 0;
+		$b = !empty($banner_post['post']) ? $banner_post['args'] : array();
+		
 		if($id)
 		{
 			$h.= '<div class="option_box">';
@@ -2707,7 +2708,63 @@ class ADNI_Templates {
 
 							$h.= '<div class="clearFix"></div>';
 
-							$h.= '<div class="clear" style="margin-top: 40px;">
+							$h.= '<div class="clear device_filter_container" style="margin-top: 40px;">
+								<div class="sep_line" style="margin:0 0 15px 0;"><span><strong>'.__('Author Filters','adn').'</strong></span></div>
+								<div class="clear">';
+									$show_hide = array_key_exists('authors', $adzone['args']['display_filter']) ? $adzone['args']['display_filter']['authors']['show_hide'] : 1;
+									$h.= ADNI_Templates::spr_column(array(
+										'col' => 'spr_col-6',
+										'title' => '',
+										'desc' => __('Show or Hide the banner if post is created by the selected authors. Will only work when a post ID is available (like inside post/page content).','adn'),
+										'content' => ADNI_Templates::switch_btn(array(
+											'name' => 'display_filter[authors][show_hide]',
+											'checked' => $show_hide,
+											'value' => 1,
+											'hidden_input' => 1,
+											'chk-on' => __('Show','adn'),
+											'chk-off' => __('Hide','adn'),
+											'chk-high' => 1
+										))
+									));
+									
+
+									$h.= '<div class="spr_column spr_col-6">
+										<div class="input_container">
+											<div class="custom_box option_inside_content">
+												<h3 class="title"></h3>
+												<div class="input_container_inner ning_chosen_select">';
+													
+													$h.= '<select name="display_filter[authors][ids][]" data-placeholder="'.__('Start typing to select an author', 'adn').'" data-type="author" style="width:100%;" class="chosen-select ning_chosen_author_select" multiple>';
+														$h.= '<option value=""></option>';
+														
+														$authors = '';
+														if( array_key_exists('authors', $adzone['args']['display_filter']) )
+														{
+															$authors = array_key_exists('ids', $adzone['args']['display_filter']['authors']) ? $adzone['args']['display_filter']['authors']['ids'] : array();
+														}
+														// Load selected users
+														if(!empty($authors))
+														{
+															foreach($authors as $author_id)
+															{
+																$user = get_userdata($author_id);
+																$h.= '<option class="opt_'.$author_id.'" value="'.$author_id.'" selected>'.$user->display_name.' - (ID:'.$author_id.')</option>';
+															}
+														}
+														
+													$h.= '</select>';
+
+												$h.= '</div>
+											</div>
+										</div>
+									</div>';
+								$h.= '</div>
+							</div>';
+
+							$h.= '<div class="clearFix"></div>';
+
+							// CONTENT FILTERS
+ 							$h.= '<div class="clear" style="margin-top: 40px;">
 								<div class="sep_line" style="margin:0 0 15px 0;"><span><strong>'.__('Content Filters','adn').'</strong></span></div>';
 								$h.= '<div class="input_container">
 									<p>
@@ -2749,7 +2806,7 @@ class ADNI_Templates {
 														<h3 class="title"></h3>
 														<div class="input_container_inner ning_chosen_select">';
 															
-															$h.= '<select name="display_filter[post_types]['.$post_type.'][ids][]" data-placeholder="'.sprintf(__('Start typing to select a %s', 'adn'), $post_type).'" data-ptype="'.$post_type.'" style="width:100%;" class="chosen-select ning_chosen_posttype_select" multiple>';
+															$h.= '<select name="display_filter[post_types]['.$post_type.'][ids][]" data-placeholder="'.sprintf(__('Start typing to select a %s', 'adn'), $post_type).'" data-type="'.$post_type.'" style="width:100%;" class="chosen-select ning_chosen_posttype_select" multiple>';
 																$h.= '<option value=""></option>';
 																
 																//$posts = $adzone['args']['display_filter']['posts'];
@@ -2845,7 +2902,7 @@ class ADNI_Templates {
 																		<h3 class="title"></h3>
 																		<div class="input_container_inner ning_chosen_select">';
 																			
-																			$h.= '<select name="display_filter[post_types]['.$post_type.'][taxonomies]['.$taxonomy.'][ids][]" data-placeholder="'.sprintf(__('Start typing to select a %s', 'adn'),$taxonomy).'" data-ttype="'.$taxonomy.'" style="width:100%;" class="chosen-select ning_chosen_taxonomy_select" multiple>';
+																			$h.= '<select name="display_filter[post_types]['.$post_type.'][taxonomies]['.$taxonomy.'][ids][]" data-placeholder="'.sprintf(__('Start typing to select a %s', 'adn'),$taxonomy).'" data-type="'.$taxonomy.'" style="width:100%;" class="chosen-select ning_chosen_taxonomy_select" multiple>';
 																				$h.= '<option value=""></option>';
 																				
 																				$tags = array_key_exists('ids', $tax_arr) ? $tax_arr['ids'] : '';
@@ -3182,6 +3239,8 @@ class ADNI_Templates {
 
 	public static function link_campaign_tpl($b = array())
 	{
+		global $current_user;
+
 		$h = '';
 		$h.= '<div class="option_box">
 			<div class="info_header">
@@ -3206,12 +3265,16 @@ class ADNI_Templates {
 											$h.= '<option value=""></option>';
 											
 											$posts = $b['campaigns'];
+											// Check if user can load all campaigns or only his/here own.
+											$limit_user_posts = !current_user_can(ADNI_ALL_BANNERS_ROLE) ? array('author' => $current_user->ID) : array();
 											
-											$all_posts = get_posts(array(
-												'posts_per_page'   => -1,
-												'post_status'      => 'publish',
-												'post_type'        => ADNI_CPT::$campaign_cpt
-											));
+											$all_posts = get_posts(
+												ADNI_Main::parse_args(array(
+													'posts_per_page'   => -1,
+													'post_status'      => 'publish',
+													'post_type'        => ADNI_CPT::$campaign_cpt
+												),$limit_user_posts)
+											);
 							
 											foreach($all_posts as $i => $post)
 											{
@@ -3242,6 +3305,8 @@ class ADNI_Templates {
 
 	public static function link_adzone_tpl($b = array())
 	{
+		global $current_user;
+
 		$h = '';
 		$h.= '<div class="option_box">
 			<div class="info_header">
@@ -3266,12 +3331,21 @@ class ADNI_Templates {
 											$h.= '<option value=""></option>';
 											
 											$posts = $b['adzones'];
+											// Check if user can load all adzones or only his/here own.
+											$limit_user_posts = !current_user_can(ADNI_ALL_BANNERS_ROLE) ? array('author' => $current_user->ID) : array();
 											
-											$all_posts = get_posts(array(
+											$all_posts = get_posts(
+												ADNI_Main::parse_args(array(
+													'posts_per_page'   => -1,
+													'post_status'      => 'publish',
+													'post_type'        => ADNI_CPT::$adzone_cpt
+												),$limit_user_posts)
+											);
+											/*$all_posts = get_posts(array(
 												'posts_per_page'   => -1,
 												'post_status'      => 'publish',
 												'post_type'        => ADNI_CPT::$adzone_cpt
-											));
+											));*/
 							
 											foreach($all_posts as $i => $post)
 											{

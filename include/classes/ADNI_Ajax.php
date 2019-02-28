@@ -46,7 +46,7 @@ class ADNI_Ajax {
 
 	public static function display_filter_load_posts()
 	{
-		global $wpdb;
+		global $wpdb, $current_user;
 
 		$key = $_POST['key'];
 		$search = $_POST['search'];
@@ -54,9 +54,12 @@ class ADNI_Ajax {
 		$h = '';
 		$response = array();
 
+		// Check if user can add banners to all posts or only his/here own posts.
+		$limit_user_posts = !current_user_can(ADNI_ALL_BANNERS_ROLE) ? ' post_author = '.$current_user->ID : '';
+
 		if( $key === 'post_type' )
 		{
-			$all_posts = $wpdb->get_results( "SELECT ID, post_title FROM ".$wpdb->prefix."posts WHERE post_type = '".$type."' AND post_status = 'publish' AND post_title LIKE '%".$search."%' LIMIT 20" );
+			$all_posts = $wpdb->get_results( "SELECT ID, post_title FROM ".$wpdb->prefix."posts WHERE".$limit_user_posts." post_type = '".$type."' AND post_status = 'publish' AND post_title LIKE '%".$search."%' LIMIT 20" );
 			
 			//$h.= '<li class="active-result" data-option-array-index="0"></li>';
 			foreach($all_posts as $i => $post)
@@ -69,7 +72,7 @@ class ADNI_Ajax {
 			}
 			//echo $h.$post_type;
 		}
-		else
+		elseif( $key === 'taxonomy' )
 		{
 			$all_terms = get_terms( array(
 				'taxonomy' => $type,
@@ -79,6 +82,18 @@ class ADNI_Ajax {
 			foreach($all_terms as $i => $term)
 			{
 				$response[] = array("id" => $term->term_id, "name" => $term->name);
+			}
+		}
+		elseif( $key === 'author' )
+		{
+			$all_users = get_users( array(
+				'search' => '*'.$search.'*',
+				'fields' => array( 'display_name', 'user_login', 'user_email', 'ID' ),
+				'number' => 20
+			));
+			foreach($all_users as $i => $user)
+			{
+				$response[] = array("id" => $user->ID, "name" => $user->display_name);
 			}
 		}
 		

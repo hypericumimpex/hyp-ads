@@ -203,7 +203,7 @@ class ADNI_Uploader {
 									'size' => $_FILES['files']['size'][$f],
 								);
 								
-								$unzip_error = self::upload_and_unzip($zipfile, array('folder' => $upload['folder'], 'path' => $upload_path, 'src' => $upload_src));
+								$unzip_error = self::upload_and_unzip($zipfile, array('folder' => $upload['folder'], 'path' => $upload_path, 'src' => $upload['src']));
 							}
 						}
 						else
@@ -308,7 +308,6 @@ class ADNI_Uploader {
 				return $response;
 			}
 		
-			
 			
 			$zip = new ZipArchive();
 			if ($zip->open($target_path) === true) {			

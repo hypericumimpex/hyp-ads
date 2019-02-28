@@ -177,27 +177,27 @@ var Adning_global = {
 
 	load_code_editor: function(){
 
-		$('.code_editor').each(function(index, item){
+		jQuery('.code_editor').each(function(index, item){
 
-			if( $(item).parent().find('.CodeMirror').length || $(item).parents('.closed').length )
+			if( jQuery(item).parent().find('.CodeMirror').length || jQuery(item).parents('.closed').length )
 				return;
 
 
-			var height = typeof $(item).data("height") !== 'undefined' ? $(item).data("height") : '150px';
+			var height = typeof jQuery(item).data("height") !== 'undefined' ? jQuery(item).data("height") : '150px';
 			
-			var editor = _ning_codemirror.fromTextArea($(item)[0], {
+			var editor = _ning_codemirror.fromTextArea(jQuery(item)[0], {
 				lineNumbers : true,
-				mode: $(item).data("lang"),
+				mode: jQuery(item).data("lang"),
 				theme: "github",
 			});
 			editor.setSize("100%",height);
 	
-			if( $(item).attr('id') === 'banner_content' ){
+			if( jQuery(item).attr('id') === 'banner_content' ){
 				editor.on("change", function() {
 					//console.log('Codemirror change');
-					var render_preview = $('#dont_render_preview_code').prop("checked");
+					var render_preview = jQuery('#dont_render_preview_code').prop("checked");
 					if( render_preview ){
-						$("._ning_cont").find('._ning_inner').html( editor.getValue() );
+						jQuery("._ning_cont").find('._ning_inner').html( editor.getValue() );
 					}
 				});
 			}
@@ -416,19 +416,32 @@ module.exports = {
 				var input_obj = this.element;
 				input_obj.css({'width': '100%'});
 				var select_obj = input_obj.closest('.ning_chosen_select').find('.chosen-select');
+				var type = '';
+				var key = '';
 
 				// Start search when string contains at least 3 characters
 				if( request.term.length > 2 ){
 					console.log('search: '+request.term);
 					
 					if( select_obj.hasClass('ning_chosen_posttype_select') ){ 
-						var post_type = select_obj.data('ptype');
-						
+						type = select_obj.data('type');
+						key = 'post_type';
+
+					}else if( select_obj.hasClass('ning_chosen_taxonomy_select') ){
+						type = select_obj.data('type');
+						key = 'taxonomy';
+
+					}else if( select_obj.hasClass('ning_chosen_author_select') ){
+						type = select_obj.data('type');
+						key = 'author';
+					}
+					
+					if( type !== ''){
 						$.ajax({
 							type: "POST",
 							url: _adn_.ajaxurl,
 							dataType: "json",
-							data: "action=display_filter_load_posts&key=post_type&search="+request.term+"&type="+post_type
+							data: "action=display_filter_load_posts&key="+key+"&search="+request.term+"&type="+type
 						}).done(function( obj ) {
 							
 							if( !$.isEmptyObject(obj) )
@@ -446,34 +459,6 @@ module.exports = {
 						});
 					}
 					// end posttype search
-
-					if( select_obj.hasClass('ning_chosen_taxonomy_select') ){
-						var taxonomy = select_obj.data('ttype');
-						console.log(taxonomy);
-						$.ajax({
-							type: "POST",
-							url: _adn_.ajaxurl,
-							dataType: "json",
-							data: "action=display_filter_load_posts&key=taxonomy&search="+request.term+"&type="+taxonomy
-						}).done(function( obj ) {
-							console.log('kak');
-							console.log(obj);
-							if( !$.isEmptyObject(obj) )
-							{
-								var inpt = input_obj.val();
-								
-								$.map( obj, function( item ) {
-									if( !select_obj.find('.opt_'+item.id).length ){
-										select_obj.append('<option class="opt_'+item.id+'" value="'+item.id+'">' + item.name + ' - (#'+item.id+')</option>');
-										select_obj.trigger("chosen:updated");
-										input_obj.val(inpt);
-									}
-								});
-							}
-						});
-					}
-					// end taxonomy search
-
 				}
 			}
 		});

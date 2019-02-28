@@ -35,9 +35,9 @@ class ADNI_API {
 					var _adn_ = {"ajaxurl":"'.ADNI_AJAXURL.'"};
 					/* ]]> */
 					</script>';
-					$html.= '<script type="text/javascript" src="'.ADNI_ASSETS_URL. '/dist/_ning.bundle.js"></script>';
+					$html.= '<script type="text/javascript" src="'.ADNI_ASSETS_URL. '/dist/angwp.bundle.js"></script>';
 					$html.= '<script type="text/javascript" src="'.ADNI_ASSETS_URL. '/js/embed/iframeResizer.contentWindow.min.js"></script>';
-					$html.= '<link rel="stylesheet" href="'.ADNI_ASSETS_URL. '/dist/_ning.bundle.js.css" media="all" />';
+					$html.= '<link rel="stylesheet" href="'.ADNI_ASSETS_URL. '/dist/angwp.bundle.js.css" media="all" />';
 					
 					// IMGMCE
 					if( class_exists('ADN_main') )

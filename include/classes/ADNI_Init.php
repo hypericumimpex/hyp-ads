@@ -48,7 +48,7 @@ class ADNI_Init {
 		add_action( 'widgets_init', array(__CLASS__, 'register_widgets'), 30 );
 
 		// Filters --------------------------------------------------------
-		
+		add_filter('wp_headers', array(__CLASS__, 'custom_http_headers'));
 		
 		// Banner click ---------------------------------------------------
 		add_action( 'wp', array( __CLASS__, 'banner_click_action' ), 4);	
@@ -86,7 +86,7 @@ class ADNI_Init {
 	public static function deactivate()
 	{
 		// Deregister Adning License
-		$activation = ADNI_Multi::get_option('adning_activation', array());
+		$activation = true;
 		if( !empty($activation))
 		{
 			$resp = ADNI_Activate::deregister(array('license-key' => $activation['license-key']));
@@ -94,6 +94,20 @@ class ADNI_Init {
 		}
 	}
 	
+
+
+	public static function custom_http_headers($headers)
+	{
+		if (!is_admin()) 
+		{
+			// Fix for Chrome bug: https://stackoverflow.com/a/44687900/3481803
+			// @since v1.3.3 moved chrome bug fix from ADNI_Templates
+			//header('X-XSS-Protection:0');
+			$headers['X-XSS-Protection'] = 0;    
+		}
+	
+		return $headers;
+	}
 	
 	
 	
@@ -106,8 +120,11 @@ class ADNI_Init {
 		define( "ADNI_ACCESS_ROLE", ADNI_Main::ADNI_capability($settings['roles']['access_role']) );
 		define( "ADNI_ADMIN_ROLE", ADNI_Main::ADNI_capability($settings['roles']['admin_role']) );
 		define( "ADNI_BANNERS_ROLE", ADNI_Main::ADNI_capability($settings['roles']['create_banner_role']) );
+		define( "ADNI_ALL_BANNERS_ROLE", ADNI_Main::ADNI_capability($settings['roles']['manage_all_banners_role']) );
 		define( "ADNI_ADZONES_ROLE", ADNI_Main::ADNI_capability($settings['roles']['create_adzone_role']) );
+		define( "ADNI_ALL_ADZONES_ROLE", ADNI_Main::ADNI_capability($settings['roles']['manage_all_adzones_role']) );
 		define( "ADNI_CAMPAIGNS_ROLE", ADNI_Main::ADNI_capability($settings['roles']['create_campaign_role']) );
+		define( "ADNI_ALL_CAMPAIGNS_ROLE", ADNI_Main::ADNI_capability($settings['roles']['manage_all_campaigns_role']) );
 	}
 
 
@@ -238,16 +255,16 @@ class ADNI_Init {
 		);
 
 		// Scripts
-		wp_register_script( '_ning_global', ADNI_ASSETS_URL.'/dist/_ning.bundle.js', array( 'jquery' ), ADNI_VERSION, true );
+		wp_register_script( '_ning_global', ADNI_ASSETS_URL.'/dist/angwp.bundle.js', array( 'jquery' ), ADNI_VERSION, true );
 		wp_localize_script( '_ning_global', '_adn_', $var_array );
-		wp_register_script( '_ning_admin_global', ADNI_ASSETS_URL.'/dist/_ning_admin.bundle.js', array( 'jquery' ), ADNI_VERSION, true );
-		wp_register_script( '_ning_parallax', ADNI_ASSETS_URL.'/dist/_ning_parallax.bundle.js', array( 'jquery' ), ADNI_VERSION, true );
+		wp_register_script( '_ning_admin_global', ADNI_ASSETS_URL.'/dist/angwp_admin.bundle.js', array( 'jquery' ), ADNI_VERSION, true );
+		wp_register_script( '_ning_parallax', ADNI_ASSETS_URL.'/dist/angwp_parallax.bundle.js', array( 'jquery' ), ADNI_VERSION, true );
 		
 		// styles
-		wp_register_style( '_ning_css', ADNI_ASSETS_URL. '/dist/_ning.bundle.js.css', false, ADNI_VERSION, "all" );
-		wp_register_style( '_ning_admin_css', ADNI_ASSETS_URL. '/dist/_ning_admin.bundle.js.css', false, ADNI_VERSION, "all" );
-		wp_register_style( '_ning_frontend_manager_css', ADNI_ASSETS_URL. '/dist/_ning_frontend_manager.bundle.js.css', false, ADNI_VERSION, "all" );
-		wp_register_style( '_ning_parallax_css', ADNI_ASSETS_URL. '/dist/_ning_parallax.bundle.js.css', false, ADNI_VERSION, "all" );
+		wp_register_style( '_ning_css', ADNI_ASSETS_URL. '/dist/angwp.bundle.js.css', false, ADNI_VERSION, "all" );
+		wp_register_style( '_ning_admin_css', ADNI_ASSETS_URL. '/dist/angwp_admin.bundle.js.css', false, ADNI_VERSION, "all" );
+		wp_register_style( '_ning_frontend_manager_css', ADNI_ASSETS_URL. '/dist/angwp_frontend_manager.bundle.js.css', false, ADNI_VERSION, "all" );
+		wp_register_style( '_ning_parallax_css', ADNI_ASSETS_URL. '/dist/angwp_parallax.bundle.js.css', false, ADNI_VERSION, "all" );
 		
 		ADNI_Uploader::enqueue_scripts(array('upload_folder' => 'path'));
 	}
@@ -488,7 +505,7 @@ class ADNI_Init {
 	{
 		//set_site_transient('update_plugins', null); // Just for testing to see if the available plugin update gets shown. IF THIS IS ON ACTUALL PLUGIN UPDATES MAY NOT WORK: WP error: Plugin update failed.
 		//$activation = get_option('adning_activation', array());
-		$activation = ADNI_Multi::get_option('adning_activation', array());
+		$activation = true;
 		$license_key = !empty($activation) ? $activation['license-key'] : '';
 
 		require( ADNI_CLASSES_DIR.'/ADNING_PLU_Auto_Plugin_Updater.php');

@@ -97,15 +97,20 @@ class ADNI_Main {
 			'access_role' => 'subscriber',
 			'admin_role' => 'administrator',
 			'create_banner_role' => 'editor',
-			'create_adzone_role' => 'editor',
-			'create_campaign_role' => 'editor'
+			'manage_all_banners_role' => 'administrator',
+            'create_adzone_role' => 'editor',
+            'manage_all_adzones_role' => 'administrator',
+            'create_campaign_role' => 'editor',
+            'manage_all_campaigns_role' => 'administrator'
 		);
 		//$roles = wp_parse_args(get_option('_adning_roles', array()), $default_roles);
 		$roles = wp_parse_args(ADNI_Multi::get_option('_adning_roles', array()), $default_roles);
+		$admin_roles = wp_parse_args(ADNI_Multi::get_option('_adning_admin_roles', array()), self::default_role_options());
 		
 		return array(
 			'settings' => apply_filters('ADNI_main_settings', $settings),
-			'roles' => apply_filters('ADNI_default_roles', $roles)
+			'roles' => apply_filters('ADNI_default_roles', $roles),
+			'admin_roles' => apply_filters('ADNI_default_admion_roles', $admin_roles)
 		);	
 	}
 
@@ -392,6 +397,48 @@ class ADNI_Main {
 		));
 	}
 	
+
+
+
+	public static function default_role_options($role = '')
+	{
+		$options = array(
+			'administrator' => array(
+				'manage_all_banners' => 1,
+				'manage_banners' => 1,
+				'manage_all_adzones' => 1,
+				'manage_adzones' => 1,
+				'manage_all_campaigns' => 1,
+				'manage_campaigns' => 1,
+			),
+			'editor' => array(
+				'manage_all_banners' => 0,
+				'manage_banners' => 1,
+				'manage_all_adzones' => 0,
+				'manage_adzones' => 1,
+				'manage_all_campaigns' => 0,
+				'manage_campaigns' => 1,
+			),
+			'author' => array(
+				'manage_all_banners' => 0,
+				'manage_banners' => 0,
+				'manage_all_adzones' => 0,
+				'manage_adzones' => 0,
+				'manage_all_campaigns' => 0,
+				'manage_campaigns' => 0,
+			),
+			'contributor' => array(
+				'manage_all_banners' => 0,
+				'manage_banners' => 0,
+				'manage_all_adzones' => 0,
+				'manage_adzones' => 0,
+				'manage_all_campaigns' => 0,
+				'manage_campaigns' => 0,
+			)
+		);
+		
+		return !empty($role) ? $options[$role] : $options;
+	}
 	
 	
 	/*

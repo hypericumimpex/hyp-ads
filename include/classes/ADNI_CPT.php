@@ -416,17 +416,23 @@ class ADNI_CPT {
 			return;
 		
 		$cap = '';
+		$user_role = array_key_exists('roles', $current_user) ? $current_user->roles[0] : 'subscriber';
+		$settings = ADNI_Main::settings();
+
 		if( strtolower($wp_query_obj->query['post_type']) === strtolower(self::$campaign_cpt) ){
 			$cap = ADNI_CAMPAIGNS_ROLE;
+			$cap_all = $settings['admin_roles'][$user_role]['manage_all_campaigns'];
 		}
 		if( strtolower($wp_query_obj->query['post_type']) === strtolower(self::$banner_cpt) ){
 			$cap = ADNI_BANNERS_ROLE;
+			$cap_all = $settings['admin_roles'][$user_role]['manage_all_banners'];
 		}
 		if( strtolower($wp_query_obj->query['post_type']) === strtolower(self::$adzone_cpt) ){
 			$cap = ADNI_ADZONES_ROLE;
+			$cap_all = $settings['admin_roles'][$user_role]['manage_all_adzones'];
 		}
 		// If the user has no admin rights, filter the post listing
-		if( !empty($cap) && !current_user_can( $cap ) )
+		if( !empty($cap) && !current_user_can( $cap ) || !empty($cap) && current_user_can( $cap ) && empty($cap_all) )
 			$wp_query_obj->set('author', $current_user->ID );
 	}
 	
@@ -470,7 +476,7 @@ class ADNI_CPT {
 		{
 			case '_adn_b_name' :
 				
-				$can_edit = get_current_user_id() == $post->post_author || current_user_can(ADNI_BANNERS_ROLE) ? 1 : 0;
+				$can_edit = get_current_user_id() == $post->post_author || current_user_can(ADNI_ALL_BANNERS_ROLE) ? 1 : 0;
 				//$edit_url = $can_edit ? get_admin_url().'admin.php?page=adning&view=banner&id='.$post->ID : '';
 				$edit_url = $can_edit ? esc_url( self_admin_url('admin.php?page=adning&view=banner&id='.$post->ID)) : '';
 				
