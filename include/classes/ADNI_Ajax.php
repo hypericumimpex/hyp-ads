@@ -86,15 +86,23 @@ class ADNI_Ajax {
 		}
 		elseif( $key === 'author' )
 		{
-			$all_users = get_users( array(
-				'search' => '*'.$search.'*',
-				'fields' => array( 'display_name', 'user_login', 'user_email', 'ID' ),
-				'number' => 20
-			));
-			foreach($all_users as $i => $user)
+			if( current_user_can(ADNI_ALL_BANNERS_ROLE) )
 			{
-				$response[] = array("id" => $user->ID, "name" => $user->display_name);
+				$all_users = get_users( array(
+					'search' => '*'.$search.'*',
+					'fields' => array( 'display_name', 'user_login', 'user_email', 'ID' ),
+					'number' => 20
+				));
+				foreach($all_users as $i => $user)
+				{
+					$response[] = array("id" => $user->ID, "name" => $user->display_name);
+				}
 			}
+			else
+			{
+				$response[] = array("id" => $current_user->ID, "name" => $current_user->display_name);
+			}
+			
 		}
 		
 		echo json_encode($response);

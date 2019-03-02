@@ -201,11 +201,11 @@ class ADNI_Filters {
                         return;
                     }
                 }
-                else
+                /*else
                 {
                     if( !$show )
                         return;
-                }
+                }*/
             }
 
             if( array_key_exists('post_types', $display) && !empty($display['post_types']) )

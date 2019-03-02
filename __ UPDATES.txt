@@ -1,3 +1,8 @@
+ADNING V1.3.4
+——————————————————————————————————
+* Improved author display filter. Dont hide ads when no id is provided & don't allow users without permission to edit all banners to select all users.
+
+
 ADNING V1.3.3
 ——————————————————————————————————
 * Fixed issue with foreach loop on functions for some servers.
