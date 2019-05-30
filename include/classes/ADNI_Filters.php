@@ -108,6 +108,9 @@ class ADNI_Filters {
         
         $args = $ad['args'];
 
+        $set_arr = ADNI_Main::settings();
+        $settings = $set_arr['settings'];
+
         // Campaigns
         if( !empty($args['campaigns']) )
         {
@@ -118,7 +121,7 @@ class ADNI_Filters {
             }
         }
         
-        $display = array_key_exists('display_filter',$args) ? $args['display_filter'] : array();
+        $display = is_array($args) && array_key_exists('display_filter',$args) ? $args['display_filter'] : array();
 
         // AD display filter
         if( !empty($display) )
@@ -139,8 +142,8 @@ class ADNI_Filters {
             // That's why we add this here instead of under self::disabled_ads()
             if( !is_singular() )
             {
-                $set_arr = ADNI_Main::settings();
-                $settings = $set_arr['settings'];
+                /*$set_arr = ADNI_Main::settings();
+                $settings = $set_arr['settings'];*/
                 if( $settings['disable']['non_singular_ads'] )
                     return;
             }
@@ -200,6 +203,11 @@ class ADNI_Filters {
                     if( !in_array($post->post_author, $display['authors']['ids']) && $show || in_array($post->post_author, $display['authors']['ids']) && !$show ){
                         return;
                     }
+                }
+            
+                if( $settings['filters']['hide_ads_when_no_author_filter'] && empty($display['authors']['ids'] ))
+                {
+                    return;
                 }
                 /*else
                 {
@@ -927,6 +935,29 @@ class ADNI_Filters {
         {        
             $c = $campaign_post['args'];
             // echo '<pre>'.print_r($c, true).'</pre>';
+
+            // Start date
+            $current_time = current_time( 'timestamp' );
+            if( !empty($c['display_filter']['start']['month']) && !empty($c['display_filter']['start']['day']) )
+            {
+                $start_time = mktime($c['display_filter']['start']['time'], 0, 0, $c['display_filter']['start']['month'], $c['display_filter']['start']['day'], $c['display_filter']['start']['year']);
+
+                if($current_time < $start_time)
+                {
+                    return;
+                }
+            }
+
+            // End date
+            if( !empty($c['display_filter']['end']['month']) && !empty($c['display_filter']['end']['day']) )
+            {
+                $end_time = mktime($c['display_filter']['end']['time'], 0, 0, $c['display_filter']['end']['month'], $c['display_filter']['end']['day'], $c['display_filter']['end']['year']);
+                if($current_time > $end_time)
+                {
+                    return;
+                }
+            }
+
 
             // Months
             if( !empty($c['display_filter']['months']) )

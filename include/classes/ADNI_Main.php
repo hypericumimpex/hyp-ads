@@ -67,6 +67,9 @@ class ADNI_Main {
 			'positioning' => array(
 				'post_types' => array('post', 'page') // double arrays do not work with custom parse_args so we added a fix for it below...
 			),
+			'filters' => array(
+				'hide_ads_when_no_author_filter' => 0
+			),
 			'custom_css' => '',
 			'placement_area_head' => '',
 			'placement_area_body' => '',
@@ -978,6 +981,33 @@ class ADNI_Main {
 			));
 		}
 		return $value;
+	}
+
+
+
+
+	/**
+	 * Load advertisers
+	 */
+	public static function load_advertisers()
+	{
+		$banners = ADNI_CPT::get_posts(array(
+			'post_type'  => ADNI_CPT::$banner_cpt,
+		));
+
+		$advertisers = array();
+		if(!empty($banners))
+		{
+			foreach($banners as $banner)
+			{
+				if(!in_array($banner->post_author, $advertisers))
+				{
+					$advertisers[] = $banner->post_author;
+				}
+			}
+		}
+
+		return $advertisers;
 	}
 
 

@@ -1,3 +1,23 @@
+ADNING V1.3.7
+——————————————————————————————————
+* Added option to save stats by advertiser.
+* Added option to hide ADS when no author filter is selected.
+* Fixed, Warning: array_key_exists() expects parameter 2 to be array, boolean given in /wp-content/plugins/angwp/include/classes/ADNI_Filters.php on line 121
+
+
+ADNING V1.3.6
+——————————————————————————————————
+* Fixed issue with country filters for banners not removing.
+* Fixed issue with stats for iframe and embed code.
+* Fixed issue with banners not removing from adzones when they get removed.
+
+
+ADNING V1.3.5
+——————————————————————————————————
+* Improved campaign date settings (start/end date)
+* Fixed multisite issue.
+
+
 ADNING V1.3.4
 ——————————————————————————————————
 * Improved author display filter. Dont hide ads when no id is provided & don't allow users without permission to edit all banners to select all users.

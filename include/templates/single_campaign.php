@@ -175,269 +175,506 @@ if( !current_user_can(ADNI_CAMPAIGNS_ROLE) && $user_id != $campaign_post['post']
 
                                 <?php
                                 $h = '';
-                                $h.= '<div class="sep_line" style="margin:0 0 15px 0;"><span><strong>'.__('Date Settings','adn').'</strong></span></div>';
-
-                                // Show / Hide Months
-                                $h.= '<div class="clear" style="border-bottom: solid 1px #efefef;margin-bottom: 20px;">
-                                    <div class="input_container">
-                                        <h3 class="title">'.__('For Months','adn').'</h3>
-                                    </div>
-                                    <div class="spr_column spr_col-6">
-                                        <div class="input_container">';
+                                //$h.= '<div class="sep_line" style="margin:0 0 15px 0;"><span><strong>'.__('Date Settings','adn').'</strong></span></div>';
+                                
+                                
+                                $h.= '<div class="spr_column spr_col">';
+                                    $h.= '<div class="spr_column-inner left_column">';
+                                        $h.= '<div class="spr_wrapper">';
+                                            $h.= '<div class="input_container">';
                                             
-                                            $show_hide = array_key_exists('show_hide', $c['display_filter']['months']) ? $c['display_filter']['months']['show_hide'] : 0;
-                                            $h.= '<label class="switch switch-slide small input_h ttip" title="'.__('Show/Hide.','adn').'">
-                                                <input id="cb_month" class="switch-input" type="checkbox" name="display_filter[months][show_hide]" value="1" '.checked($show_hide,1,false).' />
-                                                <span class="switch-label" data-on="'.__('Show','adn').'" data-off="'.__('Hide','adn').'"></span> 
-                                                <span class="switch-handle"></span>
-                                            </label>';
+                                                $h.= '<div class="adn_settings_cont">';
+                                                    $h.= '<h4 id="posttypes_for_ads">'.__('Start Date','adn').' <span class="fa togg"></span></h4>';
+                                                    $h.= '<div class="set_box_content">';
+                                                        $h.= '<div class="adn_settings_cont_inner clear">';
+                                                            // Month
+                                                            $all_months = array(
+                                                                'jan','feb','mar','apr','may','jun','jul','aug','sep','okt','nov','dec'
+                                                            );
+                                                            $months_arr = array();
+                                                            $months_arr['select'] =  array('value' => '', 'text' => '');
+                                                            foreach($all_months as $i => $month)
+                                                            {
+                                                                $months_arr[$month] = array('value' => $i+1, 'text' => ADNI_Templates::months($month));
+                                                            }
+                                                            $h.= ADNI_Templates::spr_column(array(
+                                                                'col' => 'spr_col-3',
+                                                                'title' => __('Month','adn'),
+                                                                'desc' => __('Select the month.'),
+                                                                'content' => ADNI_Templates::select_cont(array(
+                                                                    'name' => 'display_filter[start][month]',
+                                                                    'value' => $c['display_filter']['start']['month'],
+                                                                    'select_opts' => $months_arr
+                                                                ))
+                                                            ));
 
-                                            $h.= '<span class="description bottom">'.__('Show/Hide the campaign during the selected months.','adn').'</span>
-                                        </div>
-                                    </div>
-                                    <!-- end .spr_column -->
+                                                            // Day
+                                                            $all_days = array(
+                                                                '1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31'
+                                                            );
+                                                            $days_arr = array();
+                                                            $days_arr['select'] =  array('value' => '', 'text' => '');
+                                                            foreach($all_days as $i => $day)
+                                                            {
+                                                                $days_arr[$day] = array('value' => $day, 'text' => $day);
+                                                            }
+                                                            $h.= ADNI_Templates::spr_column(array(
+                                                                'col' => 'spr_col-3',
+                                                                'title' => __('Day','adn'),
+                                                                'desc' => __('Select the day.'),
+                                                                'content' => ADNI_Templates::select_cont(array(
+                                                                    'name' => 'display_filter[start][day]',
+                                                                    'value' => $c['display_filter']['start']['day'],
+                                                                    'select_opts' => $days_arr
+                                                                ))
+                                                            ));
 
-                                    <div class="spr_column spr_col-6">
-                                        <div class="input_container">
-                                            <div class="custom_box option_inside_content">
-                                                <h3 class="title"></h3>
-                                                <div class="input_container_inner">';
-                                                    
-                                                    $h.= '<select id="df_month" name="display_filter[months][ids][]" data-placeholder="'.__('Select months', 'adn').'" style="width:100%;" class="chosen-select" multiple>';
-                                                        $h.= '<option value=""></option>';
-                                                        
-                                                        $months = array_key_exists('ids', $c['display_filter']['months']) ? $c['display_filter']['months']['ids'] : array();
-                                                        
-                                                        $all_months = array(
-                                                            'jan','feb','mar','apr','may','jun','jul','aug','sep','okt','nov','dec'
-                                                        );
-                                        
-                                                        foreach($all_months as $i => $month)
-                                                        {
-                                                            $selected = !empty($months) && is_array($months) ? in_array($month, $months) ? 'selected' : '' : '';
-                                                            $h.= '<option value="'.$month.'" '.$selected.'>'.ADNI_Templates::months($month).'</option>';
-                                                        }
-                                                    $h.= '</select>';
+                                                            // Year
+                                                            $all_years = array();
+                                                            //$all_years['select'] =  array('value' => '', 'text' => '');
+                                                            $cur_year = date('Y');
+                                                            for($i = 0; $i <= 10; $i++)
+                                                            {
+                                                                $all_years[$cur_year+$i] = array('value' => $cur_year+$i, 'text' => $cur_year+$i);
+                                                            }
+                                                            $h.= ADNI_Templates::spr_column(array(
+                                                                'col' => 'spr_col-3',
+                                                                'title' => __('Year','adn'),
+                                                                'desc' => __('Select the year.'),
+                                                                'content' => ADNI_Templates::select_cont(array(
+                                                                    'name' => 'display_filter[start][year]',
+                                                                    'value' => $c['display_filter']['start']['year'],
+                                                                    'select_opts' => $all_years
+                                                                ))
+                                                            ));
+                                                            
+                                                            // Time
+                                                            $all_times = array(
+                                                                '0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23'
+                                                            );
+                                                            $time_arr = array();
+                                                            //$time_arr['select'] =  array('value' => '', 'text' => '');
+                                                            foreach($all_times as $i => $time)
+                                                            {
+                                                                $time_arr[$time] = array('value' => $time, 'text' => ADNI_Templates::time($time));
+                                                            }
+                                                            $h.= ADNI_Templates::spr_column(array(
+                                                                'col' => 'spr_col-3',
+                                                                'title' => __('Time','adn'),
+                                                                'desc' => __('Select the Time.'),
+                                                                'content' => ADNI_Templates::select_cont(array(
+                                                                    'name' => 'display_filter[start][time]',
+                                                                    'value' => $c['display_filter']['start']['time'],
+                                                                    'select_opts' => $time_arr
+                                                                ))
+                                                            ));
+                                                            $h.= '<div clas="clearFix"></div>';
 
-                                                $h.= '</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- end .spr_column -->';
+                                                        $h.= '</div>';
+                                                    $h.= '</div>';
+                                                $h.= '</div>';
+
+                                                $h.= '<div class="adn_settings_cont closed">';
+                                                    $h.= '<h4 id="posttypes_for_ads">'.__('End Date','adn').' <span class="fa togg"></span></h4>';
+                                                    $h.= '<div class="set_box_content hidden">';
+                                                        $h.= '<div class="adn_settings_cont_inner clear">';
+                                                            // Month
+                                                            $all_months = array(
+                                                                'jan','feb','mar','apr','may','jun','jul','aug','sep','okt','nov','dec'
+                                                            );
+                                                            $months_arr = array();
+                                                            $months_arr['select'] =  array('value' => '', 'text' => '');
+                                                            foreach($all_months as $i => $month)
+                                                            {
+                                                                $months_arr[$month] = array('value' => $i+1, 'text' => ADNI_Templates::months($month));
+                                                            }
+                                                            $h.= ADNI_Templates::spr_column(array(
+                                                                'col' => 'spr_col-3',
+                                                                'title' => __('Month','adn'),
+                                                                'desc' => __('Select the month.'),
+                                                                'content' => ADNI_Templates::select_cont(array(
+                                                                    'name' => 'display_filter[end][month]',
+                                                                    'value' => $c['display_filter']['end']['month'],
+                                                                    'select_opts' => $months_arr
+                                                                ))
+                                                            ));
+
+                                                            // Day
+                                                            $all_days = array(
+                                                                '1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31'
+                                                            );
+                                                            $days_arr = array();
+                                                            $days_arr['select'] =  array('value' => '', 'text' => '');
+                                                            foreach($all_days as $i => $day)
+                                                            {
+                                                                $days_arr[$day] = array('value' => $day, 'text' => $day);
+                                                            }
+                                                            $h.= ADNI_Templates::spr_column(array(
+                                                                'col' => 'spr_col-3',
+                                                                'title' => __('Day','adn'),
+                                                                'desc' => __('Select the day.'),
+                                                                'content' => ADNI_Templates::select_cont(array(
+                                                                    'name' => 'display_filter[end][day]',
+                                                                    'value' => $c['display_filter']['end']['day'],
+                                                                    'select_opts' => $days_arr
+                                                                ))
+                                                            ));
+
+                                                            // Year
+                                                            $all_years = array();
+                                                            //$all_years['select'] =  array('value' => '', 'text' => '');
+                                                            $cur_year = date('Y');
+                                                            for($i = 0; $i <= 10; $i++)
+                                                            {
+                                                                $all_years[$cur_year+$i] = array('value' => $cur_year+$i, 'text' => $cur_year+$i);
+                                                            }
+                                                            $h.= ADNI_Templates::spr_column(array(
+                                                                'col' => 'spr_col-3',
+                                                                'title' => __('Year','adn'),
+                                                                'desc' => __('Select the year.'),
+                                                                'content' => ADNI_Templates::select_cont(array(
+                                                                    'name' => 'display_filter[end][year]',
+                                                                    'value' => $c['display_filter']['end']['year'],
+                                                                    'select_opts' => $all_years
+                                                                ))
+                                                            ));
+                                                            
+                                                            // Time
+                                                            $all_times = array(
+                                                                '0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23'
+                                                            );
+                                                            $time_arr = array();
+                                                            //$time_arr['select'] =  array('value' => '', 'text' => '');
+                                                            foreach($all_times as $i => $time)
+                                                            {
+                                                                $time_arr[$time] = array('value' => $time, 'text' => ADNI_Templates::time($time));
+                                                            }
+                                                            $h.= ADNI_Templates::spr_column(array(
+                                                                'col' => 'spr_col-3',
+                                                                'title' => __('Time','adn'),
+                                                                'desc' => __('Select the Time.'),
+                                                                'content' => ADNI_Templates::select_cont(array(
+                                                                    'name' => 'display_filter[end][time]',
+                                                                    'value' => $c['display_filter']['end']['time'],
+                                                                    'select_opts' => $time_arr
+                                                                ))
+                                                            ));
+
+                                                            $h.= '<div clas="clearFix"></div>';
+                                                        $h.= '</div>';
+                                                    $h.= '</div>';
+                                                $h.= '</div>';
+                                                
+                                                $h.= '<div clas="clearFix"></div>';
+                                            $h.= '</div>';
+                                        $h.= '</div>';
+                                    $h.= '</div>';
                                 $h.= '</div>';
 
 
-                                // Show / Hide Days
-                                $h.= '<div class="clear" style="border-bottom: solid 1px #efefef;margin-bottom: 20px;">
-                                    <div class="input_container">
-                                        <h3 class="title">'.__('For Days','adn').'</h3>
-                                    </div>
-                                    <div class="spr_column spr_col-6">
-                                        <div class="input_container">';
+                                $h.= '<div clas="clearFix"></div>';
+                                
+                                $h.= '<div class="spr_column spr_col">';
+                                    $h.= '<div class="spr_column-inner left_column">';
+                                        $h.= '<div class="spr_wrapper">';
+                                            $h.= '<div class="input_container">';
+                                                $h.= '<div class="adn_settings_cont closed">';
+                                                    $h.= '<h4 id="posttypes_for_ads">'.__('Advanced date options','adn').' <span class="fa togg"></span></h4>';
+                                                    $h.= '<div class="set_box_content hidden">';
+                                                        $h.= '<div class="adn_settings_cont_inner clear">';
+
+                                                            // Show / Hide Months
+                                                            $h.= '<div class="clear" style="border-bottom: solid 1px #efefef;margin-bottom: 20px;">
+                                                                <div class="input_container">
+                                                                    <h3 class="title">'.__('For Months','adn').'</h3>
+                                                                </div>
+                                                                <div class="spr_column spr_col-6">
+                                                                    <div class="input_container">';
+                                                                        
+                                                                        $show_hide = array_key_exists('show_hide', $c['display_filter']['months']) ? $c['display_filter']['months']['show_hide'] : 0;
+                                                                        $h.= '<label class="switch switch-slide small input_h ttip" title="'.__('Show/Hide.','adn').'">
+                                                                            <input id="cb_month" class="switch-input" type="checkbox" name="display_filter[months][show_hide]" value="1" '.checked($show_hide,1,false).' />
+                                                                            <span class="switch-label" data-on="'.__('Show','adn').'" data-off="'.__('Hide','adn').'"></span> 
+                                                                            <span class="switch-handle"></span>
+                                                                        </label>';
+
+                                                                        $h.= '<span class="description bottom">'.__('Show/Hide the campaign during the selected months.','adn').'</span>
+                                                                    </div>
+                                                                </div>
+                                                                <!-- end .spr_column -->
+
+                                                                <div class="spr_column spr_col-6">
+                                                                    <div class="input_container">
+                                                                        <div class="custom_box option_inside_content">
+                                                                            <h3 class="title"></h3>
+                                                                            <div class="input_container_inner">';
+                                                                                
+                                                                                $h.= '<select id="df_month" name="display_filter[months][ids][]" data-placeholder="'.__('Select months', 'adn').'" style="width:100%;" class="chosen-select" multiple>';
+                                                                                    $h.= '<option value=""></option>';
+                                                                                    
+                                                                                    $months = array_key_exists('ids', $c['display_filter']['months']) ? $c['display_filter']['months']['ids'] : array();
+                                                                                    
+                                                                                    $all_months = array(
+                                                                                        'jan','feb','mar','apr','may','jun','jul','aug','sep','okt','nov','dec'
+                                                                                    );
+                                                                    
+                                                                                    foreach($all_months as $i => $month)
+                                                                                    {
+                                                                                        $selected = !empty($months) && is_array($months) ? in_array($month, $months) ? 'selected' : '' : '';
+                                                                                        $h.= '<option value="'.$month.'" '.$selected.'>'.ADNI_Templates::months($month).'</option>';
+                                                                                    }
+                                                                                $h.= '</select>';
+
+                                                                            $h.= '</div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <!-- end .spr_column -->';
+                                                            $h.= '</div>';
+
+
+                                                            // Show / Hide Days
+                                                            $h.= '<div class="clear" style="border-bottom: solid 1px #efefef;margin-bottom: 20px;">
+                                                                <div class="input_container">
+                                                                    <h3 class="title">'.__('For Days','adn').'</h3>
+                                                                </div>
+                                                                <div class="spr_column spr_col-6">
+                                                                    <div class="input_container">';
+                                                                        
+                                                                        $show_hide = array_key_exists('show_hide', $c['display_filter']['days']) ? $c['display_filter']['days']['show_hide'] : 0;
+                                                                        $h.= '<label class="switch switch-slide small input_h ttip" title="'.__('Show/Hide.','adn').'">
+                                                                            <input id="cb_day" class="switch-input" type="checkbox" name="display_filter[days][show_hide]" value="1" '.checked($show_hide,1,false).' />
+                                                                            <span class="switch-label" data-on="'.__('Show','adn').'" data-off="'.__('Hide','adn').'"></span> 
+                                                                            <span class="switch-handle"></span>
+                                                                        </label>';
+
+                                                                        $h.= '<span class="description bottom">'.__('Show/Hide the campaign during the selected days.','adn').'</span>
+                                                                    </div>
+                                                                </div>
+                                                                <!-- end .spr_column -->
+
+                                                                <div class="spr_column spr_col-6">
+                                                                    <div class="input_container">
+                                                                        <div class="custom_box option_inside_content">
+                                                                            <h3 class="title"></h3>
+                                                                            <div class="input_container_inner">';
+                                                                                
+                                                                                $h.= '<select id="df_day" name="display_filter[days][ids][]" data-placeholder="'.__('Select days', 'adn').'" style="width:100%;" class="chosen-select" multiple>';
+                                                                                    $h.= '<option value=""></option>';
+                                                                                    
+                                                                                    $days = array_key_exists('ids', $c['display_filter']['days']) ? $c['display_filter']['days']['ids'] : array();
+                                                                                    
+                                                                                    $all_days = array(
+                                                                                        '1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31'
+                                                                                    );
+                                                                    
+                                                                                    foreach($all_days as $i => $day)
+                                                                                    {
+                                                                                        $selected = !empty($days) && is_array($days) ? in_array($day, $days) ? 'selected' : '' : '';
+                                                                                        $h.= '<option value="'.$day.'" '.$selected.'>'.$day.'</option>';
+                                                                                    }
+                                                                                $h.= '</select>';
+
+                                                                            $h.= '</div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <!-- end .spr_column -->';
+                                                            $h.= '</div>';
+
+
+                                                            // Show / Hide weekdays
+                                                            $h.= '<div class="clear" style="border-bottom: solid 1px #efefef;margin-bottom: 20px;">
+                                                                <div class="input_container">
+                                                                    <h3 class="title">'.__('For Weekdays','adn').'</h3>
+                                                                </div>
+                                                                <div class="spr_column spr_col-6">
+                                                                    <div class="input_container">';
+                                                                        
+                                                                        $show_hide = array_key_exists('show_hide', $c['display_filter']['weekdays']) ? $c['display_filter']['weekdays']['show_hide'] : 0;
+                                                                        $h.= '<label class="switch switch-slide small input_h ttip" title="'.__('Show/Hide.','adn').'">
+                                                                            <input class="switch-input" type="checkbox" name="display_filter[weekdays][show_hide]" value="1" '.checked($show_hide,1,false).' />
+                                                                            <span class="switch-label" data-on="'.__('Show','adn').'" data-off="'.__('Hide','adn').'"></span> 
+                                                                            <span class="switch-handle"></span>
+                                                                        </label>';
+
+                                                                        $h.= '<span class="description bottom">'.__('Show/Hide the campaign during the selected weekdays.','adn').'</span>
+                                                                    </div>
+                                                                </div>
+                                                                <!-- end .spr_column -->
+
+                                                                <div class="spr_column spr_col-6">
+                                                                    <div class="input_container">
+                                                                        <div class="custom_box option_inside_content">
+                                                                            <h3 class="title"></h3>
+                                                                            <div class="input_container_inner">';
+                                                                                
+                                                                                $h.= '<select name="display_filter[weekdays][ids][]" data-placeholder="'.__('Select weekdays', 'adn').'" style="width:100%;" class="chosen-select" multiple>';
+                                                                                    $h.= '<option value=""></option>';
+                                                                                    
+                                                                                    $days = array_key_exists('ids', $c['display_filter']['weekdays']) ? $c['display_filter']['weekdays']['ids'] : array();
+                                                                                    
+                                                                                    $all_days = array(
+                                                                                        'mon','tue','wed','thu','fri','sat','sun'
+                                                                                    );
+                                                                    
+                                                                                    foreach($all_days as $i => $day)
+                                                                                    {
+                                                                                        $selected = !empty($days) && is_array($days) ? in_array($day, $days) ? 'selected' : '' : '';
+                                                                                        $h.= '<option value="'.$day.'" '.$selected.'>'.ADNI_Templates::weekdays($day).'</option>';
+                                                                                    }
+                                                                                $h.= '</select>';
+
+                                                                            $h.= '</div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <!-- end .spr_column -->';
+                                                            $h.= '</div>';
+
+
+                                                            // Show / Hide Time
+                                                            $h.= '<div class="clear" style="border-bottom: solid 1px #efefef;margin-bottom: 20px;">
+                                                                <div class="input_container">
+                                                                    <h3 class="title">'.__('For Time','adn').'</h3>
+                                                                </div>
+                                                                <div class="spr_column spr_col-6">
+                                                                    <div class="input_container">';
+                                                                        
+                                                                        $show_hide = array_key_exists('show_hide', $c['display_filter']['time']) ? $c['display_filter']['time']['show_hide'] : 0;
+                                                                        $h.= '<label class="switch switch-slide small input_h ttip" title="'.__('Show/Hide.','adn').'">
+                                                                            <input class="switch-input" type="checkbox" name="display_filter[time][show_hide]" value="1" '.checked($show_hide,1,false).' />
+                                                                            <span class="switch-label" data-on="'.__('Show','adn').'" data-off="'.__('Hide','adn').'"></span> 
+                                                                            <span class="switch-handle"></span>
+                                                                        </label>';
+
+                                                                        $h.= '<span class="description bottom">'.__('Show/Hide the campaign during the selected time.','adn').'</span>
+                                                                    </div>
+                                                                </div>
+                                                                <!-- end .spr_column -->
+
+                                                                <div class="spr_column spr_col-6">
+                                                                    <div class="input_container">
+                                                                        <div class="custom_box option_inside_content">
+                                                                            <h3 class="title"></h3>
+                                                                            <div class="input_container_inner">';
+                                                                                
+                                                                                $h.= '<select name="display_filter[time][ids][]" data-placeholder="'.__('Select Time', 'adn').'" style="width:100%;" class="chosen-select" multiple>';
+                                                                                    $h.= '<option value=""></option>';
+                                                                                    
+                                                                                    $times = array_key_exists('ids', $c['display_filter']['time']) ? $c['display_filter']['time']['ids'] : array();
+                                                                                    
+                                                                                    $all_times = array(
+                                                                                        '0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23'
+                                                                                    );
+                                                                    
+                                                                                    foreach($all_times as $i => $time)
+                                                                                    {
+                                                                                        $selected = !empty($times) && is_array($times) ? in_array($time, $times) ? 'selected' : '' : '';
+                                                                                        $h.= '<option value="'.$time.'" '.$selected.'>'.ADNI_Templates::time($time).'</option>';
+                                                                                    }
+                                                                                $h.= '</select>';
+
+                                                                                $h.= '<span class="description bottom">'.sprintf(__('Current Time: %s.','adn'), date_i18n( 'l F j, Y - g:i A', current_time( 'timestamp' ) )).'</span>';
+
+                                                                            $h.= '</div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <!-- end .spr_column -->';
+                                                            $h.= '</div>';
+
+
+                                                            // Show / Hide Years
+                                                            $h.= '<div class="clear" style="border-bottom: solid 1px #efefef;margin-bottom: 20px;">
+                                                                <div class="input_container">
+                                                                    <h3 class="title">'.__('For Years','adn').'</h3>
+                                                                </div>
+                                                                <div class="spr_column spr_col-6">
+                                                                    <div class="input_container">';
+                                                                        
+                                                                        $show_hide = array_key_exists('show_hide', $c['display_filter']['years']) ? $c['display_filter']['years']['show_hide'] : 0;
+                                                                        $h.= '<label id="cb_year" class="switch switch-slide small input_h ttip" title="'.__('Show/Hide.','adn').'">
+                                                                            <input class="switch-input" type="checkbox" name="display_filter[years][show_hide]" value="1" '.checked($show_hide,1,false).' />
+                                                                            <span class="switch-label" data-on="'.__('Show','adn').'" data-off="'.__('Hide','adn').'"></span> 
+                                                                            <span class="switch-handle"></span>
+                                                                        </label>';
+
+                                                                        $h.= '<span class="description bottom">'.__('Show/Hide the campaign during the selected years.','adn').'</span>
+                                                                    </div>
+                                                                </div>
+                                                                <!-- end .spr_column -->
+
+                                                                <div class="spr_column spr_col-6">
+                                                                    <div class="input_container">
+                                                                        <div class="custom_box option_inside_content">
+                                                                            <h3 class="title"></h3>
+                                                                            <div class="input_container_inner">';
+                                                                                
+                                                                                $h.= '<select id="df_year" name="display_filter[years][ids][]" data-placeholder="'.__('Select years', 'adn').'" style="width:100%;" class="chosen-select" multiple>';
+                                                                                    $h.= '<option value=""></option>';
+                                                                                    
+                                                                                    $years = array_key_exists('ids', $c['display_filter']['years']) ? $c['display_filter']['years']['ids'] : array();
+                                                                                    
+                                                                                    $all_years = array();
+                                                                                    $cur_year = date('Y');
+                                                                                    for($i = 0; $i <= 10; $i++)
+                                                                                    {
+                                                                                        $all_years[] = $cur_year+$i;
+                                                                                    }
+                                                                                    
+                                                                                    foreach($all_years as $i => $year)
+                                                                                    {
+                                                                                        $selected = !empty($years) && is_array($years) ? in_array($year, $years) ? 'selected' : '' : '';
+                                                                                        $h.= '<option value="'.$year.'" '.$selected.'>'.$year.'</option>';
+                                                                                    }
+                                                                                $h.= '</select>';
+
+                                                                            $h.= '</div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <!-- end .spr_column -->';
+                                                            $h.= '</div>';
+
+                                                        $h.= '</div>';
+                                                    $h.= '</div>';
+                                                $h.= '</div>';
+                                            $h.= '</div>';
+                                        $h.= '</div>';
+                                    $h.= '</div>';
+                                $h.= '</div>';
+                                
+
+
+                                $h.= '<div class="spr_column spr_col">';
+                                    $h.= '<div class="spr_column-inner left_column">';
+                                        $h.= '<div class="spr_wrapper">';
+                                            $h.= '<div class="input_container">';
                                             
-                                            $show_hide = array_key_exists('show_hide', $c['display_filter']['days']) ? $c['display_filter']['days']['show_hide'] : 0;
-                                            $h.= '<label class="switch switch-slide small input_h ttip" title="'.__('Show/Hide.','adn').'">
-                                                <input id="cb_day" class="switch-input" type="checkbox" name="display_filter[days][show_hide]" value="1" '.checked($show_hide,1,false).' />
-                                                <span class="switch-label" data-on="'.__('Show','adn').'" data-off="'.__('Hide','adn').'"></span> 
-                                                <span class="switch-handle"></span>
-                                            </label>';
+                                                $h.= '<div class="adn_settings_cont closed">';
+                                                    $h.= '<h4 id="posttypes_for_ads">'.__('Country Filters','adn').' <span class="fa togg"></span></h4>';
+                                                    $h.= '<div class="set_box_content hidden">';
+                                                        $h.= '<div class="adn_settings_cont_inner clear">';
+                                                            
+                                                            $h.= ADNI_Templates::country_options($c, array('desc' => __('Show or Hide the campaign for selected countries.','adn')));
 
-                                            $h.= '<span class="description bottom">'.__('Show/Hide the campaign during the selected days.','adn').'</span>
-                                        </div>
-                                    </div>
-                                    <!-- end .spr_column -->
-
-                                    <div class="spr_column spr_col-6">
-                                        <div class="input_container">
-                                            <div class="custom_box option_inside_content">
-                                                <h3 class="title"></h3>
-                                                <div class="input_container_inner">';
-                                                    
-                                                    $h.= '<select id="df_day" name="display_filter[days][ids][]" data-placeholder="'.__('Select days', 'adn').'" style="width:100%;" class="chosen-select" multiple>';
-                                                        $h.= '<option value=""></option>';
-                                                        
-                                                        $days = array_key_exists('ids', $c['display_filter']['days']) ? $c['display_filter']['days']['ids'] : array();
-                                                        
-                                                        $all_days = array(
-                                                            '1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31'
-                                                        );
-                                        
-                                                        foreach($all_days as $i => $day)
-                                                        {
-                                                            $selected = !empty($days) && is_array($days) ? in_array($day, $days) ? 'selected' : '' : '';
-                                                            $h.= '<option value="'.$day.'" '.$selected.'>'.$day.'</option>';
-                                                        }
-                                                    $h.= '</select>';
-
-                                                $h.= '</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- end .spr_column -->';
+                                                        $h.= '</div>';
+                                                    $h.= '</div>';
+                                                $h.= '</div>';
+                                            $h.= '</div>';
+                                        $h.= '</div>';
+                                    $h.= '</div>';
                                 $h.= '</div>';
 
 
-                                // Show / Hide weekdays
-                                $h.= '<div class="clear" style="border-bottom: solid 1px #efefef;margin-bottom: 20px;">
-                                    <div class="input_container">
-                                        <h3 class="title">'.__('For Weekdays','adn').'</h3>
-                                    </div>
-                                    <div class="spr_column spr_col-6">
-                                        <div class="input_container">';
-                                            
-                                            $show_hide = array_key_exists('show_hide', $c['display_filter']['weekdays']) ? $c['display_filter']['weekdays']['show_hide'] : 0;
-                                            $h.= '<label class="switch switch-slide small input_h ttip" title="'.__('Show/Hide.','adn').'">
-                                                <input class="switch-input" type="checkbox" name="display_filter[weekdays][show_hide]" value="1" '.checked($show_hide,1,false).' />
-                                                <span class="switch-label" data-on="'.__('Show','adn').'" data-off="'.__('Hide','adn').'"></span> 
-                                                <span class="switch-handle"></span>
-                                            </label>';
 
-                                            $h.= '<span class="description bottom">'.__('Show/Hide the campaign during the selected weekdays.','adn').'</span>
-                                        </div>
-                                    </div>
-                                    <!-- end .spr_column -->
-
-                                    <div class="spr_column spr_col-6">
-                                        <div class="input_container">
-                                            <div class="custom_box option_inside_content">
-                                                <h3 class="title"></h3>
-                                                <div class="input_container_inner">';
-                                                    
-                                                    $h.= '<select name="display_filter[weekdays][ids][]" data-placeholder="'.__('Select weekdays', 'adn').'" style="width:100%;" class="chosen-select" multiple>';
-                                                        $h.= '<option value=""></option>';
-                                                        
-                                                        $days = array_key_exists('ids', $c['display_filter']['weekdays']) ? $c['display_filter']['weekdays']['ids'] : array();
-                                                        
-                                                        $all_days = array(
-                                                            'mon','tue','wed','thu','fri','sat','sun'
-                                                        );
-                                        
-                                                        foreach($all_days as $i => $day)
-                                                        {
-                                                            $selected = !empty($days) && is_array($days) ? in_array($day, $days) ? 'selected' : '' : '';
-                                                            $h.= '<option value="'.$day.'" '.$selected.'>'.ADNI_Templates::weekdays($day).'</option>';
-                                                        }
-                                                    $h.= '</select>';
-
-                                                $h.= '</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- end .spr_column -->';
-                                $h.= '</div>';
-
-
-                                // Show / Hide Time
-                                $h.= '<div class="clear" style="border-bottom: solid 1px #efefef;margin-bottom: 20px;">
-                                    <div class="input_container">
-                                        <h3 class="title">'.__('For Time','adn').'</h3>
-                                    </div>
-                                    <div class="spr_column spr_col-6">
-                                        <div class="input_container">';
-                                            
-                                            $show_hide = array_key_exists('show_hide', $c['display_filter']['time']) ? $c['display_filter']['time']['show_hide'] : 0;
-                                            $h.= '<label class="switch switch-slide small input_h ttip" title="'.__('Show/Hide.','adn').'">
-                                                <input class="switch-input" type="checkbox" name="display_filter[time][show_hide]" value="1" '.checked($show_hide,1,false).' />
-                                                <span class="switch-label" data-on="'.__('Show','adn').'" data-off="'.__('Hide','adn').'"></span> 
-                                                <span class="switch-handle"></span>
-                                            </label>';
-
-                                            $h.= '<span class="description bottom">'.__('Show/Hide the campaign during the selected time.','adn').'</span>
-                                        </div>
-                                    </div>
-                                    <!-- end .spr_column -->
-
-                                    <div class="spr_column spr_col-6">
-                                        <div class="input_container">
-                                            <div class="custom_box option_inside_content">
-                                                <h3 class="title"></h3>
-                                                <div class="input_container_inner">';
-                                                    
-                                                    $h.= '<select name="display_filter[time][ids][]" data-placeholder="'.__('Select Time', 'adn').'" style="width:100%;" class="chosen-select" multiple>';
-                                                        $h.= '<option value=""></option>';
-                                                        
-                                                        $times = array_key_exists('ids', $c['display_filter']['time']) ? $c['display_filter']['time']['ids'] : array();
-                                                        
-                                                        $all_times = array(
-                                                            '0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23'
-                                                        );
-                                        
-                                                        foreach($all_times as $i => $time)
-                                                        {
-                                                            $selected = !empty($times) && is_array($times) ? in_array($time, $times) ? 'selected' : '' : '';
-                                                            $h.= '<option value="'.$time.'" '.$selected.'>'.ADNI_Templates::time($time).'</option>';
-                                                        }
-                                                    $h.= '</select>';
-
-                                                    $h.= '<span class="description bottom">'.sprintf(__('Current Time: %s.','adn'), date_i18n( 'l F j, Y - g:i A', current_time( 'timestamp' ) )).'</span>';
-
-                                                $h.= '</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- end .spr_column -->';
-                                $h.= '</div>';
-
-
-                                // Show / Hide Years
-                                $h.= '<div class="clear" style="border-bottom: solid 1px #efefef;margin-bottom: 20px;">
-                                    <div class="input_container">
-                                        <h3 class="title">'.__('For Years','adn').'</h3>
-                                    </div>
-                                    <div class="spr_column spr_col-6">
-                                        <div class="input_container">';
-                                            
-                                            $show_hide = array_key_exists('show_hide', $c['display_filter']['years']) ? $c['display_filter']['years']['show_hide'] : 0;
-                                            $h.= '<label id="cb_year" class="switch switch-slide small input_h ttip" title="'.__('Show/Hide.','adn').'">
-                                                <input class="switch-input" type="checkbox" name="display_filter[years][show_hide]" value="1" '.checked($show_hide,1,false).' />
-                                                <span class="switch-label" data-on="'.__('Show','adn').'" data-off="'.__('Hide','adn').'"></span> 
-                                                <span class="switch-handle"></span>
-                                            </label>';
-
-                                            $h.= '<span class="description bottom">'.__('Show/Hide the campaign during the selected years.','adn').'</span>
-                                        </div>
-                                    </div>
-                                    <!-- end .spr_column -->
-
-                                    <div class="spr_column spr_col-6">
-                                        <div class="input_container">
-                                            <div class="custom_box option_inside_content">
-                                                <h3 class="title"></h3>
-                                                <div class="input_container_inner">';
-                                                    
-                                                    $h.= '<select id="df_year" name="display_filter[years][ids][]" data-placeholder="'.__('Select years', 'adn').'" style="width:100%;" class="chosen-select" multiple>';
-                                                        $h.= '<option value=""></option>';
-                                                        
-                                                        $years = array_key_exists('ids', $c['display_filter']['years']) ? $c['display_filter']['years']['ids'] : array();
-                                                        
-                                                        $all_years = array();
-                                                        $cur_year = date('Y');
-                                                        for($i = 0; $i <= 10; $i++)
-                                                        {
-                                                            $all_years[] = $cur_year+$i;
-                                                        }
-                                                        
-                                                        foreach($all_years as $i => $year)
-                                                        {
-                                                            $selected = !empty($years) && is_array($years) ? in_array($year, $years) ? 'selected' : '' : '';
-                                                            $h.= '<option value="'.$year.'" '.$selected.'>'.$year.'</option>';
-                                                        }
-                                                    $h.= '</select>';
-
-                                                $h.= '</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- end .spr_column -->';
-                                $h.= '</div>';
-
-
-                                $h.= '<div class="clear device_filter_container" style="margin-top: 40px;">
+                                /*$h.= '<div class="clear device_filter_container" style="margin-top: 40px;">
                                     <div class="sep_line" style="margin:0 0 15px 0;"><span><strong>'.__('Country Filters','adn').'</strong></span></div>
                                     <div class="clear">';
                                         $h.= ADNI_Templates::country_options($c, array('desc' => __('Show or Hide the campaign for selected countries.','adn')));		
                                     $h.= '</div>
-                                </div>';
+                                </div>';*/
 
                                 echo $h;
                                 ?>

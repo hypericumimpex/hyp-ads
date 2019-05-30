@@ -1,10 +1,12 @@
 <?php
 $h = '';
+
 if( !is_user_logged_in() )
 {
     $h.= '<div style="margin-top:50px;text-align:center;">'.esc_attr__('Please login to access this area.','adn').'</div>';
     return;
 }
+
 
 //echo 'oi'.function_exists( 'is_amp_endpoint' );
 

@@ -163,7 +163,8 @@ class ADNI_Init {
 					apply_filters('adning_save_stats', array(
 						'type' => 'click',
 						'banner_id' => $banner_id,
-						'adzone_id' => $adzone_id
+						'adzone_id' => $adzone_id,
+						'advertiser_id' => $banner['post']->post_author
 					));
 				}
 			}

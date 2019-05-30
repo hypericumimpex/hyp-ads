@@ -34,7 +34,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
             ADNI_Init::error_log(__('Adning - created debug.log file','adn'));
             if( !is_writable(ADNI_Init::$log_file) )
             {
-                $error[] = array('type' => 'warning', 'msg' => __('We are unable to create the Adning <strong><em>debug.log</em></strong> file on your server. This is most likely a file permission issue. You can manually create the file under <em><strong>plugins/adning/</strong>debug.log</em> and make sure it\'s writable.','adn'));
+                $error[] = array('type' => 'warning', 'msg' => __('We are unable to create the Adning <strong><em>debug.log</em></strong> file on your server. This is most likely a file permission issue. You can manually create the file under <em><strong>plugins/angwp/</strong>debug.log</em> and make sure it\'s writable.','adn'));
             }
         }
     
@@ -327,6 +327,33 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                                                                     }
                                                                 }
                                                             }
+                                                        $html.= '</div>';
+                                                    $html.= '</div>';
+                                                $html.= '</div>';
+
+
+                                                $html.= '<div class="adn_settings_cont closed">';
+                                                    $html.= '<h4 id="posttypes_for_ads">'.__('Filters','adn').' <span class="fa togg"></span></h4>';
+                                                    $html.= '<div class="set_box_content hidden">';
+                                                        $html.= '<div class="adn_settings_cont_inner clear">';
+                                                            //$html.= '<p>'.__('Select the post types where "Auto Positioning" for Ads should be available.','adn').'</p>';
+                                                        
+                                                            // Author Filter
+                                                            $html.= ADNI_Templates::switch_btn(array(
+                                                                'title' => __('Hide Ads when no Author Filter is selected','adn'),
+                                                                'id' => 'hide_noauthorfilter_ads',
+                                                                'name' => 'filters[hide_ads_when_no_author_filter]',
+                                                                'checked' => $settings['filters']['hide_ads_when_no_author_filter'],
+                                                                'value' => 1,
+                                                                'hidden_input' => 1,
+                                                                'chk-on' => __('Yes','adn'),
+                                                                'chk-off' => __('No','adn'),
+                                                                'column' => array(
+                                                                    'size' => 'col-6',
+                                                                    'desc' => __('This will hide all ads when no author filter is selected.','adn'),
+                                                                )
+                                                            ));
+                                                            
                                                         $html.= '</div>';
                                                     $html.= '</div>';
                                                 $html.= '</div>';

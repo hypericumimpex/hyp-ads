@@ -52,7 +52,23 @@ class ADNI_CPT {
 
 				unset($auto_pos[$post_id]);
 				ADNI_Multi::update_option('_adning_auto_positioning', $auto_pos);
-            }
+			}
+			
+			// If Banner
+			if($post_type === strtolower(self::$banner_cpt))
+			{
+				$admin_args = ADNI_Multi::get_post_meta($post_id, '_adning_args', array());
+
+				// remove from adzone
+				if( !empty($admin_args['adzones']))
+				{
+					foreach($admin_args['adzones'] as $adzone_id)
+					{
+						self::remove_banner_from_adzone($adzone_id, $post_id);
+						self::remove_adzone_from_banner($adzone_id, $post_id);
+					}
+				}
+			}
 		}
 	}
 
@@ -968,7 +984,19 @@ class ADNI_CPT {
 				'days' => array(),
 				'time' => array(),
 				'weekdays' => array(),
-				'countries' => array()
+				'countries' => array(),
+				'start' => array(
+					'month' => '',
+					'day' => '',
+					'year' => date('Y'),
+					'time' => 0
+				),
+				'end' => array(
+					'month' => '',
+					'day' => '',
+					'year' => date('Y'),
+					'time' => 0
+				)
 			)
 		));
 	}
@@ -1096,8 +1124,6 @@ class ADNI_CPT {
 				}
 			}
 			
-
-
 			
 			if($type === 'banner')
 			{
@@ -1117,7 +1143,9 @@ class ADNI_CPT {
 					// 1. remove from previous adzones
 					$admin_args = ADNI_Multi::get_post_meta($b_id, '_adning_args', array());
 					$admin_args['display_filter']['post_types'] = array();
+					$admin_args['display_filter']['countries']['ids'] = !isset($post['display_filter']['countries']['ids']) ? array() : $post['display_filter']['countries']['ids'];
 					$admin_args['campaigns'] = array();
+					
 					$post = ADNI_Main::parse_args($post, $admin_args);
 
 					if( !empty($admin_args['adzones']))
@@ -1166,6 +1194,7 @@ class ADNI_CPT {
 					}
 				}
 			}
+
 			
 			//echo '<pre>'.print_r($post,true).'</pre>';
 			if( strtolower($post_type) == strtolower(self::$banner_cpt))

@@ -22,8 +22,8 @@ class ADNI_Multi {
 				require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
 				// Makes sure the plugin is defined before trying to use it
 			}
-			 
-			if( is_plugin_active_for_network( 'adning/adning.php' ) ) 
+			
+			if( is_plugin_active_for_network( plugin_basename(ADNI_FILE) ) ) 
 			{
 				$active = 1;
 			}

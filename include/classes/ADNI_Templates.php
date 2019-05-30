@@ -184,6 +184,8 @@ class ADNI_Templates {
 		$save_stats = empty($args['stats']) ? 0 : $banner['args']['enable_stats'];
 		$loaded_id = '';
 
+		//echo '<pre>'.print_r($banner,true).'</pre>';
+		
 		// Filter -------------------------------------------------------
 		if( $save_stats )
 		{
@@ -191,11 +193,12 @@ class ADNI_Templates {
 			{
 				// Add to loaded banners and return the loaded id
 				$loaded_id = apply_filters('adning_loaded_banners', $banner, $args);
-
+				
 				apply_filters('adning_save_stats', array(
 					'type' => 'impression',
 					'banner_id' => $id,
-					'adzone_id' => $adzone_id
+					'adzone_id' => $adzone_id,
+					'advertiser_id' => $banner['post']->post_author
 				));
 			}
 		}

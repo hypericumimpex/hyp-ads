@@ -18,6 +18,11 @@ class ADNI_API {
 		// API Iframe URL
 		if( isset( $_GET['_dnid'] ) && !empty( $_GET['_dnid'] ) )
 		{
+			if ( class_exists( 'sTrack_Core' ) )
+			{
+				sTrack_Core::_tracking();
+			}
+
 			$html = '';
 			$custom_css = '';
 			$post_type = get_post_type( $_GET['_dnid'] );
@@ -83,6 +88,11 @@ class ADNI_API {
 	{	
 		if( isset( $_GET['_dnembed'] ) && !empty( $_GET['_dnembed'] ) )
 		{
+			if ( class_exists( 'sTrack_Core' ) )
+			{
+				sTrack_Core::_tracking();
+			}
+			
 			header("Content-Type: application/javascript");
 			
 			/*
