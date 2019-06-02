@@ -6,7 +6,7 @@
 	<div class="wrap">
        
 		<?php
-		$activation = true;
+		$activation = ADNI_Multi::get_option('adning_activation', array());
 		$tip = empty($activation) && current_user_can(ADNI_ADMIN_ROLE) ? ' <span style="background-color:#d4ff00;">'.__('Tip: start by activting your Product License.','adn').'</span>' : '';
 
 		echo ADNI_Templates::main_admin_header(array(
@@ -101,7 +101,7 @@
 												<h3><?php _e('Included Add-Ons','adn'); ?></h3>
 												<?php
 												$h = '';
-												$activation = true;
+												$activation = ADNI_Multi::get_option('adning_activation', array());
 												$addOns = array(
 													'smartrack' => array(
 														'name' => 'smarTrack',

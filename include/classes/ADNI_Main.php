@@ -1138,6 +1138,60 @@ class ADNI_Main {
 		return $skin->result;
 	}
 
+
+
+
+
+	/*
+	 * BANNER RSS FEED
+	 *
+	 * @access public
+	 * @return rss
+	*/
+	public static function rss_feed( $ID = 0 )
+	{	
+		if( !empty( $ID ) || isset( $_GET['adning-rss'] ) && !empty( $_GET['adning-rss'] ) )
+		{
+			$html = '';
+			$ID = !empty( $ID ) ? $ID : $_GET['adning-rss'];
+			
+			// http://kb.mailchimp.com/merge-tags/rss-blog/rss-item-tags
+			// Mailchimp RSS code
+			// *|RSSITEMS:|* *|RSSITEM:CONTENT_FULL|* *|END:RSSITEMS|*
+			
+			header('Content-Type: '.feed_content_type('rss-http').'; charset='.get_option('blog_charset'), true);
+			
+			$html.= '<?xml version="1.0" encoding="UTF-8"?>';
+			$html.= '<rss xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:wfw="http://wellformedweb.org/CommentAPI/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" xmlns:slash="http://purl.org/rss/1.0/modules/slash/" version="2.0">';	
+				$html.= '<channel>';
+					$html.= '<title>'.get_bloginfo('name').'</title>';
+					$html.= '<atom:link href="'.get_bloginfo('url').'/?wppas-rss='.$ID.'" rel="self" type="application/rss+xml" />';
+					$html.= '<link>'.get_bloginfo('url').'</link>';
+					$html.= '<description><![CDATA['.get_bloginfo('description').']]></description>';
+					$html.= '<lastBuildDate>'.date('r', current_time('timestamp')).'</lastBuildDate>';
+					$html.= '<language>'.get_bloginfo('language').'</language>';
+					$html.= '<generator>http://adning.com?v='.ADNI_VERSION.'</generator>';
+					
+					$data = do_shortcode('[ADNI_banner id="'.$ID.'" filter="0"]'); // rss=1
+					
+					$html.= '<item>';
+						$html.= '<title>Banner</title>';
+						$html.= '<link>'.get_bloginfo('url').'</link>';
+						$html.= '<guid isPermaLink="false">'.get_bloginfo('url').'/?adning-rss='.$ID.'</guid>';
+						$html.= '<description><![CDATA[ '.get_the_title( $ID ).' ]]></description>';
+						$html.= '<content:encoded><![CDATA['.$data.']]></content:encoded>';
+						$html.= '<pubDate>'.date('r', current_time('timestamp')).'</pubDate>';
+					$html.= '</item>';
+	
+				$html.= '</channel>';
+			$html.= '</rss>';
+			
+			echo $html;
+			
+			exit();
+		}
+	}
+
 }
 
 endif;

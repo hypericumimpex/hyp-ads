@@ -46,6 +46,7 @@ class ADNI_Init {
 		add_action( 'parent_file', array( __CLASS__, 'menu_highlight' ) );
 		add_action( 'admin_init', array( __CLASS__, 'check_for_plugin_updates') );
 		add_action( 'widgets_init', array(__CLASS__, 'register_widgets'), 30 );
+		add_action( 'wp_loaded', array( 'ADNI_Main', 'rss_feed' ) );
 
 		// Filters --------------------------------------------------------
 		add_filter('wp_headers', array(__CLASS__, 'custom_http_headers'));
@@ -86,7 +87,7 @@ class ADNI_Init {
 	public static function deactivate()
 	{
 		// Deregister Adning License
-		$activation = true;
+		$activation = ADNI_Multi::get_option('adning_activation', array());
 		if( !empty($activation))
 		{
 			$resp = ADNI_Activate::deregister(array('license-key' => $activation['license-key']));
@@ -116,6 +117,11 @@ class ADNI_Init {
 	 */
 	public static function define_variables()
 	{
+		$upload = wp_upload_dir();
+		define( 'ADNI_UPLOAD_FOLDER', 'angwp/');
+		define( 'ADNI_UPLOAD_DIR', $upload['basedir'].'/'.ADNI_UPLOAD_FOLDER);
+		define( 'ADNI_UPLOAD_SRC', $upload['baseurl'].'/'.ADNI_UPLOAD_FOLDER);
+		
 		$settings = ADNI_Main::settings();
 		define( "ADNI_ACCESS_ROLE", ADNI_Main::ADNI_capability($settings['roles']['access_role']) );
 		define( "ADNI_ADMIN_ROLE", ADNI_Main::ADNI_capability($settings['roles']['admin_role']) );
@@ -506,7 +512,7 @@ class ADNI_Init {
 	{
 		//set_site_transient('update_plugins', null); // Just for testing to see if the available plugin update gets shown. IF THIS IS ON ACTUALL PLUGIN UPDATES MAY NOT WORK: WP error: Plugin update failed.
 		//$activation = get_option('adning_activation', array());
-		$activation = true;
+		$activation = ADNI_Multi::get_option('adning_activation', array());
 		$license_key = !empty($activation) ? $activation['license-key'] : '';
 
 		require( ADNI_CLASSES_DIR.'/ADNING_PLU_Auto_Plugin_Updater.php');

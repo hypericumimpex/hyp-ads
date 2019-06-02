@@ -63,7 +63,7 @@ class ADNI_Templates {
 		$args = wp_parse_args($args, $defaults);
 
 		//$activation = get_option('adning_activation', array());
-		$activation = true;
+		$activation = ADNI_Multi::get_option('adning_activation', array());
 
 		$html = '';
 		$html.= '<div class="imc-heading-section adning-header">';
@@ -133,7 +133,7 @@ class ADNI_Templates {
 		$h = '';
 		$tab = $args['tab'];
 		//$activation = get_option('adning_activation', array());
-		$activation = true;
+		$activation = ADNI_Multi::get_option('adning_activation', array());
 
 		// Menu options
 		$m_new = $tab == 'new' ? ' nav-tab-active' : '';

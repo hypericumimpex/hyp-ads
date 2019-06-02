@@ -1,3 +1,9 @@
+ADNING V1.3.8
+——————————————————————————————————
+* Added RSS feed for banners http://yoursite.com?adning-rss={Banner ID}
+* Moved UPLOAD constant variables to define_variables() to fix issue with https still using http on some servers.
+
+
 ADNING V1.3.7
 ——————————————————————————————————
 * Added option to save stats by advertiser.
