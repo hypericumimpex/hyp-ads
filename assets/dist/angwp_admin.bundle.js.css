@@ -210,6 +210,17 @@
     height: 100%;
 }
 
+.adning_cont .smartrackError{
+    padding: 10px;
+    margin: 5px 0;
+    background: #ffd17e;
+}
+.adning_cont ._ning_notices .smartrackError{
+    padding: 0;
+    margin: 0;
+    background: transparent;
+}
+
 .adning_cont ._col_pick_tool{
     height: 41px;
     margin-bottom:0;

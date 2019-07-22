@@ -2610,6 +2610,15 @@ class ADNI_Templates {
 						//<!-- end .input_container -->
 					}
 
+					$h.= '<div class="input_container">';
+						$h.= '<h3 class="title">'.__('RSS Feed.','adn').'</h3>';
+						$h.= '<div class="input_container_inner">';
+							$h.= '<input id="ning_rss_feed" style="font-size:11px;" type="text" value="'.get_bloginfo('url').'?adning-rss='.$id.'" />';
+						$h.= '</div>';
+						$h.= '<span class="description bottom">'.__('Banner RSS Feed.','adn').'</span>';
+					$h.= '</div>';
+					//<!-- end .input_container -->
+
 				$h.= '</div>';
 				// end .settings_box_content
 

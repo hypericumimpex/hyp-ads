@@ -128,6 +128,7 @@ $h.= '<div class="adning_cont adning_add_new_banner">';
          * Filter: 'adning_single_banner_notice' - Allow other plugins to add notices to the banner page.
         */
         $h.= apply_filters('adning_single_banner_notice', $banner_post, $is_frontend);
+        $h.= apply_filters('adning_general_notice', $is_frontend);
         
         
         $h.= '<form action="" method="post" enctype="multipart/form-data">';

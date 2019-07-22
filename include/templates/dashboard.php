@@ -6,13 +6,21 @@
 	<div class="wrap">
        
 		<?php
-		$activation = ADNI_Multi::get_option('adning_activation', array());
+		$error = array();
+		$activation = true;
 		$tip = empty($activation) && current_user_can(ADNI_ADMIN_ROLE) ? ' <span style="background-color:#d4ff00;">'.__('Tip: start by activting your Product License.','adn').'</span>' : '';
+
+		$smartrackErr = apply_filters('adning_general_notice', 0);
+        if( $smartrackErr != '' )
+        {
+            $error[] = array('type' => 'warning', 'msg' => $smartrackErr);
+        }
 
 		echo ADNI_Templates::main_admin_header(array(
 			'title' => sprintf('Welcome to Adning - <em>v%s', ADNI_VERSION).'</em>',
 			'desc' => '⚡ ' . __('Great! Thanks for choosing ADning. ADning is always improving and we would love to hear your feedback and suggestions. Let\'s get started!','adn').$tip,
-			'tabs' => 0
+			'tabs' => 0,
+			'errors' => $error
 		));
 		
 		if( current_user_can(ADNI_ADMIN_ROLE) )
@@ -101,7 +109,7 @@
 												<h3><?php _e('Included Add-Ons','adn'); ?></h3>
 												<?php
 												$h = '';
-												$activation = ADNI_Multi::get_option('adning_activation', array());
+												$activation = true;
 												$addOns = array(
 													'smartrack' => array(
 														'name' => 'smarTrack',

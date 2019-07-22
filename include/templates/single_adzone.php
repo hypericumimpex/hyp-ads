@@ -59,7 +59,10 @@ if( !empty( $adzone['post'] ))
     	<!-- Wordpress Messages -->
         <h2 class="messages-position"></h2>
         
-        <?php echo ADNI_Templates::admin_header(); ?>
+        <?php 
+        echo ADNI_Templates::admin_header();
+        echo apply_filters('adning_general_notice', $is_frontend);
+        ?>
         
         <form action="" method="post" enctype="multipart/form-data"> 
         	<input type="hidden" value="<?php echo $id; ?>" name="post_id">

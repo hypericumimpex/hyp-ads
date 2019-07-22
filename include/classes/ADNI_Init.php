@@ -52,9 +52,26 @@ class ADNI_Init {
 		add_filter('wp_headers', array(__CLASS__, 'custom_http_headers'));
 		
 		// Banner click ---------------------------------------------------
-		add_action( 'wp', array( __CLASS__, 'banner_click_action' ), 4);	
+		add_action( 'wp', array( __CLASS__, 'banner_click_action' ), 4);
+		
+		add_filter( 'adning_general_notice', array(__CLASS__, 'check_if_smartrack_tables_exist'), 10, 2);
 	}
 	
+
+
+	public static function check_if_smartrack_tables_exist()
+	{
+		// Check if smarTrack is active
+		$hasstats = ADNI_Main::has_stats(array('type' => 'int'));
+		if( in_array('smartrack', $hasstats))
+		{
+			$check = sTrack_DB::check_if_tables_exist();
+			if( !$check['exist'] )
+			{
+				return '<div class="smartrackError">'.$check['msg'].'</div>';
+			}
+		}
+	}
 	
 	
 	

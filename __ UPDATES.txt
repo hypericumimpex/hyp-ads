@@ -1,3 +1,11 @@
+ADNING V1.3.9
+——————————————————————————————————
+* Added RSS option to banner export settings.
+* Added is_int check to random_weight() function.
+* Added notice when smarTrack database tables are not created.
+* Included smarTrack V1.1.4
+
+
 ADNING V1.3.8
 ——————————————————————————————————
 * Added RSS feed for banners http://yoursite.com?adning-rss={Banner ID}

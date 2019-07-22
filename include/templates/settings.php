@@ -52,12 +52,20 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
 <div class="adning_dashboard adning_cont">
 	<div class="wrap">
        
-        <?php echo ADNI_Templates::main_admin_header(array(
+        <?php 
+        $smartrackErr = apply_filters('adning_general_notice', 0);
+        if( $smartrackErr != '' )
+        {
+            $error[] = array('type' => 'warning', 'msg' => $smartrackErr);
+        }
+        
+        echo ADNI_Templates::main_admin_header(array(
             'page' => 'settings',
             'title' => 'Adning General Settings',
             'desc' => '⚡ ' . __('Adning is designed in a very modular fashion so that lots of functions are customizable. Should you wish to, you can find most general settings below.','adn'),
             'errors' => $error
-        )); ?>
+        )); 
+        ?>
 
         <div class="container">
 

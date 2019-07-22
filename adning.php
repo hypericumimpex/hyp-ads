@@ -3,7 +3,7 @@
  * Plugin Name: HYP Ads
  * Plugin URI: https://github.com/hypericumimpex/hyp-ads/
  * Description: Ads Component
- * Version: 1.3.8
+ * Version: 1.3.9
  * Author: Romeo C.
  * Author URI: https://github.com/hypericumimpex/
  * Requires at least: 4.6.1
@@ -16,7 +16,7 @@
 // Exit if accessed directly
 if ( ! defined( "ABSPATH" ) ) exit;
 // Current plugin version
-if ( ! defined( "ADNI_VERSION" ) ) define( "ADNI_VERSION", "1.3.8" );
+if ( ! defined( "ADNI_VERSION" ) ) define( "ADNI_VERSION", "1.3.9" );
 
 
 if ( ! class_exists( "ADNI_Adning" ) ) : 
