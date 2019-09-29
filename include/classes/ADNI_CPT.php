@@ -1139,21 +1139,25 @@ class ADNI_CPT {
 
 				if( current_user_can(ADNI_BANNERS_ROLE) )
 				{
-					// Add banner to adzones
-					// 1. remove from previous adzones
 					$admin_args = ADNI_Multi::get_post_meta($b_id, '_adning_args', array());
 					$admin_args['display_filter']['post_types'] = array();
 					$admin_args['display_filter']['countries']['ids'] = !isset($post['display_filter']['countries']['ids']) ? array() : $post['display_filter']['countries']['ids'];
 					$admin_args['campaigns'] = array();
-					
-					$post = ADNI_Main::parse_args($post, $admin_args);
 
+					$merge_args = $admin_args;
+					unset($merge_args['adzones']);
+					$post = ADNI_Main::parse_args($post, $merge_args);
+					
+					// Add banner to adzones
+					// 1. remove from previous adzones
 					if( !empty($admin_args['adzones']))
 					{
 						foreach($admin_args['adzones'] as $adzone_id)
 						{
+							/*echo print_r($post['adzones'], true);
+							echo print_r($admin_args['adzones'], true);*/
 							// Only remove banner from adzone if it's not getting re-added.
-							if( !in_array($adzone_id, $post['adzones']) )
+							if( !isset($post['adzones']) || !in_array($adzone_id, $post['adzones']) )
 							{
 								self::remove_banner_from_adzone($adzone_id, $b_id);
 							}
@@ -1169,6 +1173,7 @@ class ADNI_CPT {
 					}
 				}
 			}
+
 
 			if($type === 'adzone')
 			{
@@ -1478,6 +1483,9 @@ class ADNI_CPT {
 		{
 			if (($key = array_search($bid, $adzone_args['linked_banners'])) !== false) 
 			{
+				// First remove the adzone from banner.
+				self::remove_adzone_from_banner($aid, $bid);
+
 				unset($adzone_args['linked_banners'][$key]);
 				ADNI_multi::update_post_meta($aid, '_adning_args', $adzone_args);
 			}	

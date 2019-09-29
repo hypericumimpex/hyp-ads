@@ -1,3 +1,17 @@
+ADNING V1.4.1
+——————————————————————————————————
+* Fixed issue with adzones not removing from banners (banner settings)
+* Added angwp_{bannerID} class to banner and adzone container.
+* Improved filters for ads on Category pages.
+ 
+
+ADNING V1.4.0
+——————————————————————————————————
+* Added "nofollow" option for background ads.
+* Fixed banner impressions for background ads.
+* Fixed issue with tag filter for auto positioning.
+
+
 ADNING V1.3.9
 ——————————————————————————————————
 * Added RSS option to banner export settings.

@@ -107,7 +107,7 @@ class ADNI_Filters {
             return;
         
         $args = $ad['args'];
-
+        
         $set_arr = ADNI_Main::settings();
         $settings = $set_arr['settings'];
 
@@ -136,7 +136,38 @@ class ADNI_Filters {
                     return;
             }
             
+
+            // Category page (checks if we are on a main category page)
+            $cat_page_id = get_query_var('cat');
+            if(!empty($cat_page_id))
+            {
+                $post_arr = $display['post_types']['post'];
+                $tax_arr = array_key_exists('taxonomies', $post_arr) ? $post_arr['taxonomies'] : array();
+                //echo '<pre>'.print_r($tax_arr,true).'</pre>';
+                $term_arr = get_term($cat_page_id,'',ARRAY_A);
+                $tx_arr = array_key_exists($term_arr['taxonomy'], $tax_arr) ? $tax_arr[$term_arr['taxonomy']] : array();
+                $show = array_key_exists('show_hide', $tx_arr) ? $tx_arr['show_hide'] : 0;
+                $ids = array_key_exists('ids', $tx_arr) ? $tx_arr['ids'] : array();
+                //echo '<pre>'.print_r($ids,true).'</pre>';
+                if(!empty($ids))
+                {
+                    //echo print_r($term_list, true);
+                    $match = in_array($cat_page_id, $ids);
+                    //$match = array_intersect(array($cat_page_id), $ids);
+                    if( empty($match) && $show || !empty($match) && !$show ){
+                        return;
+                    }
+                }
+                else
+                {
+                    // Always return the AD. Even when "hide" is selected but no taxonomies are selected.
+                    //return $ad;
+                    $tax_return = $ad;
+                }
+            }
             
+            
+
             // NON-SINGULAR. GLOBAL settings (should be under self::disabled_ads() ) however, 
             // we need to make sure ad doesn't have to show on the home page so we need to check that first.
             // That's why we add this here instead of under self::disabled_ads()
@@ -148,7 +179,6 @@ class ADNI_Filters {
                     return;
             }
                 
-        
 
             // COUNTRY FILTER
             if( !empty($display['countries']) )
@@ -216,6 +246,7 @@ class ADNI_Filters {
                 }*/
             }
 
+
             if( array_key_exists('post_types', $display) && !empty($display['post_types']) )
             {
                 $post_type = get_post_type($post->ID);
@@ -241,17 +272,25 @@ class ADNI_Filters {
                     $taxonomy_names = get_post_taxonomies($post->ID);
                     if(!empty($taxonomy_names))
                     {
+                        //echo '<pre>'.print_r($taxonomy_names, true).'</pre>';
+                        //echo '<pre>'.print_r($post_arr['taxonomies'], true).'</pre>';
+                        //$tax_arrr = array_key_exists('taxonomies', $post_arr) ? $post_arr['taxonomies'] : array();
+                        $tax_return = $ad;
                         $tax_arr = array_key_exists('taxonomies', $post_arr) ? $post_arr['taxonomies'] : array();
-
+                        
                         foreach($taxonomy_names as $taxonomy)
                         {
-                            $tax_arr = array_key_exists($taxonomy, $tax_arr) ? $tax_arr[$taxonomy] : array();
-                            $show = array_key_exists('show_hide', $tax_arr) ? $tax_arr['show_hide'] : 0;
-                            $ids = array_key_exists('ids', $tax_arr) ? $tax_arr['ids'] : array();
-                            
+                            //echo '<pre>'.$taxonomy.print_r($tax_arr, true).'</pre>';
+                            $tx_arr = array_key_exists($taxonomy, $tax_arr) ? $tax_arr[$taxonomy] : array();
+                            $show = array_key_exists('show_hide', $tx_arr) ? $tx_arr['show_hide'] : 0;
+                            $ids = array_key_exists('ids', $tx_arr) ? $tx_arr['ids'] : array();
+                            //echo count($tax_arr).$taxonomy.'<pre>'.print_r($tx_arr, true).'</pre>';
+
                             if(!empty($ids))
                             {
+                                //echo $taxonomy.'<br>';
                                 $term_list = wp_get_post_terms($post->ID, $taxonomy, array("fields" => "ids"));
+                                //echo print_r($term_list, true);
                                 $match = array_intersect($term_list, $ids);
                                 
                                 if( empty($match) && $show || !empty($match) && !$show ){
@@ -261,23 +300,20 @@ class ADNI_Filters {
                             else
                             {
                                 // Always return the AD. Even when "hide" is selected but no taxonomies are selected.
-                                return $ad;
-                                /*if( !$show ) // && in_array($ad['post']->ID, ADNI_Main::auto_positioning())
-                                {
-                                    return;
-                                }
-                                else
-                                {
-                                    return $ad;
-                                }*/
+                                //return $ad;
+                                $tax_return = $ad;
                             }
+                        }
+
+                        if(empty($tax_return))
+                        {
+                            return;
                         }
                     }
                     
                 }
                 else
                 {
-                    //if( !$show )
                     return;
                 }
             }
@@ -478,12 +514,15 @@ class ADNI_Filters {
                     
                     if( self::show_hide(array('args' => $b)) )
                     {
+                        // save stats (Load banner tpl (ADNI_Templates::banner_tpl) only to save impressions)
+                        ADNI_Templates::banner_tpl($key);
+                        
                         $bg_container = !empty($b['bg_takeover_bg_container']) ? $b['bg_takeover_bg_container'] : 'body';
                         // URLs
                         $top_url = $b['banner_link_masking'] ? ADNI_Main::link_masking(array('id' => $key, 'bg_ad' => 'top' )) : $b['bg_takeover_top_skin_url'];
                         $left_url = $b['banner_link_masking'] ? ADNI_Main::link_masking(array('id' => $key, 'bg_ad' => 'left' )) : $b['bg_takeover_left_skin_url'];
                         $right_url = $b['banner_link_masking'] ? ADNI_Main::link_masking(array('id' => $key, 'bg_ad' => 'right' )) : $b['bg_takeover_right_skin_url'];
-
+                        
                         $js = '';
                         $js.= '<script>';
                             $js.= "jQuery('".$bg_container."').bgTakeover({
@@ -492,6 +531,7 @@ class ADNI_Filters {
                                 content_bg_color: '".$b['bg_takeover_content_bg_color']."',
                                 bg_pos: '".$b['bg_takeover_position']."',
                                 top_skin: '".$b['bg_takeover_top_skin']."',
+                                nofollow: ".$b['banner_no_follow'].",
                                 container: '".$b['bg_takeover_content_container']."',
                                 click_url: {
                                     'top': '".$top_url."',

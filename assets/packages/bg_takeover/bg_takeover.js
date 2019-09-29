@@ -11,6 +11,7 @@
             bg_color: '',
             content_bg_color: '',
             bg_pos: 'fixed', // fixed | absolute
+            nofollow: 0,
             click_url: '', // string | object
             container: '.container',
             top_skin: '', // 100px - height of the top skin bar
@@ -54,6 +55,12 @@
                     left: settings.click_url,
                     right: settings.click_url
                 };
+            }
+
+            if( settings.nofollow ){
+                _obj.find('.skin_bg_top').attr('rel','nofollow');
+                _obj.find('.skin_bg_left').attr('rel','nofollow');
+                _obj.find('.skin_bg_right').attr('rel','nofollow');
             }
             
             if( click_url.top === ''){

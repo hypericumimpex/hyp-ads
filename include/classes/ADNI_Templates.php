@@ -63,7 +63,7 @@ class ADNI_Templates {
 		$args = wp_parse_args($args, $defaults);
 
 		//$activation = get_option('adning_activation', array());
-		$activation = ADNI_Multi::get_option('adning_activation', array());
+		$activation = true;
 
 		$html = '';
 		$html.= '<div class="imc-heading-section adning-header">';
@@ -133,7 +133,7 @@ class ADNI_Templates {
 		$h = '';
 		$tab = $args['tab'];
 		//$activation = get_option('adning_activation', array());
-		$activation = ADNI_Multi::get_option('adning_activation', array());
+		$activation = true;
 
 		// Menu options
 		$m_new = $tab == 'new' ? ' nav-tab-active' : '';
@@ -183,7 +183,7 @@ class ADNI_Templates {
 		// if args stats is empty it has to overwrite the single banner stats.
 		$save_stats = empty($args['stats']) ? 0 : $banner['args']['enable_stats'];
 		$loaded_id = '';
-
+		
 		//echo '<pre>'.print_r($banner,true).'</pre>';
 		
 		// Filter -------------------------------------------------------
@@ -238,7 +238,7 @@ class ADNI_Templates {
 		
 		// Banner content
 		$b_html = '';
-		$b_html.= '<div class="_ning_cont'.$strack_btn.' _ning_hidden'.$ning_outer_class.$align_class.$responsive_class.$scale_class.$has_label.$has_border.'" data-size="'.$b['size'].'"'.$animation.' data-bid="'.$id.'" data-aid="'.$adzone_id.'"'.$loaded_id_data.' style="max-width:'.$banner_w.'; width:100%;height:'.$banner_h.';'.$border_color.'">'; // height:inherit
+		$b_html.= '<div class="angwp_'.$id.' _ning_cont'.$strack_btn.' _ning_hidden'.$ning_outer_class.$align_class.$responsive_class.$scale_class.$has_label.$has_border.'" data-size="'.$b['size'].'"'.$animation.' data-bid="'.$id.'" data-aid="'.$adzone_id.'"'.$loaded_id_data.' style="max-width:'.$banner_w.'; width:100%;height:'.$banner_h.';'.$border_color.'">'; // height:inherit
 			$b_html.= !$adzone_id ? '<div class="_ning_label'.$label_pos.'" style="'.$label_color.'">'.$label.'</div>' : '';
 			$b_html.= '<div class="_ning_inner" style="'.$inner_size.$bg_color.'">';
 				// Banner_url
@@ -352,7 +352,7 @@ class ADNI_Templates {
 			$u_slides_style = !$a['load_grid'] ? 'position:absolute; overflow:hidden; left:0px; top:0px;width:'.$a['size_w'].'px; height:'.$a['size_h'].'px;' : '';
 
 			$a_html = '';
-			$a_html.= '<div class="_ning_outer ang_zone_'.$id.' _ning_jss_zone'.$has_label.$has_border.$align_class.$is_grid_class.'" style="'.$_ning_outer_style.'height:inherit;'.$border_color.'">';
+			$a_html.= '<div class="angwp_'.$id.' _ning_outer ang_zone_'.$id.' _ning_jss_zone'.$has_label.$has_border.$align_class.$is_grid_class.'" style="'.$_ning_outer_style.'height:inherit;'.$border_color.'">';
 				$a_html.= '<div class="_ning_label'.$label_pos.'" style="'.$label_color.'">'.$label.'</div>';
 				$a_html.= '<div id="_ning_zone_'.$rand_id.'" class="_ning_zone_inner" style="'.$_ning_zone_inner_style.'position:relative;">';
 					$a_html.= '<div u="slides" style="'.$u_slides_style.'">';
@@ -541,6 +541,9 @@ class ADNI_Templates {
      */
     public static function display_wrapper( $post = array(), $content = '' ) 
     {
+		if( empty($post['post']) )
+			return $content;
+			
 		$b = $post['args'];
 		$id = $post['post']->ID;
 		$type = $b['type'];
@@ -3353,11 +3356,6 @@ class ADNI_Templates {
 													'post_type'        => ADNI_CPT::$adzone_cpt
 												),$limit_user_posts)
 											);
-											/*$all_posts = get_posts(array(
-												'posts_per_page'   => -1,
-												'post_status'      => 'publish',
-												'post_type'        => ADNI_CPT::$adzone_cpt
-											));*/
 							
 											foreach($all_posts as $i => $post)
 											{
